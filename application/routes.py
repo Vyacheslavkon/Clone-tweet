@@ -1,6 +1,7 @@
 import os
 import logging
 import sys
+import aiofiles
 import traceback
 from contextlib import asynccontextmanager
 from typing import Annotated
@@ -14,11 +15,11 @@ from sqlalchemy.orm import joinedload, selectinload
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 from fastapi.responses import JSONResponse, FileResponse
-from fastapi import Request
+from fastapi import Request, UploadFile
 from anyio import to_thread
 from application.database import engine, get_db
 import application.schemas
-from application.models import Tweet, User  # User
+from application.models import Tweet, User, Media
 
 ROOT_PATH = os.getcwd()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -103,12 +104,22 @@ async def auth_user(api_key: Annotated[str, Header()],
 
 
 @app.post("/api/tweets", response_model=schemas.AddTweet)
-async def add_tweet(tweet: schemas.AddTweet, session:
-                AsyncSession = Depends(get_db)) -> JSONResponse:
-    logger.info("Api - tweets start.")
-    new_tweet = Tweet(**tweet.model_dump())
+async def add_tweet(api_key: Annotated[str, Header()],
+                    tweet: schemas.AddTweet, session:
+                AsyncSession = Depends(get_db),) -> JSONResponse:
+
+    tweet_data = tweet.model_dump()
 
     async with session.begin():
+        query = select(User).where(User.api_key == api_key)
+        result = await session.execute(query)
+        user = result.scalar_one_or_none()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user_id = user.id
+        tweet_data["user_id"] = user_id
+        new_tweet = Tweet(**tweet_data)
         session.add(new_tweet)
 
     response = {
@@ -117,6 +128,20 @@ async def add_tweet(tweet: schemas.AddTweet, session:
     }
 
     return   JSONResponse(content=response, status_code=201)
+
+
+@app.post("/api/medias", response_model=schemas.UploadMedia)
+async  def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)):
+    file_path = f"static/media/{file.filename}"
+    async with aiofiles.open(file_path, 'wb') as out_file:
+        content = await file.read()
+        await out_file.write(content)
+    media_data = dict()
+    media_data["path"] = file_path
+    new_media = Media(**media_data)
+    async with session.begin():
+        session.add(new_media)
+    return new_media
 
 
 @app.get("/api/tweets", response_model=schemas.AddTweet)

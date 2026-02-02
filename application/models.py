@@ -22,6 +22,7 @@ class Media(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     path: Mapped[str] = mapped_column(String(1024))
     tweet_id: Mapped[Optional[int]] = mapped_column(ForeignKey("tweet.id"))
+
     tweet: Mapped[Optional["Tweet"]] = relationship(back_populates="tweet_media")
 
 

@@ -3,10 +3,9 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class AddMedia(BaseModel):
+class UploadMedia(BaseModel):
 
     path: str
-    tweet_id: int
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -14,7 +13,8 @@ class AddMedia(BaseModel):
 class AddTweet(BaseModel):
 
     tweet_data: str
-    tweet_media: list[AddMedia]  = Field(default_factory=list)
+    tweet_media: list[UploadMedia]  = Field(default_factory=list)
+
 
     model_config = ConfigDict(from_attributes=True)
 
