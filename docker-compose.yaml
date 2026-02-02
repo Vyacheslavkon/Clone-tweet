@@ -2,7 +2,14 @@ services:
   app:
     build: .
     volumes:
-      - .:/application
+      - ./application:/application/application
+      - ./alembic:/application/alembic
+      - ./static:/application/static
+      - ./alembic.ini:/application/alembic.ini
+      - ./main.py:/application/main.py
+      - ./pytest.ini:/application/pytest.ini
+      - ./requirement.txt:/application/requirement.txt
+      - ./tests:/application/tests
 
     ports:
       - "8000:8000"
