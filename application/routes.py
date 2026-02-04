@@ -5,11 +5,10 @@ import aiofiles
 import traceback
 from contextlib import asynccontextmanager
 from typing import Annotated
-
 from alembic.config import Config
 from alembic import command
 from fastapi import FastAPI, Depends, Header, HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 from starlette.staticfiles import StaticFiles
@@ -25,6 +24,7 @@ ROOT_PATH = os.getcwd()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 #STATIC_DIR = os.path.join(ROOT_PATH, "static")
 STATIC_DIR = "/application/static"
+MEDIA_DIR = "/application/media"
 #TEMPLATES_DIR = os.path.join(ROOT_PATH, "templates")
 ROOT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
 alembic_ini = os.path.join(ROOT_PATH, "alembic.ini")
@@ -121,6 +121,12 @@ async def add_tweet(api_key: Annotated[str, Header()],
         tweet_data["user_id"] = user_id
         new_tweet = Tweet(**tweet_data)
         session.add(new_tweet)
+        await session.flush()
+        if tweet.tweet_media:
+            query = update(Media).where(Media.id.in_(tweet.tweet_media)).values(tweet_id=new_tweet.id)
+            await session.execute(query)
+
+        #await session.commit()
 
     response = {
         "result": True,
@@ -132,7 +138,8 @@ async def add_tweet(api_key: Annotated[str, Header()],
 
 @app.post("/api/medias", response_model=schemas.UploadMedia)
 async  def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)):
-    file_path = f"static/media/{file.filename}"
+    #file_path = f"static/media/{file.filename}"
+    file_path = os.path.join(STATIC_DIR, "media", file.filename)
     async with aiofiles.open(file_path, 'wb') as out_file:
         content = await file.read()
         await out_file.write(content)
