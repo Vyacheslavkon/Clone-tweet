@@ -11,6 +11,7 @@ services:
       - ./requirement.txt:/application/requirement.txt
       - ./tests:/application/tests
       - ./media:/application/media
+      - ./.env.test:/application/.env.test
 
     ports:
       - "8000:8000"
@@ -59,6 +60,22 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+
+  db_test:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: slava_t
+      POSTGRES_PASSWORD: 1989_slava_t
+      POSTGRES_DB: test_db
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U slava_t -d test_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 
 networks:

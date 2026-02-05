@@ -127,6 +127,7 @@ async def add_tweet(api_key: Annotated[str, Header()],
             await session.execute(query)
 
 
+
     response = {
         "result": True,
         "tweet_id": new_tweet.id
@@ -150,8 +151,8 @@ async  def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db
     new_media = Media(**media_data)
     async with session.begin():
         session.add(new_media)
-        await session.flush()
     response = {"media_id": new_media.id}
+
     return  response
 
 
