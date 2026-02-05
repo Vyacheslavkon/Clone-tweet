@@ -11,7 +11,9 @@ class Tweet(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     tweet_data: Mapped[str] = mapped_column(String(280), nullable=False)#
-    tweet_media: Mapped[list['Media']] = relationship(back_populates='tweet')
+    #tweet_media: Mapped[list['Media']] = relationship(back_populates='tweet')
+    tweet_media_ids: Mapped[list['Media']] = relationship(back_populates='tweet')
+
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     author: Mapped["User"] = relationship(back_populates="tweets")
 
@@ -23,7 +25,7 @@ class Media(Base):
     path: Mapped[str] = mapped_column(String(1024))
     tweet_id: Mapped[Optional[int]] = mapped_column(ForeignKey("tweet.id"))
 
-    tweet: Mapped[Optional["Tweet"]] = relationship(back_populates="tweet_media")
+    tweet: Mapped[Optional["Tweet"]] = relationship(back_populates="tweet_media_ids")
 
 
 class FollowLink(Base):

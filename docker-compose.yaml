@@ -10,6 +10,7 @@ services:
       - ./pytest.ini:/application/pytest.ini
       - ./requirement.txt:/application/requirement.txt
       - ./tests:/application/tests
+      - ./media:/application/media
 
     ports:
       - "8000:8000"

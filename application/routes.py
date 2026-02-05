@@ -1,6 +1,7 @@
 import os
 import logging
 import sys
+import uuid
 import aiofiles
 import traceback
 from contextlib import asynccontextmanager
@@ -22,10 +23,8 @@ from application.models import Tweet, User, Media
 
 ROOT_PATH = os.getcwd()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-#STATIC_DIR = os.path.join(ROOT_PATH, "static")
 STATIC_DIR = "/application/static"
 MEDIA_DIR = "/application/media"
-#TEMPLATES_DIR = os.path.join(ROOT_PATH, "templates")
 ROOT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
 alembic_ini = os.path.join(ROOT_PATH, "alembic.ini")
 INDEX = os.path.join(STATIC_DIR, "index.html")
@@ -108,8 +107,7 @@ async def add_tweet(api_key: Annotated[str, Header()],
                     tweet: schemas.AddTweet, session:
                 AsyncSession = Depends(get_db),) -> JSONResponse:
 
-    tweet_data = tweet.model_dump()
-
+    tweet_data = tweet.model_dump(exclude={"tweet_media_ids"})
     async with session.begin():
         query = select(User).where(User.api_key == api_key)
         result = await session.execute(query)
@@ -122,11 +120,12 @@ async def add_tweet(api_key: Annotated[str, Header()],
         new_tweet = Tweet(**tweet_data)
         session.add(new_tweet)
         await session.flush()
-        if tweet.tweet_media:
-            query = update(Media).where(Media.id.in_(tweet.tweet_media)).values(tweet_id=new_tweet.id)
+
+        if tweet.tweet_media_ids:
+            query = update(Media).where(Media.id.in_(tweet.tweet_media_ids)
+                                        ).values(tweet_id=new_tweet.id)
             await session.execute(query)
 
-        #await session.commit()
 
     response = {
         "result": True,
@@ -138,8 +137,11 @@ async def add_tweet(api_key: Annotated[str, Header()],
 
 @app.post("/api/medias", response_model=schemas.UploadMedia)
 async  def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)):
-    #file_path = f"static/media/{file.filename}"
-    file_path = os.path.join(STATIC_DIR, "media", file.filename)
+
+    ext = os.path.splitext(file.filename)[1]
+    unique_name = f"{uuid.uuid4()}{ext}"
+    file_path = os.path.join(MEDIA_DIR, unique_name)
+
     async with aiofiles.open(file_path, 'wb') as out_file:
         content = await file.read()
         await out_file.write(content)
@@ -148,7 +150,10 @@ async  def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db
     new_media = Media(**media_data)
     async with session.begin():
         session.add(new_media)
-    return new_media
+        await session.flush()
+    response = {"media_id": new_media.id}
+    return  response
+
 
 
 @app.get("/api/tweets", response_model=schemas.AddTweet)
