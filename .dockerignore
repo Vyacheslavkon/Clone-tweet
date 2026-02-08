@@ -2,3 +2,9 @@
 .git
 .idea
 __pycache__
+.env
+Dockerfile
+docker-compose.yaml
+.gitignore
+.dockerignore
+

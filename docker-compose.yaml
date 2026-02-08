@@ -11,13 +11,14 @@ services:
       - ./requirement.txt:/application/requirement.txt
       - ./tests:/application/tests
       - ./media:/application/media
-      - ./.env.test:/application/.env.test
+
 
     ports:
       - "8000:8000"
 
     env_file:
       - .env
+      - .env.test
 
     depends_on:
       db:

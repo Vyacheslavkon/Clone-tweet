@@ -1,6 +1,5 @@
-from dotenv import load_dotenv
+
 import os
-load_dotenv(dotenv_path=".env.test")
 import pytest
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -9,8 +8,8 @@ from application.database import get_db, Base
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from application import models
 
-TEST_DATABASE_URL=os.getenv("DATABASE_TEST_URL")
-
+TEST_DATABASE_URL=os.getenv("TEST_DATABASE_URL")
+print(f"Address test_db = {TEST_DATABASE_URL}")
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=True)
 
 TestingSessionLocal = async_sessionmaker(
