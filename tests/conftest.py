@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from application import models
 
 TEST_DATABASE_URL=os.getenv("TEST_DATABASE_URL")
-print(f"Address test_db = {TEST_DATABASE_URL}")
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=True)
 
 TestingSessionLocal = async_sessionmaker(
@@ -25,22 +24,33 @@ async def override_get_db():
         yield session
 
 
-# @pytest.fixture(scope='function')
-# async def test_session():
-#     async with TestingSessionLocal() as session:
-#         yield session
+@pytest.fixture(scope="session")
+def event_loop():
+    import asyncio
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(scope='function')
 async def test_session():
-    # Используем соединение, чтобы обернуть всё в одну транзакцию
-    async with test_engine.connect() as connection:
-        # Начинаем транзакцию
-        transaction = await connection.begin()
-        async with AsyncSession(bind=connection, expire_on_commit=False) as session:
-            yield session
-        # Откатываем изменения после каждого теста (БД всегда чистая!)
-        await transaction.rollback()
+    async with TestingSessionLocal() as session:
+        yield session
+
+
+# @pytest.fixture(scope='function')
+# async def test_session():
+#     # Используем соединение, чтобы обернуть всё в одну транзакцию
+#     async with test_engine.connect() as connection:
+#         # Начинаем транзакцию
+#         transaction = await connection.begin()
+#         async with AsyncSession(bind=connection, expire_on_commit=False) as session:
+#             yield session
+#         # Откатываем изменения после каждого теста (БД всегда чистая!)
+#         await transaction.rollback()
 
 
 @pytest.fixture(scope='function')
@@ -63,18 +73,19 @@ async def setup_test_db():
     yield
 
     # app.router.lifespan_context = original_lifespan_context
-    # app.dependency_overrides = {}
+    app.dependency_overrides = {}
 
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
 
 @pytest.fixture(scope="session", autouse=True)
-async def add_user(test_session: AsyncSession):
-    async with test_session.begin():
-        new_user = models.User(
-            api_key="test",
-            name="test_user"
-        )
+async def add_user(setup_test_db):
+    async with TestingSessionLocal() as session:
+        async with session.begin():
+            new_user = models.User(
+                api_key="test",
+                name="test_user"
+            )
 
-        test_session.add(new_user)
+            session.add(new_user)
