@@ -35,22 +35,22 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope='function')
-async def test_session():
-    async with TestingSessionLocal() as session:
-        yield session
-
-
 # @pytest.fixture(scope='function')
 # async def test_session():
-#     # Используем соединение, чтобы обернуть всё в одну транзакцию
-#     async with test_engine.connect() as connection:
-#         # Начинаем транзакцию
-#         transaction = await connection.begin()
-#         async with AsyncSession(bind=connection, expire_on_commit=False) as session:
-#             yield session
-#         # Откатываем изменения после каждого теста (БД всегда чистая!)
-#         await transaction.rollback()
+#     async with TestingSessionLocal() as session:
+#         yield session
+
+
+@pytest.fixture(scope='function')
+async def test_session():
+    # Используем соединение, чтобы обернуть всё в одну транзакцию
+    async with test_engine.connect() as connection:
+        # Начинаем транзакцию
+        transaction = await connection.begin()
+        async with AsyncSession(bind=connection, expire_on_commit=False) as session:
+            yield session
+        # Откатываем изменения после каждого теста (БД всегда чистая!)
+        await transaction.rollback()
 
 
 @pytest.fixture(scope='function')

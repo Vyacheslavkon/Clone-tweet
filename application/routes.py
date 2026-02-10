@@ -1,4 +1,5 @@
 import os
+import time
 import logging
 import sys
 import uuid
@@ -70,12 +71,17 @@ app.mount("/css", StaticFiles(directory=os.path.join(STATIC_DIR, "css")), name="
 
 @app.middleware("http")
 async def db_error_middleware(request: Request, call_next):
+    start_time = time.time()
     try:
-        return await call_next(request)
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        logger.info(f"INFO: Request {request.method} {request.url.path} "
+              f"completed in {process_time:.4f}s")
+        return response
     except Exception as e:
-        # Это выведет красную ошибку в терминал Docker
+
         traceback.print_exc()
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal Server Error"})
 
 
 
