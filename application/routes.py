@@ -5,6 +5,7 @@ import sys
 import uuid
 import aiofiles
 import traceback
+from logging import config
 from contextlib import asynccontextmanager
 from typing import Annotated
 from alembic.config import Config
@@ -14,13 +15,13 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 from starlette.staticfiles import StaticFiles
-from starlette.templating import Jinja2Templates
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi import Request, UploadFile
 from anyio import to_thread
 from application.database import engine, get_db
 import application.schemas
 from application.models import Tweet, User, Media
+from config_logs import dict_config
 
 ROOT_PATH = os.getcwd()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -32,8 +33,9 @@ INDEX = os.path.join(STATIC_DIR, "index.html")
 
 schemas = application.schemas
 
-logger = logging.getLogger("Routes")
-logging.basicConfig(stream=sys.stdout, level="DEBUG")
+logging.config.dictConfig(dict_config)
+logger = logging.getLogger("routes_log")
+logging.basicConfig(level="DEBUG")
 
 
 
@@ -88,6 +90,7 @@ async def db_error_middleware(request: Request, call_next):
 @app.get("/api/users/me", response_model=schemas.UserInfo)
 async def auth_user(api_key: Annotated[str, Header()],
                     session: AsyncSession = Depends(get_db)):
+    logger.info("Start api: api/users/me")
     query = select(User).where(User.api_key == api_key).options(
             selectinload(User.followers),
             selectinload(User.following))

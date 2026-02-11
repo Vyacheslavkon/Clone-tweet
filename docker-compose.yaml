@@ -11,6 +11,8 @@ services:
       - ./requirement.txt:/application/requirement.txt
       - ./tests:/application/tests
       - ./media:/application/media
+      - ./routes_logs.log:/application/routes_logs.log
+      - ./config_logs.py:/application/config_logs.py
 
 
     ports:
@@ -19,6 +21,9 @@ services:
     env_file:
       - .env
       - .env.test
+
+    environment:
+      - PYTHONUNBUFFERED=1
 
     depends_on:
       db:
