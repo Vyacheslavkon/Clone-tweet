@@ -1,4 +1,5 @@
-dict_config = {
+
+dict_config ={
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -34,8 +35,11 @@ dict_config = {
         },
         'routes_log': {
             'level': 'INFO',
-            'handlers': ['hand_routes_log', 'file']
+            'handlers': ['hand_routes_log', 'file'],
+            'propagate': False,
         }
 
     }
+
 }
+

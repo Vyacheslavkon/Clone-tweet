@@ -1,11 +1,12 @@
+from logging import config
+import logging
+from config_logs import dict_config
 import os
 import time
-import logging
 import sys
 import uuid
 import aiofiles
 import traceback
-from logging import config
 from contextlib import asynccontextmanager
 from typing import Annotated
 from alembic.config import Config
@@ -21,7 +22,10 @@ from anyio import to_thread
 from application.database import engine, get_db
 import application.schemas
 from application.models import Tweet, User, Media
-from config_logs import dict_config
+
+logging.config.dictConfig(dict_config)
+logger = logging.getLogger("routes_log")
+
 
 ROOT_PATH = os.getcwd()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -33,9 +37,8 @@ INDEX = os.path.join(STATIC_DIR, "index.html")
 
 schemas = application.schemas
 
-logging.config.dictConfig(dict_config)
-logger = logging.getLogger("routes_log")
-logging.basicConfig(level="DEBUG")
+
+
 
 
 
@@ -55,8 +58,11 @@ def run_upgrade():
 @asynccontextmanager
 async def lifespan(application: FastAPI):
 
+    logging.config.dictConfig(dict_config)
+    loggers = logging.getLogger("routes_log")
+    loggers.info("performing migrations")
     await to_thread.run_sync(run_upgrade) #new
-    logger.info("performing migrations")
+
     yield
 
     await engine.dispose()
@@ -90,14 +96,16 @@ async def db_error_middleware(request: Request, call_next):
 @app.get("/api/users/me", response_model=schemas.UserInfo)
 async def auth_user(api_key: Annotated[str, Header()],
                     session: AsyncSession = Depends(get_db)):
-    logger.info("Start api: api/users/me")
+
     query = select(User).where(User.api_key == api_key).options(
             selectinload(User.followers),
             selectinload(User.following))
 
     result = await session.execute(query)
     user = result.scalars().first()
-
+    if user:
+        logger_u = logging.getLogger("routes_log")
+        logger_u.info(f"Start api: api/users/me/{user.name}")
     if not user:
 
         raise HTTPException(status_code=404, detail="User not found")
@@ -115,7 +123,7 @@ async def auth_user(api_key: Annotated[str, Header()],
 async def add_tweet(api_key: Annotated[str, Header()],
                     tweet: schemas.AddTweet, session:
                 AsyncSession = Depends(get_db),) -> JSONResponse:
-
+    logger.info("Start api: api/post/tweet")
     tweet_data = tweet.model_dump(exclude={"tweet_media_ids"})
     async with session.begin():
         query = select(User).where(User.api_key == api_key)
