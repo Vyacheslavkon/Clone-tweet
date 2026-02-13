@@ -12,7 +12,7 @@ services:
       - ./tests:/application/tests
       - ./media:/application/media
       - ./routes_logs.log:/application/routes_logs.log
-      - ./config_logs.py:/application/config_logs.py
+
 
 
     ports:

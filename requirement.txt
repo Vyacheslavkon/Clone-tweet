@@ -21,6 +21,7 @@ iniconfig==2.3.0
 isort==7.0.0
 Jinja2==3.1.6
 librt==0.7.8
+loguru==0.7.3
 Mako==1.3.10
 MarkupSafe==3.0.3
 mccabe==0.7.0
