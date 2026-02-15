@@ -1,14 +1,16 @@
-
 import os
-import pytest
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from application.routes import app
-from application.database import get_db, Base
-from sqlalchemy.ext.asyncio import async_sessionmaker
-from application import models
 
-TEST_DATABASE_URL=os.getenv("TEST_DATABASE_URL")
+import pytest
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+from application import models
+from application.database import Base, get_db
+from application.routes import app
+
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
+if TEST_DATABASE_URL is None:
+    raise ValueError("DATABASE_URL_DOCKER is not set in environment variables")
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=True)
 
 TestingSessionLocal = async_sessionmaker(
@@ -16,8 +18,9 @@ TestingSessionLocal = async_sessionmaker(
     autoflush=False,
     bind=test_engine,
     class_=AsyncSession,
-    expire_on_commit=False
+    expire_on_commit=False,
 )
+
 
 async def override_get_db():
     async with TestingSessionLocal() as session:
@@ -27,6 +30,7 @@ async def override_get_db():
 @pytest.fixture(scope="session")
 def event_loop():
     import asyncio
+
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
@@ -41,7 +45,7 @@ def event_loop():
 #         yield session
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 async def test_session():
     # Используем соединение, чтобы обернуть всё в одну транзакцию
     async with test_engine.connect() as connection:
@@ -53,13 +57,15 @@ async def test_session():
         await transaction.rollback()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 async def client():
-    async with AsyncClient(transport=ASGITransport(app=app), base_url='http://test') as ac:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
         yield ac
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 async def setup_test_db():
 
     async with test_engine.begin() as conn:
@@ -83,9 +89,6 @@ async def setup_test_db():
 async def add_user(setup_test_db):
     async with TestingSessionLocal() as session:
         async with session.begin():
-            new_user = models.User(
-                api_key="test",
-                name="test_user"
-            )
+            new_user = models.User(api_key="test", name="test_user")
 
             session.add(new_user)

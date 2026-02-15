@@ -1,8 +1,9 @@
 import io
+
 import pytest
 from httpx import AsyncClient
-from application import routes
 
+from application import routes
 
 
 @pytest.mark.asyncio

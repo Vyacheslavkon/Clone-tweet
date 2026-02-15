@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,19 +5,14 @@ class UploadMedia(BaseModel):
 
     media_id: int
 
-
-
     model_config = ConfigDict(from_attributes=True)
-
 
 
 class AddTweet(BaseModel):
 
     tweet_data: str
 
-    tweet_media_ids: list[int]  = Field(default_factory=list, alias="tweet_media_ids")
-
-
+    tweet_media_ids: list[int] = Field(default_factory=list, alias="tweet_media_ids")
 
     model_config = ConfigDict(from_attributes=True)
 

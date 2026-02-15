@@ -1,0 +1,60 @@
+2026-02-15 07:30:45.352 | INFO     | application.routes:run_upgrade:51 - Migrations applied successfully
+2026-02-15 07:31:19.641 | INFO     | application.routes:upload_media:168 - Image: 1 saved successful.
+2026-02-15 07:31:19.655 | INFO     | application.routes:add_tweet:121 - Request completed: api/post/tweet
+2026-02-15 07:31:19.772 | INFO     | application.routes:add_tweet:148 - Tweet 1 successful saved.
+2026-02-15 07:31:19.814 | INFO     | application.routes:auth_user:103 - request completed: api/users/me/test_user
+2026-02-15 07:31:19.837 | INFO     | application.routes:auth_user:105 - User not found
+2026-02-15 08:09:32.357 | INFO     | application.routes:run_upgrade:50 - Migrations applied successfully
+2026-02-15 08:09:50.268 | INFO     | application.routes:upload_media:165 - Image: 1 saved successful.
+2026-02-15 08:09:50.287 | INFO     | application.routes:add_tweet:120 - Request completed: api/post/tweet
+2026-02-15 08:09:50.426 | INFO     | application.routes:add_tweet:145 - Tweet 1 successful saved.
+2026-02-15 08:09:50.485 | INFO     | application.routes:auth_user:104 - request completed: api/users/me/test_user
+2026-02-15 08:09:50.519 | INFO     | application.routes:auth_user:106 - User not found
+2026-02-15 08:10:37.301 | INFO     | application.routes:auth_user:104 - request completed: api/users/me/Slava
+2026-02-15 08:10:37.732 | INFO     | application.routes:auth_user:104 - request completed: api/users/me/Slava
+2026-02-15 08:17:14.665 | INFO     | application.routes:run_upgrade:50 - Migrations applied successfully
+2026-02-15 08:17:24.261 | INFO     | application.routes:upload_media:165 - Image: 1 saved successful.
+2026-02-15 08:17:24.278 | INFO     | application.routes:add_tweet:120 - Request completed: api/post/tweet
+2026-02-15 08:17:24.471 | INFO     | application.routes:add_tweet:145 - Tweet 1 successful saved.
+2026-02-15 08:17:24.549 | INFO     | application.routes:auth_user:104 - request completed: api/users/me/test_user
+2026-02-15 08:17:24.570 | INFO     | application.routes:auth_user:106 - User not found
+2026-02-15 08:17:30.081 | INFO     | application.routes:auth_user:104 - request completed: api/users/me/Slava
+2026-02-15 08:17:30.240 | INFO     | application.routes:auth_user:104 - request completed: api/users/me/Slava
+2026-02-15 08:32:40.673 | INFO     | application.routes:run_upgrade:50 - Migrations applied successfully
+2026-02-15 08:32:48.634 | INFO     | application.routes:upload_media:165 - Image: 1 saved successful.
+2026-02-15 08:32:48.651 | INFO     | application.routes:add_tweet:120 - Request completed: api/post/tweet
+2026-02-15 08:32:48.747 | INFO     | application.routes:add_tweet:145 - Tweet 1 successful saved.
+2026-02-15 08:32:48.805 | INFO     | application.routes:auth_user:104 - request completed: api/users/me/test_user
+2026-02-15 08:32:48.826 | INFO     | application.routes:auth_user:106 - User not found
+2026-02-15 08:32:53.989 | INFO     | application.routes:auth_user:104 - request completed: api/users/me/Slava
+2026-02-15 08:32:54.131 | INFO     | application.routes:auth_user:104 - request completed: api/users/me/Slava
+2026-02-15 08:44:00.661 | INFO     | application.routes:run_upgrade:51 - Migrations applied successfully
+2026-02-15 08:44:14.558 | INFO     | application.routes:upload_media:166 - Image: 1 saved successful.
+2026-02-15 08:44:14.570 | INFO     | application.routes:add_tweet:121 - Request completed: api/post/tweet
+2026-02-15 08:44:14.665 | INFO     | application.routes:add_tweet:146 - Tweet 1 successful saved.
+2026-02-15 08:44:14.706 | INFO     | application.routes:auth_user:105 - request completed: api/users/me/test_user
+2026-02-15 08:44:14.725 | INFO     | application.routes:auth_user:107 - User not found
+2026-02-15 11:06:17.273 | INFO     | application.routes:run_upgrade:53 - Migrations applied successfully
+2026-02-15 11:06:34.474 | INFO     | application.routes:upload_media:168 - Image: %s saved successful.
+2026-02-15 11:06:34.485 | INFO     | application.routes:add_tweet:123 - Request completed: api/post/tweet
+2026-02-15 11:06:34.539 | INFO     | application.routes:add_tweet:148 - Tweet %s successful saved.
+2026-02-15 11:06:34.566 | INFO     | application.routes:auth_user:109 - request completed: api/users/me/%s
+2026-02-15 11:06:34.579 | INFO     | application.routes:auth_user:111 - User not found
+2026-02-15 11:06:54.239 | INFO     | application.routes:auth_user:109 - request completed: api/users/me/%s
+2026-02-15 11:06:54.350 | INFO     | application.routes:auth_user:109 - request completed: api/users/me/%s
+2026-02-15 11:57:09.654 | INFO     | application.routes:run_upgrade:53 - Migrations applied successfully
+2026-02-15 11:57:49.191 | INFO     | application.routes:auth_user:109 - request completed: api/users/me/%s
+2026-02-15 11:57:49.456 | INFO     | application.routes:auth_user:109 - request completed: api/users/me/%s
+2026-02-15 11:57:54.690 | INFO     | application.routes:upload_media:170 - Image: %s saved successful.
+2026-02-15 11:57:54.735 | INFO     | application.routes:add_tweet:123 - Request completed: api/post/tweet
+2026-02-15 11:57:54.884 | INFO     | application.routes:add_tweet:148 - Tweet %s successful saved.
+2026-02-15 11:57:54.919 | INFO     | application.routes:auth_user:109 - request completed: api/users/me/%s
+2026-02-15 11:57:54.931 | INFO     | application.routes:auth_user:111 - User not found
+2026-02-15 12:01:18.645 | INFO     | application.routes:run_upgrade:53 - Migrations applied successfully
+2026-02-15 12:01:25.843 | INFO     | application.routes:auth_user:109 - request completed: api/users/me/%s
+2026-02-15 12:01:25.894 | INFO     | application.routes:auth_user:109 - request completed: api/users/me/%s
+2026-02-15 12:01:56.170 | INFO     | application.routes:upload_media:170 - Image: %s saved successful.
+2026-02-15 12:01:56.177 | INFO     | application.routes:add_tweet:123 - Request completed: api/post/tweet
+2026-02-15 12:01:56.226 | INFO     | application.routes:add_tweet:148 - Tweet %s successful saved.
+2026-02-15 12:01:56.264 | INFO     | application.routes:auth_user:109 - request completed: api/users/me/%s
+2026-02-15 12:01:56.273 | INFO     | application.routes:auth_user:111 - User not found
