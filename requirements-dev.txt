@@ -4,4 +4,5 @@ flake8==7.3.0
 flake8-bugbear==25.11.29
 flake8-pie==0.16.0
 mypy==1.19.1
-mypy_extensions==1.1.0types-aiofiles==25.1.0.20251011
+mypy_extensions==1.1.0
+types-aiofiles==25.1.0.20251011
