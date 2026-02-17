@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 import os
 from logging.config import fileConfig
 

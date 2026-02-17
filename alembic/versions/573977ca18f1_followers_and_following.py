@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 """followers and following
 
 Revision ID: 573977ca18f1

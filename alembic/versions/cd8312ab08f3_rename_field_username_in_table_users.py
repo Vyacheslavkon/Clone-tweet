@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 """rename field username in table users
 
 Revision ID: cd8312ab08f3

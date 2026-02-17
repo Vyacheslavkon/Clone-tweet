@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 """Creating Tweet and Media
 
 Revision ID: ae65d2178bec

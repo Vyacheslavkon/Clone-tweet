@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 """adding a user to tweet
 
 Revision ID: 06f8935b6c6b

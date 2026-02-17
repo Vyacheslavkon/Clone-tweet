@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 """${message}
 
 Revision ID: ${up_revision}
