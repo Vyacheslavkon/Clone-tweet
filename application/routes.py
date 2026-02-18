@@ -31,11 +31,12 @@ logger.add(
 logger.add("routes_logs.log", rotation="10 MB", level="INFO", compression="zip")
 
 ROOT_PATH = os.getcwd()
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_DIR = "/application/static"
-MEDIA_DIR = "/application/media"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+MEDIA_DIR = os.path.join(BASE_DIR, "media")
 ROOT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
-alembic_ini = os.path.join(ROOT_PATH, "alembic.ini")
+alembic_ini = os.path.join(BASE_DIR, "alembic.ini")
+ALEMBIC_SCRIPTS = os.path.join(BASE_DIR, "alembic")
 INDEX = os.path.join(STATIC_DIR, "index.html")
 
 schemas = application.schemas
@@ -47,7 +48,7 @@ def run_upgrade():
     )  # new
     alembic_cfg = Config(alembic_ini)
     alembic_cfg.set_main_option("sqlalchemy.url", sync_url)  # new
-    alembic_cfg.set_main_option("script_location", os.path.join(ROOT_DIR, "alembic"))
+    alembic_cfg.set_main_option("script_location", ALEMBIC_SCRIPTS)
     try:
         command.upgrade(alembic_cfg, "head")
         logger.info("Migrations applied successfully")
