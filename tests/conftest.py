@@ -10,7 +10,7 @@ from application.routes import app
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 if TEST_DATABASE_URL is None:
-    raise ValueError("DATABASE_URL_DOCKER is not set in environment variables")
+    raise ValueError("TEST_DATABASE_URL_DOCKER is not set in environment variables")
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=True)
 
 TestingSessionLocal = async_sessionmaker(

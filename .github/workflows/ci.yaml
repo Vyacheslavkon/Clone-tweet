@@ -35,4 +35,5 @@ jobs:
       - name: Test with pytest
         env:
           TEST_DATABASE_URL: postgresql+asyncpg://slava_t:1989_slava_t@db_test:5432/test_db
+
         run: pytest
