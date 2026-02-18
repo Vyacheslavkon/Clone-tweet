@@ -93,3 +93,6 @@
 2026-02-18 12:41:56.440 | INFO     | application.routes:auth_user:112 - User not found
 2026-02-18 12:42:19.643 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/%s
 2026-02-18 12:42:19.824 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/%s
+2026-02-18 13:28:37.249 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-18 13:28:57.350 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/%s
+2026-02-18 13:28:57.863 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/%s

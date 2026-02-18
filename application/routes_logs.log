@@ -1,6 +1,0 @@
-routes_log | INFO | INFO: Request POST /api/medias completed in 0.0224s | /application/application/routes.py | 80
-routes_log | INFO | INFO: Request POST /api/tweets completed in 0.1458s | /application/application/routes.py | 80
-routes_log | INFO | Start api: api/users/me | /application/application/routes.py | 93
-routes_log | INFO | INFO: Request GET /api/users/me completed in 0.0385s | /application/application/routes.py | 80
-routes_log | INFO | Start api: api/users/me | /application/application/routes.py | 93
-routes_log | INFO | INFO: Request GET /api/users/me completed in 0.0066s | /application/application/routes.py | 80
