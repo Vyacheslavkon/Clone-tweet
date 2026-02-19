@@ -96,3 +96,11 @@
 2026-02-18 13:28:37.249 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
 2026-02-18 13:28:57.350 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/%s
 2026-02-18 13:28:57.863 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/%s
+2026-02-19 11:51:47.471 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-19 11:52:49.410 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/%s
+2026-02-19 11:52:50.696 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/%s
+2026-02-19 11:53:40.886 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-02-19 11:53:40.897 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-19 11:53:41.016 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-19 11:53:41.061 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/%s
+2026-02-19 11:53:41.078 | INFO     | application.routes:auth_user:112 - User not found
