@@ -12,7 +12,8 @@ class Tweet(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     tweet_data: Mapped[str] = mapped_column(String(280), nullable=False)  #
-    tweet_media_ids: Mapped[list["Media"]] = relationship(back_populates="tweet")
+    tweet_media_ids: Mapped[list["Media"]] = relationship(back_populates="tweet",
+                                                          cascade="all, delete-orphan")
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     author: Mapped["User"] = relationship(back_populates="tweets")

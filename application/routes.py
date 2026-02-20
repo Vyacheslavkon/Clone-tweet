@@ -208,3 +208,48 @@ async def serve_frontend(_: Request, catchall: str):
         return FileResponse(file_path)
 
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+
+
+@app.delete("/api/tweets/{tweet_id}", response_model=schemas.DeleteTweet)
+async def delete_tweet(tweet_id: int, api_key: Annotated[str, Header()],
+                       session: AsyncSession = Depends(get_db),) \
+                        -> JSONResponse:
+    query_user = (
+        select(User)
+        .where(User.api_key == api_key)
+    )
+
+    result_user = await session.execute(query_user)
+    user = result_user.scalars().first()
+    user_id = user.id
+
+    query_tweet = (
+        select(Tweet)
+        .where(Tweet.user_id == user_id, Tweet.id == tweet_id)
+        .options(selectinload(Tweet.tweet_media_ids))
+
+        )
+
+    result_tweet = await session.execute(query_tweet)
+    tweet = result_tweet.scalars().first()
+
+    if not tweet:
+        logger.warning("attempted unauthorized deletion! User:{}", user.name)
+        raise HTTPException(status_code=400, detail="Cannot be deleted")
+    #paths = [media.path for media in tweet.tweet_media_ids if media.path]
+
+    for media in tweet.tweet_media_ids:
+        if os.path.exists(media.path):
+            os.remove(media.path)
+            logger.info("File {} deleted from disk", media.path)
+
+    await session.delete(tweet)
+    await session.commit()
+    logger.info("User {} delete tweet: id = {}", user.name, tweet_id)
+    response = {"result": True}
+
+    return JSONResponse(content=response, status_code=200)
+
+
+
+
