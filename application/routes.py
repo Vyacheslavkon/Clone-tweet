@@ -80,7 +80,7 @@ async def db_error_middleware(request: Request, call_next):
         response = await call_next(request)
         process_time = time.time() - start_time
         logger.debug(
-            "Request %s %s completed in %.4f s",
+            "Request {} {} completed in {}.4f s",
             request.method,
             request.url.path,
             process_time,
@@ -89,7 +89,8 @@ async def db_error_middleware(request: Request, call_next):
     except Exception as e:  # noqa
         logger.exception("Internal Server Error: %s", e)
         traceback.print_exc()
-        return JSONResponse(status_code=500, content={"error": "Internal Server Error"})
+        raise e
+        #return JSONResponse(status_code=500, content={"error": "Internal Server Error"})
 
 
 @app.get("/api/users/me", response_model=schemas.UserInfo)
@@ -107,7 +108,7 @@ async def auth_user(
     user = result.scalars().first()
     if user:
 
-        logger.info("request completed: api/users/me/%s", user.name)
+        logger.info("request completed: api/users/me/{}", user.name)
     if not user:
         logger.info("User not found")
         raise HTTPException(status_code=404, detail="User not found")
@@ -123,7 +124,8 @@ async def add_tweet(
 ) -> JSONResponse:
     logger.info("Request completed: api/post/tweet")
     tweet_data = tweet.model_dump(exclude={"tweet_media_ids"})
-    async with session.begin():
+    #async with session.begin():
+    async with session.begin_nested() if session.in_transaction() else session.begin():
         select_query = select(User).where(User.api_key == api_key)
         result = await session.execute(select_query)
         user = result.scalar_one_or_none()
@@ -211,24 +213,26 @@ async def serve_frontend(_: Request, catchall: str):
 
 
 @app.delete("/api/tweets/{tweet_id}", response_model=schemas.DeleteTweet)
-async def delete_tweet(tweet_id: int, api_key: Annotated[str, Header()],
-                       session: AsyncSession = Depends(get_db),) \
-                        -> JSONResponse:
-    query_user = (
-        select(User)
-        .where(User.api_key == api_key)
-    )
+async def delete_tweet(
+    tweet_id: int,
+    api_key: Annotated[str, Header()],
+    session: AsyncSession = Depends(get_db),
+) -> JSONResponse:
+    query_user = select(User).where(User.api_key == api_key)
 
     result_user = await session.execute(query_user)
     user = result_user.scalars().first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Incorrect data.")
+
     user_id = user.id
 
     query_tweet = (
         select(Tweet)
         .where(Tweet.user_id == user_id, Tweet.id == tweet_id)
         .options(selectinload(Tweet.tweet_media_ids))
-
-        )
+    )
 
     result_tweet = await session.execute(query_tweet)
     tweet = result_tweet.scalars().first()
@@ -236,7 +240,6 @@ async def delete_tweet(tweet_id: int, api_key: Annotated[str, Header()],
     if not tweet:
         logger.warning("attempted unauthorized deletion! User:{}", user.name)
         raise HTTPException(status_code=400, detail="Cannot be deleted")
-    #paths = [media.path for media in tweet.tweet_media_ids if media.path]
 
     for media in tweet.tweet_media_ids:
         if os.path.exists(media.path):
@@ -249,7 +252,3 @@ async def delete_tweet(tweet_id: int, api_key: Annotated[str, Header()],
     response = {"result": True}
 
     return JSONResponse(content=response, status_code=200)
-
-
-
-
