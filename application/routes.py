@@ -7,8 +7,6 @@ from contextlib import asynccontextmanager
 from typing import Annotated
 
 import aiofiles
-from alembic import command
-from alembic.config import Config
 from anyio import to_thread
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
@@ -20,6 +18,8 @@ from sqlalchemy.orm import joinedload, selectinload
 from starlette.staticfiles import StaticFiles
 
 import application.schemas
+from alembic import command
+from alembic.config import Config
 from application.database import engine, get_db
 from application.models import Media, Tweet, User
 
