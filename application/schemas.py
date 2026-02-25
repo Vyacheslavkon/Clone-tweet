@@ -36,3 +36,10 @@ class UserInfo(BaseModel):
     result: str = "true"
 
     user: UserDetail
+
+
+class DeleteTweet(BaseModel):
+
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
