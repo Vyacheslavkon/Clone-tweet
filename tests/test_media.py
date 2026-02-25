@@ -8,8 +8,9 @@ from application import routes
 
 
 @pytest.mark.asyncio
-async def test_upload_media(client: AsyncClient, test_session: AsyncSession,
-                            tmp_path, monkeypatch):
+async def test_upload_media(
+    client: AsyncClient, test_session: AsyncSession, tmp_path, monkeypatch
+):
     test_media_dir = tmp_path / "test_media"
     test_media_dir.mkdir()
     monkeypatch.setattr(routes, "MEDIA_DIR", str(test_media_dir))
@@ -19,7 +20,6 @@ async def test_upload_media(client: AsyncClient, test_session: AsyncSession,
 
     files = {"file": ("test_image.jpg", file, "image/jpeg")}
     headers = {"api-key": "test"}
-
 
     response = await client.post("/api/medias", files=files, headers=headers)
     answer = response.json()

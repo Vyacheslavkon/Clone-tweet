@@ -33648,3 +33648,11 @@ sqlalchemy.exc.InvalidRequestError: A transaction is already begun on this Sessi
 2026-02-24 12:47:31.857 | INFO     | application.routes:add_tweet:151 - Tweet %s successful saved.
 2026-02-24 12:47:31.981 | INFO     | application.routes:auth_user:111 - request completed: api/users/me/test_user
 2026-02-24 12:47:32.099 | INFO     | application.routes:auth_user:113 - User not found
+2026-02-25 10:41:09.172 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-25 10:41:33.559 | INFO     | application.routes:delete_tweet:246 - File test_image.jpg deleted from disk
+2026-02-25 10:41:33.565 | INFO     | application.routes:delete_tweet:250 - User test_user delete tweet: id = 1
+2026-02-25 10:41:33.630 | INFO     | application.routes:upload_media:172 - Image: %s saved successful.
+2026-02-25 10:41:33.708 | INFO     | application.routes:add_tweet:125 - Request completed: api/post/tweet
+2026-02-25 10:41:33.715 | INFO     | application.routes:add_tweet:150 - Tweet %s successful saved.
+2026-02-25 10:41:33.804 | INFO     | application.routes:auth_user:111 - request completed: api/users/me/test_user
+2026-02-25 10:41:33.856 | INFO     | application.routes:auth_user:113 - User not found
