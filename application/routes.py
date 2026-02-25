@@ -7,6 +7,8 @@ from contextlib import asynccontextmanager
 from typing import Annotated
 
 import aiofiles
+from alembic import command
+from alembic.config import Config
 from anyio import to_thread
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
@@ -18,8 +20,6 @@ from sqlalchemy.orm import joinedload, selectinload
 from starlette.staticfiles import StaticFiles
 
 import application.schemas
-from alembic import command
-from alembic.config import Config
 from application.database import engine, get_db
 from application.models import Media, Tweet, User
 
@@ -90,7 +90,6 @@ async def db_error_middleware(request: Request, call_next):
         logger.exception("Internal Server Error: %s", e)
         traceback.print_exc()
         raise e
-        #return JSONResponse(status_code=500, content={"error": "Internal Server Error"})
 
 
 @app.get("/api/users/me", response_model=schemas.UserInfo)
@@ -124,7 +123,6 @@ async def add_tweet(
 ) -> JSONResponse:
     logger.info("Request completed: api/post/tweet")
     tweet_data = tweet.model_dump(exclude={"tweet_media_ids"})
-    #async with session.begin():
     async with session.begin_nested() if session.in_transaction() else session.begin():
         select_query = select(User).where(User.api_key == api_key)
         result = await session.execute(select_query)
