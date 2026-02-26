@@ -33656,3 +33656,22 @@ sqlalchemy.exc.InvalidRequestError: A transaction is already begun on this Sessi
 2026-02-25 10:41:33.715 | INFO     | application.routes:add_tweet:150 - Tweet %s successful saved.
 2026-02-25 10:41:33.804 | INFO     | application.routes:auth_user:111 - request completed: api/users/me/test_user
 2026-02-25 10:41:33.856 | INFO     | application.routes:auth_user:113 - User not found
+2026-02-25 11:57:56.452 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-25 11:58:40.840 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-25 11:58:41.027 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-25 11:59:03.809 | INFO     | application.routes:delete_tweet:245 - File test_image.jpg deleted from disk
+2026-02-25 11:59:03.815 | INFO     | application.routes:delete_tweet:249 - User test_user delete tweet: id = 1
+2026-02-25 11:59:03.881 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-02-25 11:59:03.946 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-25 11:59:03.953 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-25 11:59:04.035 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-02-25 11:59:04.093 | INFO     | application.routes:auth_user:112 - User not found
+2026-02-26 11:57:05.988 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-26 11:58:06.225 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-26 11:58:06.718 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-26 12:25:46.439 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-26 12:38:08.093 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-26 12:42:24.893 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-26 12:42:25.214 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-26 12:43:17.969 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-26 12:43:18.007 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
