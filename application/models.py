@@ -6,7 +6,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from application.database import Base
 
 
-
 class Tweet(Base):
 
     __tablename__ = "tweet"
@@ -28,7 +27,8 @@ class Tweet(Base):
         secondary="likes",  # Используем таблицу Likes как промежуточную
         primaryjoin="Tweet.id == Likes.tweet_id",  # Твит связан с лайком по tweet_id
         secondaryjoin="User.id == Likes.user_id",  # Лайк связан с юзером по user_id
-        # back_populates не всегда нужен здесь, если не идем обратно от User к Tweet через Likes
+        viewonly=True,  # Рекомендуется, так как это дублирующая связь для чтения
+        overlaps="liked_by_users",
     )
 
 
@@ -56,7 +56,9 @@ class Likes(Base):
     tweet_id: Mapped[int] = mapped_column(ForeignKey("tweet.id"), primary_key=True)
 
     user: Mapped["User"] = relationship(back_populates="likes")  # кто лайкнул
-    tweet: Mapped["Tweet"] = relationship(back_populates="liked_by_users")  # к какому твиту
+    tweet: Mapped["Tweet"] = relationship(
+        back_populates="liked_by_users"
+    )  # к какому твиту
 
 
 class User(Base):
@@ -84,8 +86,3 @@ class User(Base):
     )
 
     likes: Mapped[list["Likes"]] = relationship(back_populates="user")
-
-
-
-
-
