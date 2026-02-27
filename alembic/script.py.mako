@@ -1,4 +1,6 @@
 # mypy: ignore-errors
+#flake8: noqa
+# type: ignore
 """${message}
 
 Revision ID: ${up_revision}
