@@ -19,6 +19,18 @@ class Tweet(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     author: Mapped["User"] = relationship(back_populates="tweets")
 
+    # Отношение к пользователям, которые лайкнули этот твит
+    liked_by_users: Mapped[list["Likes"]] = relationship(back_populates="tweet")
+    # Если вы хотите получить сразу объекты User, а не Likes:
+    likes: Mapped[list["User"]] = relationship(
+        "User",
+        secondary="likes",  # Используем таблицу Likes как промежуточную
+        primaryjoin="Tweet.id == Likes.tweet_id",  # Твит связан с лайком по tweet_id
+        secondaryjoin="User.id == Likes.user_id",  # Лайк связан с юзером по user_id
+        viewonly=True,  # Рекомендуется, так как это дублирующая связь для чтения
+        overlaps="liked_by_users",
+    )
+
 
 class Media(Base):
     __tablename__ = "media"
@@ -35,6 +47,18 @@ class FollowLink(Base):
 
     follower_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     followed_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+
+
+class Likes(Base):
+    __tablename__ = "likes"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    tweet_id: Mapped[int] = mapped_column(ForeignKey("tweet.id"), primary_key=True)
+
+    user: Mapped["User"] = relationship(back_populates="likes")  # кто лайкнул
+    tweet: Mapped["Tweet"] = relationship(
+        back_populates="liked_by_users"
+    )  # к какому твиту
 
 
 class User(Base):
@@ -60,3 +84,5 @@ class User(Base):
         secondaryjoin="User.id == FollowLink.followed_id",
         back_populates="followers",
     )
+
+    likes: Mapped[list["Likes"]] = relationship(back_populates="user")

@@ -33656,3 +33656,1396 @@ sqlalchemy.exc.InvalidRequestError: A transaction is already begun on this Sessi
 2026-02-25 10:41:33.715 | INFO     | application.routes:add_tweet:150 - Tweet %s successful saved.
 2026-02-25 10:41:33.804 | INFO     | application.routes:auth_user:111 - request completed: api/users/me/test_user
 2026-02-25 10:41:33.856 | INFO     | application.routes:auth_user:113 - User not found
+2026-02-25 11:57:56.452 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-25 11:58:40.840 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-25 11:58:41.027 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-25 11:59:03.809 | INFO     | application.routes:delete_tweet:245 - File test_image.jpg deleted from disk
+2026-02-25 11:59:03.815 | INFO     | application.routes:delete_tweet:249 - User test_user delete tweet: id = 1
+2026-02-25 11:59:03.881 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-02-25 11:59:03.946 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-25 11:59:03.953 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-25 11:59:04.035 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-02-25 11:59:04.093 | INFO     | application.routes:auth_user:112 - User not found
+2026-02-26 11:57:05.988 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-26 11:58:06.225 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-26 11:58:06.718 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-26 12:25:46.439 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-26 12:38:08.093 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-26 12:42:24.893 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-26 12:42:25.214 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-26 12:43:17.969 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-26 12:43:18.007 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-27 11:18:57.807 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 11:19:41.779 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-27 11:19:44.188 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-27 11:24:10.112 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-27 11:29:59.137 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 11:32:26.187 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-27 11:32:26.869 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-27 11:37:11.734 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 11:37:26.758 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 11:38:40.183 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 11:38:56.748 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 11:43:12.145 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 11:49:20.900 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 11:49:29.528 | INFO     | application.routes:delete_tweet:249 - User Slava delete tweet: id = 78
+2026-02-27 11:49:57.598 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 11:50:06.945 | ERROR    | application.routes:db_error_middleware:90 - Internal Server Error: %s
+Traceback (most recent call last):
+
+  File "<string>", line 1, in <module>
+  File "/usr/local/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               │     │   └ 4
+               │     └ 7
+               └ <function _main at 0x75f15b62d4e0>
+  File "/usr/local/lib/python3.12/multiprocessing/spawn.py", line 135, in _main
+    return self._bootstrap(parent_sentinel)
+           │    │          └ 4
+           │    └ <function BaseProcess._bootstrap at 0x75f15b7137e0>
+           └ <SpawnProcess name='SpawnProcess-8' parent=1 started>
+  File "/usr/local/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+    │    └ <function BaseProcess.run at 0x75f15b712d40>
+    └ <SpawnProcess name='SpawnProcess-8' parent=1 started>
+  File "/usr/local/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    │    │        │    │        │    └ {'config': <uvicorn.config.Config object at 0x75f15a79c890>, 'target': <bound method Server.run of <uvicorn.server.Server obj...
+    │    │        │    │        └ <SpawnProcess name='SpawnProcess-8' parent=1 started>
+    │    │        │    └ ()
+    │    │        └ <SpawnProcess name='SpawnProcess-8' parent=1 started>
+    │    └ <function subprocess_started at 0x75f15a599120>
+    └ <SpawnProcess name='SpawnProcess-8' parent=1 started>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+    │              └ [<socket.socket fd=3, family=2, type=1, proto=0, laddr=('0.0.0.0', 8000)>]
+    └ <bound method Server.run of <uvicorn.server.Server object at 0x75f15a5e5970>>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           │           │    │             │                      │    │      └ <function Config.get_loop_factory at 0x75f15a7a0400>
+           │           │    │             │                      │    └ <uvicorn.config.Config object at 0x75f15a79c890>
+           │           │    │             │                      └ <uvicorn.server.Server object at 0x75f15a5e5970>
+           │           │    │             └ [<socket.socket fd=3, family=2, type=1, proto=0, laddr=('0.0.0.0', 8000)>]
+           │           │    └ <function Server.serve at 0x75f15a598720>
+           │           └ <uvicorn.server.Server object at 0x75f15a5e5970>
+           └ <function run at 0x75f15a966c00>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x75f15b6ac120>
+           │      └ <function Runner.run at 0x75f15a991ee0>
+           └ <asyncio.runners.Runner object at 0x75f15a79d070>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /usr/local/lib/python3.12/site-packages/uvicorn/server.py:71> wai...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x75f15a97fa60>
+           │    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x75f15a79d070>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 678, in run_until_complete
+    self.run_forever()
+    │    └ <function BaseEventLoop.run_forever at 0x75f15a97f9c0>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 645, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x75f15a991800>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 1999, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x75f15b371e40>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/asyncio/events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+                   └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x75f15a616c90>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+                 │    │   │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x75f15695e780>>
+                 │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x75f15695e780>>
+                 │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+                 │    └ <fastapi.applications.FastAPI object at 0x75f157eceae0>
+                 └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x75f15a616c90>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1135, in __call__
+    await super().__call__(scope, receive, send)
+                           │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x75f15695e780>>
+                           │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x75f15695e780>>
+                           └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+  File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x75f15695e780>>
+          │    │                │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x75f15695e780>>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x75f1586bf2f0>
+          └ <fastapi.applications.FastAPI object at 0x75f157eceae0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+          │    │   │      │        └ <function ServerErrorMiddleware.__call__.<locals>._send at 0x75f15694ff60>
+          │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x75f15695e780>>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x75f157ecf3b0>
+          └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x75f1586bf2f0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+                     │    │             │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x75f15694fc40>
+                     │    │             └ <starlette.middleware.base._CachedRequest object at 0x75f15695e450>
+                     │    └ <function db_error_middleware at 0x75f157f04cc0>
+                     └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x75f157ecf3b0>
+
+> File "/application/application/routes.py", line 80, in db_error_middleware
+    response = await call_next(request)
+                     │         └ <starlette.middleware.base._CachedRequest object at 0x75f15695e450>
+                     └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x75f15694fc40>
+
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+          │            │       │            │       └ <attribute '__context__' of 'BaseException' objects>
+          │            │       │            └ ArgumentError('ORM mapped entity or attribute "Likes.user_id" does not link from relationship "Tweet.likes".')
+          │            │       └ <attribute '__cause__' of 'BaseException' objects>
+          │            └ ArgumentError('ORM mapped entity or attribute "Likes.user_id" does not link from relationship "Tweet.likes".')
+          └ ArgumentError('ORM mapped entity or attribute "Likes.user_id" does not link from relationship "Tweet.likes".')
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+          │    │   │      │                      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x75f15694fa60>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75f15694fb00>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x75f157ecf140>
+          └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x75f157ecf3b0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+          │                            │    │    │     │      │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x75f15694fa60>
+          │                            │    │    │     │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75f15694fb00>
+          │                            │    │    │     └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │                            │    │    └ <starlette.requests.Request object at 0x75f1596d8980>
+          │                            │    └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x75f157ecf590>
+          │                            └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x75f157ecf140>
+          └ <function wrap_app_handling_exceptions at 0x75f1598098a0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75f15694f740>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75f15694fb00>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x75f157ecf590>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75f15694f740>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75f15694fb00>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <fastapi.routing.APIRouter object at 0x75f157ecede0>
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x75f157ecf590>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75f15694f740>
+          │    │                │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75f15694fb00>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <bound method Router.app of <fastapi.routing.APIRouter object at 0x75f157ecede0>>
+          └ <fastapi.routing.APIRouter object at 0x75f157ecede0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+          │     │      │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75f15694f740>
+          │     │      │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75f15694fb00>
+          │     │      └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │     └ <function Route.handle at 0x75f15980ad40>
+          └ APIRoute(path='/api/tweets', name='get_tweets', methods=['GET'])
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75f15694f740>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75f15694fb00>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <function request_response.<locals>.app at 0x75f157dfa480>
+          └ APIRoute(path='/api/tweets', name='get_tweets', methods=['GET'])
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+          │                            │    │        │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75f15694f740>
+          │                            │    │        │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75f15694fb00>
+          │                            │    │        └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │                            │    └ <starlette.requests.Request object at 0x75f15695eab0>
+          │                            └ <function request_response.<locals>.app.<locals>.app at 0x75f15694f6a0>
+          └ <function wrap_app_handling_exceptions at 0x75f1598098a0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75f15694f4c0>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75f15694fb00>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          └ <function request_response.<locals>.app.<locals>.app at 0x75f15694f6a0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 101, in app
+    response = await f(request)
+                     │ └ <starlette.requests.Request object at 0x75f15695eab0>
+                     └ <function get_request_handler.<locals>.app at 0x75f157dfa520>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+                         └ <function run_endpoint_function at 0x75f15982ccc0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+                 │         │      └ {'session': <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x75f15695ed20>, 'api_key': 'test'}
+                 │         └ <function get_tweets at 0x75f157dfa200>
+                 └ Dependant(path_params=[], query_params=[], header_params=[ModelField(field_info=Header(PydanticUndefined), name='api_key', mo...
+
+  File "/application/application/routes.py", line 269, in get_tweets
+    joinedload(Tweet.likes).joinedload(Likes.user_id)
+    │          │     │                 │     └ <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x75f157ee7100>
+    │          │     │                 └ <class 'application.models.Likes'>
+    │          │     └ <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x75f157ee4360>
+    │          └ <class 'application.models.Tweet'>
+    └ <function joinedload at 0x75f158b274c0>
+
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/strategy_options.py", line 317, in joinedload
+    loader = self._set_relationship_strategy(
+             │    └ <function _AbstractLoad._set_relationship_strategy at 0x75f158b244a0>
+             └ <sqlalchemy.orm.strategy_options.Load object at 0x75f1569bbac0>
+  File "<string>", line 2, in _set_relationship_strategy
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/sql/base.py", line 284, in _generative
+    x = fn(self, *args, **kw)
+        │  │      │       └ {'propagate_to_loaders': True, 'opts': immutabledict({}), '_reconcile_to_other': None}
+        │  │      └ (<sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x75f157ee7100>, {'lazy': 'joined'})
+        │  └ <sqlalchemy.orm.strategy_options.Load object at 0x75f1569bb500>
+        └ <function _AbstractLoad._set_relationship_strategy at 0x75f158b24180>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/strategy_options.py", line 807, in _set_relationship_strategy
+    self._clone_for_bind_strategy(
+    │    └ <function Load._clone_for_bind_strategy at 0x75f158b25580>
+    └ <sqlalchemy.orm.strategy_options.Load object at 0x75f1569bb500>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/strategy_options.py", line 1299, in _clone_for_bind_strategy
+    load_element = _AttributeStrategyLoad.create(
+                   │                      └ <classmethod(<function _LoadElement.create at 0x75f158b26520>)>
+                   └ <class 'sqlalchemy.orm.strategy_options._AttributeStrategyLoad'>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/strategy_options.py", line 1764, in create
+    path = opt._init_path(
+           │   └ <function _AttributeStrategyLoad._init_path at 0x75f158b268e0>
+           └ <sqlalchemy.orm.strategy_options._AttributeStrategyLoad object at 0x75f156979b40>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/strategy_options.py", line 1944, in _init_path
+    _raise_for_does_not_link(path, str(attr), attr.parent)
+    │                        │         │      │    └ <member 'parent' of 'QueryableAttribute' objects>
+    │                        │         │      └ <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x75f157ee7100>
+    │                        │         └ <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x75f157ee7100>
+    │                        └ SlotsEntityRegistry((<Mapper at 0x75f157ecc920; Tweet>, <_RelationshipDeclared at 0x75f157eca710; likes>, <Mapper at 0x75f157...
+    └ <function _raise_for_does_not_link at 0x75f158b27ce0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/strategy_options.py", line 2544, in _raise_for_does_not_link
+    raise sa_exc.ArgumentError(
+          │      └ <class 'sqlalchemy.exc.ArgumentError'>
+          └ <module 'sqlalchemy.exc' from '/usr/local/lib/python3.12/site-packages/sqlalchemy/exc.py'>
+
+sqlalchemy.exc.ArgumentError: ORM mapped entity or attribute "Likes.user_id" does not link from relationship "Tweet.likes".
+2026-02-27 12:11:03.541 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 12:11:07.514 | ERROR    | application.routes:db_error_middleware:90 - Internal Server Error: %s
+Traceback (most recent call last):
+
+  File "<string>", line 1, in <module>
+  File "/usr/local/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               │     │   └ 4
+               │     └ 7
+               └ <function _main at 0x7c5e1c66d4e0>
+  File "/usr/local/lib/python3.12/multiprocessing/spawn.py", line 135, in _main
+    return self._bootstrap(parent_sentinel)
+           │    │          └ 4
+           │    └ <function BaseProcess._bootstrap at 0x7c5e1c74f7e0>
+           └ <SpawnProcess name='SpawnProcess-9' parent=1 started>
+  File "/usr/local/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+    │    └ <function BaseProcess.run at 0x7c5e1c74ed40>
+    └ <SpawnProcess name='SpawnProcess-9' parent=1 started>
+  File "/usr/local/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    │    │        │    │        │    └ {'config': <uvicorn.config.Config object at 0x7c5e1b5b6f00>, 'target': <bound method Server.run of <uvicorn.server.Server obj...
+    │    │        │    │        └ <SpawnProcess name='SpawnProcess-9' parent=1 started>
+    │    │        │    └ ()
+    │    │        └ <SpawnProcess name='SpawnProcess-9' parent=1 started>
+    │    └ <function subprocess_started at 0x7c5e1b5cd120>
+    └ <SpawnProcess name='SpawnProcess-9' parent=1 started>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+    │              └ [<socket.socket fd=3, family=2, type=1, proto=0, laddr=('0.0.0.0', 8000)>]
+    └ <bound method Server.run of <uvicorn.server.Server object at 0x7c5e1b619f40>>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           │           │    │             │                      │    │      └ <function Config.get_loop_factory at 0x7c5e1b7d8400>
+           │           │    │             │                      │    └ <uvicorn.config.Config object at 0x7c5e1b5b6f00>
+           │           │    │             │                      └ <uvicorn.server.Server object at 0x7c5e1b619f40>
+           │           │    │             └ [<socket.socket fd=3, family=2, type=1, proto=0, laddr=('0.0.0.0', 8000)>]
+           │           │    └ <function Server.serve at 0x7c5e1b5cc720>
+           │           └ <uvicorn.server.Server object at 0x7c5e1b619f40>
+           └ <function run at 0x7c5e1b9a6c00>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x7c5e1c6e8120>
+           │      └ <function Runner.run at 0x7c5e1b9d1ee0>
+           └ <asyncio.runners.Runner object at 0x7c5e1b9616d0>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /usr/local/lib/python3.12/site-packages/uvicorn/server.py:71> wai...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x7c5e1b9bba60>
+           │    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x7c5e1b9616d0>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 678, in run_until_complete
+    self.run_forever()
+    │    └ <function BaseEventLoop.run_forever at 0x7c5e1b9bb9c0>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 645, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x7c5e1b9d1800>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 1999, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x7c5e1b951e40>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/asyncio/events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+                   └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x7c5e1b618320>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+                 │    │   │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c5e18282900>>
+                 │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c5e18282900>>
+                 │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+                 │    └ <fastapi.applications.FastAPI object at 0x7c5e192aec30>
+                 └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x7c5e1b618320>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1135, in __call__
+    await super().__call__(scope, receive, send)
+                           │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c5e18282900>>
+                           │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c5e18282900>>
+                           └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+  File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c5e18282900>>
+          │    │                │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c5e18282900>>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x7c5e192af470>
+          └ <fastapi.applications.FastAPI object at 0x7c5e192aec30>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+          │    │   │      │        └ <function ServerErrorMiddleware.__call__.<locals>._send at 0x7c5e18273ec0>
+          │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c5e18282900>>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x7c5e192af680>
+          └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x7c5e192af470>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+                     │    │             │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x7c5e18273c40>
+                     │    │             └ <starlette.middleware.base._CachedRequest object at 0x7c5e182825d0>
+                     │    └ <function db_error_middleware at 0x7c5e18ef8cc0>
+                     └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x7c5e192af680>
+
+> File "/application/application/routes.py", line 80, in db_error_middleware
+    response = await call_next(request)
+                     │         └ <starlette.middleware.base._CachedRequest object at 0x7c5e182825d0>
+                     └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x7c5e18273c40>
+
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+          │            │       │            │       └ <attribute '__context__' of 'BaseException' objects>
+          │            │       │            └ ArgumentError('ORM mapped entity or attribute "Likes.user" does not link from relationship "Tweet.likes".')
+          │            │       └ <attribute '__cause__' of 'BaseException' objects>
+          │            └ ArgumentError('ORM mapped entity or attribute "Likes.user" does not link from relationship "Tweet.likes".')
+          └ ArgumentError('ORM mapped entity or attribute "Likes.user" does not link from relationship "Tweet.likes".')
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+          │    │   │      │                      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x7c5e18273a60>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c5e18273b00>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x7c5e192af560>
+          └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x7c5e192af680>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+          │                            │    │    │     │      │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x7c5e18273a60>
+          │                            │    │    │     │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c5e18273b00>
+          │                            │    │    │     └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │                            │    │    └ <starlette.requests.Request object at 0x7c5e18282240>
+          │                            │    └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x7c5e192af770>
+          │                            └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x7c5e192af560>
+          └ <function wrap_app_handling_exceptions at 0x7c5e1a8218a0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c5e18273740>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c5e18273b00>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x7c5e192af770>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c5e18273740>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c5e18273b00>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <fastapi.routing.APIRouter object at 0x7c5e192aef30>
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x7c5e192af770>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c5e18273740>
+          │    │                │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c5e18273b00>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <bound method Router.app of <fastapi.routing.APIRouter object at 0x7c5e192aef30>>
+          └ <fastapi.routing.APIRouter object at 0x7c5e192aef30>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+          │     │      │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c5e18273740>
+          │     │      │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c5e18273b00>
+          │     │      └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │     └ <function Route.handle at 0x7c5e1a822d40>
+          └ APIRoute(path='/api/tweets', name='get_tweets', methods=['GET'])
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c5e18273740>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c5e18273b00>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <function request_response.<locals>.app at 0x7c5e18df6480>
+          └ APIRoute(path='/api/tweets', name='get_tweets', methods=['GET'])
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+          │                            │    │        │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c5e18273740>
+          │                            │    │        │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c5e18273b00>
+          │                            │    │        └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │                            │    └ <starlette.requests.Request object at 0x7c5e18282cc0>
+          │                            └ <function request_response.<locals>.app.<locals>.app at 0x7c5e182736a0>
+          └ <function wrap_app_handling_exceptions at 0x7c5e1a8218a0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c5e182734c0>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c5e18273b00>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          └ <function request_response.<locals>.app.<locals>.app at 0x7c5e182736a0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 101, in app
+    response = await f(request)
+                     │ └ <starlette.requests.Request object at 0x7c5e18282cc0>
+                     └ <function get_request_handler.<locals>.app at 0x7c5e18df6520>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+                         └ <function run_endpoint_function at 0x7c5e1a844cc0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+                 │         │      └ {'session': <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x7c5e182836b0>, 'api_key': 'test'}
+                 │         └ <function get_tweets at 0x7c5e18df6200>
+                 └ Dependant(path_params=[], query_params=[], header_params=[ModelField(field_info=Header(PydanticUndefined), name='api_key', mo...
+
+  File "/application/application/routes.py", line 269, in get_tweets
+    joinedload(Tweet.likes).joinedload(Likes.user)
+    │          │     │                 │     └ <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x7c5e192d2e80>
+    │          │     │                 └ <class 'application.models.Likes'>
+    │          │     └ <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x7c5e192d0360>
+    │          └ <class 'application.models.Tweet'>
+    └ <function joinedload at 0x7c5e19b3f4c0>
+
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/strategy_options.py", line 317, in joinedload
+    loader = self._set_relationship_strategy(
+             │    └ <function _AbstractLoad._set_relationship_strategy at 0x7c5e19b3c4a0>
+             └ <sqlalchemy.orm.strategy_options.Load object at 0x7c5e18288b40>
+  File "<string>", line 2, in _set_relationship_strategy
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/sql/base.py", line 284, in _generative
+    x = fn(self, *args, **kw)
+        │  │      │       └ {'propagate_to_loaders': True, 'opts': immutabledict({}), '_reconcile_to_other': None}
+        │  │      └ (<sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x7c5e192d2e80>, {'lazy': 'joined'})
+        │  └ <sqlalchemy.orm.strategy_options.Load object at 0x7c5e1828a800>
+        └ <function _AbstractLoad._set_relationship_strategy at 0x7c5e19b3c180>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/strategy_options.py", line 807, in _set_relationship_strategy
+    self._clone_for_bind_strategy(
+    │    └ <function Load._clone_for_bind_strategy at 0x7c5e19b3d580>
+    └ <sqlalchemy.orm.strategy_options.Load object at 0x7c5e1828a800>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/strategy_options.py", line 1299, in _clone_for_bind_strategy
+    load_element = _AttributeStrategyLoad.create(
+                   │                      └ <classmethod(<function _LoadElement.create at 0x7c5e19b3e520>)>
+                   └ <class 'sqlalchemy.orm.strategy_options._AttributeStrategyLoad'>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/strategy_options.py", line 1764, in create
+    path = opt._init_path(
+           │   └ <function _AttributeStrategyLoad._init_path at 0x7c5e19b3e8e0>
+           └ <sqlalchemy.orm.strategy_options._AttributeStrategyLoad object at 0x7c5e1829dcc0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/strategy_options.py", line 1944, in _init_path
+    _raise_for_does_not_link(path, str(attr), attr.parent)
+    │                        │         │      │    └ <member 'parent' of 'QueryableAttribute' objects>
+    │                        │         │      └ <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x7c5e192d2e80>
+    │                        │         └ <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x7c5e192d2e80>
+    │                        └ SlotsEntityRegistry((<Mapper at 0x7c5e1950a3f0; Tweet>, <_RelationshipDeclared at 0x7c5e192ba710; likes>, <Mapper at 0x7c5e19...
+    └ <function _raise_for_does_not_link at 0x7c5e19b3fce0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/strategy_options.py", line 2544, in _raise_for_does_not_link
+    raise sa_exc.ArgumentError(
+          │      └ <class 'sqlalchemy.exc.ArgumentError'>
+          └ <module 'sqlalchemy.exc' from '/usr/local/lib/python3.12/site-packages/sqlalchemy/exc.py'>
+
+sqlalchemy.exc.ArgumentError: ORM mapped entity or attribute "Likes.user" does not link from relationship "Tweet.likes".
+2026-02-27 12:11:56.463 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 12:12:03.523 | ERROR    | application.routes:db_error_middleware:90 - Internal Server Error: %s
+Traceback (most recent call last):
+
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                      │                └ <function AsyncAdapt_asyncpg_connection._prepare at 0x70a96e352340>
+                                      └ <AdaptedConnection <asyncpg.connection.Connection object at 0x70a96c5d17c0>>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                          │    └ <member '_connection' of 'AdaptedConnection' objects>
+                          └ <AdaptedConnection <asyncpg.connection.Connection object at 0x70a96c5d17c0>>
+  File "/usr/local/lib/python3.12/site-packages/asyncpg/connection.py", line 638, in prepare
+    return await self._prepare(
+                 │    └ <function Connection._prepare at 0x70a96ddb5120>
+                 └ <asyncpg.connection.Connection object at 0x70a96c5d17c0>
+  File "/usr/local/lib/python3.12/site-packages/asyncpg/connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+                 │    └ <function Connection._get_statement at 0x70a96ddb4e00>
+                 └ <asyncpg.connection.Connection object at 0x70a96c5d17c0>
+  File "/usr/local/lib/python3.12/site-packages/asyncpg/connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                      │    └ <member '_protocol' of 'Connection' objects>
+                      └ <asyncpg.connection.Connection object at 0x70a96c5d17c0>
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+    return await waiter
+
+asyncpg.exceptions.UndefinedFunctionError: operator does not exist: integer = character varying
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+
+The above exception was the direct cause of the following exception:
+
+
+Traceback (most recent call last):
+
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    │    │       └ <function DefaultDialect.do_execute at 0x70a96ec139c0>
+    │    └ <sqlalchemy.dialects.postgresql.asyncpg.PGDialect_asyncpg object at 0x70a96e286510>
+    └ <sqlalchemy.engine.base.Connection object at 0x70a96c58f830>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    │      │       │          └ ('test',)
+    │      │       └ 'SELECT tweet.id, tweet.tweet_data, tweet.user_id, media_1.id AS id_1, media_1.path, media_1.tweet_id, users_1.id AS id_2, us...
+    │      └ <function AsyncAdapt_asyncpg_cursor.execute at 0x70a96e3516c0>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x70a96c57b340>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+    │    └ <member '_adapt_connection' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x70a96c57b340>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           │       │             └ <coroutine object AsyncAdapt_asyncpg_cursor._prepare_and_execute at 0x70a96de9f4c0>
+           │       └ <attribute 'parent' of 'greenlet.greenlet' objects>
+           └ <_AsyncIoGreenlet object at 0x70a96c5bb700 (otid=0x70a96f64a790) dead>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+                  └ <coroutine object AsyncAdapt_asyncpg_cursor._prepare_and_execute at 0x70a96de9f4c0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+    │    └ <function AsyncAdapt_asyncpg_cursor._handle_exception at 0x70a96e3514e0>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x70a96c57b340>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+    │    │                                   └ UndefinedFunctionError('operator does not exist: integer = character varying')
+    │    └ <member '_adapt_connection' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x70a96c57b340>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+          │                     └ UndefinedFunctionError('operator does not exist: integer = character varying')
+          └ ProgrammingError("<class 'asyncpg.exceptions.UndefinedFunctionError'>: operator does not exist: integer = character varying\n...
+
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError: <class 'asyncpg.exceptions.UndefinedFunctionError'>: operator does not exist: integer = character varying
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+
+The above exception was the direct cause of the following exception:
+
+
+Traceback (most recent call last):
+
+  File "<string>", line 1, in <module>
+  File "/usr/local/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               │     │   └ 4
+               │     └ 7
+               └ <function _main at 0x70a9715394e0>
+  File "/usr/local/lib/python3.12/multiprocessing/spawn.py", line 135, in _main
+    return self._bootstrap(parent_sentinel)
+           │    │          └ 4
+           │    └ <function BaseProcess._bootstrap at 0x70a97161f7e0>
+           └ <SpawnProcess name='SpawnProcess-10' parent=1 started>
+  File "/usr/local/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+    │    └ <function BaseProcess.run at 0x70a97161ed40>
+    └ <SpawnProcess name='SpawnProcess-10' parent=1 started>
+  File "/usr/local/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    │    │        │    │        │    └ {'config': <uvicorn.config.Config object at 0x70a9706a8890>, 'target': <bound method Server.run of <uvicorn.server.Server obj...
+    │    │        │    │        └ <SpawnProcess name='SpawnProcess-10' parent=1 started>
+    │    │        │    └ ()
+    │    │        └ <SpawnProcess name='SpawnProcess-10' parent=1 started>
+    │    └ <function subprocess_started at 0x70a9704a5120>
+    └ <SpawnProcess name='SpawnProcess-10' parent=1 started>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+    │              └ [<socket.socket fd=3, family=2, type=1, proto=0, laddr=('0.0.0.0', 8000)>]
+    └ <bound method Server.run of <uvicorn.server.Server object at 0x70a9704f1970>>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           │           │    │             │                      │    │      └ <function Config.get_loop_factory at 0x70a9706ac400>
+           │           │    │             │                      │    └ <uvicorn.config.Config object at 0x70a9706a8890>
+           │           │    │             │                      └ <uvicorn.server.Server object at 0x70a9704f1970>
+           │           │    │             └ [<socket.socket fd=3, family=2, type=1, proto=0, laddr=('0.0.0.0', 8000)>]
+           │           │    └ <function Server.serve at 0x70a9704a4720>
+           │           └ <uvicorn.server.Server object at 0x70a9704f1970>
+           └ <function run at 0x70a970872c00>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x70a9715b8120>
+           │      └ <function Runner.run at 0x70a97089dee0>
+           └ <asyncio.runners.Runner object at 0x70a9706a9070>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /usr/local/lib/python3.12/site-packages/uvicorn/server.py:71> wai...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x70a97088ba60>
+           │    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x70a9706a9070>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 678, in run_until_complete
+    self.run_forever()
+    │    └ <function BaseEventLoop.run_forever at 0x70a97088b9c0>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 645, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x70a97089d800>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 1999, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x70a97127de40>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/asyncio/events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+                   └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x70a970522c90>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+                 │    │   │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x70a96c55e810>>
+                 │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x70a96c55e810>>
+                 │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+                 │    └ <fastapi.applications.FastAPI object at 0x70a96ddcaff0>
+                 └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x70a970522c90>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1135, in __call__
+    await super().__call__(scope, receive, send)
+                           │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x70a96c55e810>>
+                           │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x70a96c55e810>>
+                           └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+  File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x70a96c55e810>>
+          │    │                │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x70a96c55e810>>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x70a96ddcba40>
+          └ <fastapi.applications.FastAPI object at 0x70a96ddcaff0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+          │    │   │      │        └ <function ServerErrorMiddleware.__call__.<locals>._send at 0x70a96c54fec0>
+          │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x70a96c55e810>>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x70a96ddcbd40>
+          └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x70a96ddcba40>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+                     │    │             │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x70a96c54fc40>
+                     │    │             └ <starlette.middleware.base._CachedRequest object at 0x70a96c55e4e0>
+                     │    └ <function db_error_middleware at 0x70a96de10cc0>
+                     └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x70a96ddcbd40>
+
+> File "/application/application/routes.py", line 80, in db_error_middleware
+    response = await call_next(request)
+                     │         └ <starlette.middleware.base._CachedRequest object at 0x70a96c55e4e0>
+                     └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x70a96c54fc40>
+
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+          │            │       │            │       └ <attribute '__context__' of 'BaseException' objects>
+          │            │       │            └ ProgrammingError("(sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedFunctionError...
+          │            │       └ <attribute '__cause__' of 'BaseException' objects>
+          │            └ ProgrammingError("(sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedFunctionError...
+          └ ProgrammingError("(sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedFunctionError...
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+          │    │   │      │                      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x70a96c54fa60>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x70a96c54fb00>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x70a96ddcb740>
+          └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x70a96ddcbd40>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+          │                            │    │    │     │      │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x70a96c54fa60>
+          │                            │    │    │     │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x70a96c54fb00>
+          │                            │    │    │     └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │                            │    │    └ <starlette.requests.Request object at 0x70a96c55cf50>
+          │                            │    └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x70a96ddcb9b0>
+          │                            └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x70a96ddcb740>
+          └ <function wrap_app_handling_exceptions at 0x70a96f7158a0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x70a96c54f740>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x70a96c54fb00>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x70a96ddcb9b0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x70a96c54f740>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x70a96c54fb00>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <fastapi.routing.APIRouter object at 0x70a96ddcad50>
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x70a96ddcb9b0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x70a96c54f740>
+          │    │                │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x70a96c54fb00>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <bound method Router.app of <fastapi.routing.APIRouter object at 0x70a96ddcad50>>
+          └ <fastapi.routing.APIRouter object at 0x70a96ddcad50>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+          │     │      │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x70a96c54f740>
+          │     │      │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x70a96c54fb00>
+          │     │      └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │     └ <function Route.handle at 0x70a96f716d40>
+          └ APIRoute(path='/api/tweets', name='get_tweets', methods=['GET'])
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x70a96c54f740>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x70a96c54fb00>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <function request_response.<locals>.app at 0x70a96dd06480>
+          └ APIRoute(path='/api/tweets', name='get_tweets', methods=['GET'])
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+          │                            │    │        │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x70a96c54f740>
+          │                            │    │        │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x70a96c54fb00>
+          │                            │    │        └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │                            │    └ <starlette.requests.Request object at 0x70a96c55eba0>
+          │                            └ <function request_response.<locals>.app.<locals>.app at 0x70a96c54f6a0>
+          └ <function wrap_app_handling_exceptions at 0x70a96f7158a0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x70a96c54f4c0>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x70a96c54fb00>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          └ <function request_response.<locals>.app.<locals>.app at 0x70a96c54f6a0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 101, in app
+    response = await f(request)
+                     │ └ <starlette.requests.Request object at 0x70a96c55eba0>
+                     └ <function get_request_handler.<locals>.app at 0x70a96dd06520>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+                         └ <function run_endpoint_function at 0x70a96f738cc0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+                 │         │      └ {'session': <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x70a96c55edb0>, 'api_key': 'test'}
+                 │         └ <function get_tweets at 0x70a96dd06200>
+                 └ Dependant(path_params=[], query_params=[], header_params=[ModelField(field_info=Header(PydanticUndefined), name='api_key', mo...
+
+  File "/application/application/routes.py", line 278, in get_tweets
+    result_query = await session.execute(stmt)
+                         │       │       └ <sqlalchemy.sql.selectable.Select object at 0x70a96c58ff80>
+                         │       └ <function AsyncSession.execute at 0x70a96e80bc40>
+                         └ <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x70a96c55edb0>
+
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/session.py", line 449, in execute
+    result = await greenlet_spawn(
+                   └ <function greenlet_spawn at 0x70a96f692700>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             │       │      │   └ <built-in function exc_info>
+             │       │      └ <module 'sys' (built-in)>
+             │       └ <method 'throw' of 'greenlet.greenlet' objects>
+             └ <_AsyncIoGreenlet object at 0x70a96c5bb700 (otid=0x70a96f64a790) dead>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+           │    └ <function Session._execute_internal at 0x70a96e9427a0>
+           └ <sqlalchemy.orm.session.Session object at 0x70a96c55ed80>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                   │      │                 └ <classmethod(<function AbstractORMCompileState.orm_execute_statement at 0x70a96e9bde40>)>
+                   │      └ <class 'sqlalchemy.orm.context.ORMSelectCompileState'>
+                   └ typing.Any
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             │    └ <function Connection.execute at 0x70a96ed789a0>
+             └ <sqlalchemy.engine.base.Connection object at 0x70a96c58f830>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           └ <bound method ClauseElement._execute_on_connection of <sqlalchemy.sql.selectable.Select object at 0x70a96c58ff80>>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           │          └ <function Connection._execute_clauseelement at 0x70a96ed78cc0>
+           └ <sqlalchemy.engine.base.Connection object at 0x70a96c58f830>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          │    └ <function Connection._execute_context at 0x70a96ed78ea0>
+          └ <sqlalchemy.engine.base.Connection object at 0x70a96c58f830>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           │    └ <function Connection._exec_single_context at 0x70a96ed78f40>
+           └ <sqlalchemy.engine.base.Connection object at 0x70a96c58f830>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    │    └ <function Connection._handle_dbapi_exception at 0x70a96ed791c0>
+    └ <sqlalchemy.engine.base.Connection object at 0x70a96c58f830>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+          │                    │              │                 └ ProgrammingError("<class 'asyncpg.exceptions.UndefinedFunctionError'>: operator does not exist: integer = character varying\n...
+          │                    │              └ (<class 'sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.ProgrammingError'>, ProgrammingError("<class 'asyncp...
+          │                    └ <method 'with_traceback' of 'BaseException' objects>
+          └ ProgrammingError("(sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedFunctionError...
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    │    │       └ <function DefaultDialect.do_execute at 0x70a96ec139c0>
+    │    └ <sqlalchemy.dialects.postgresql.asyncpg.PGDialect_asyncpg object at 0x70a96e286510>
+    └ <sqlalchemy.engine.base.Connection object at 0x70a96c58f830>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    │      │       │          └ ('test',)
+    │      │       └ 'SELECT tweet.id, tweet.tweet_data, tweet.user_id, media_1.id AS id_1, media_1.path, media_1.tweet_id, users_1.id AS id_2, us...
+    │      └ <function AsyncAdapt_asyncpg_cursor.execute at 0x70a96e3516c0>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x70a96c57b340>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+    │    └ <member '_adapt_connection' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x70a96c57b340>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           │       │             └ <coroutine object AsyncAdapt_asyncpg_cursor._prepare_and_execute at 0x70a96de9f4c0>
+           │       └ <attribute 'parent' of 'greenlet.greenlet' objects>
+           └ <_AsyncIoGreenlet object at 0x70a96c5bb700 (otid=0x70a96f64a790) dead>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+                  └ <coroutine object AsyncAdapt_asyncpg_cursor._prepare_and_execute at 0x70a96de9f4c0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+    │    └ <function AsyncAdapt_asyncpg_cursor._handle_exception at 0x70a96e3514e0>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x70a96c57b340>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+    │    │                                   └ UndefinedFunctionError('operator does not exist: integer = character varying')
+    │    └ <member '_adapt_connection' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x70a96c57b340>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+          │                     └ UndefinedFunctionError('operator does not exist: integer = character varying')
+          └ ProgrammingError("<class 'asyncpg.exceptions.UndefinedFunctionError'>: operator does not exist: integer = character varying\n...
+
+sqlalchemy.exc.ProgrammingError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedFunctionError'>: operator does not exist: integer = character varying
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+[SQL: SELECT tweet.id, tweet.tweet_data, tweet.user_id, media_1.id AS id_1, media_1.path, media_1.tweet_id, users_1.id AS id_2, users_1.name, users_1.api_key, users_1.role, users_2.id AS id_3, users_2.name AS name_1, users_2.api_key AS api_key_1, users_2.role AS role_1, likes_1.user_id AS user_id_1, likes_1.tweet_id AS tweet_id_1 
+FROM tweet LEFT OUTER JOIN media AS media_1 ON tweet.id = media_1.tweet_id LEFT OUTER JOIN users AS users_1 ON users_1.id = tweet.user_id LEFT OUTER JOIN likes AS likes_1 ON tweet.id = likes_1.tweet_id LEFT OUTER JOIN users AS users_2 ON users_2.id = likes_1.user_id 
+WHERE tweet.user_id IN (SELECT followers.followed_id 
+FROM followers 
+WHERE followers.follower_id = $1::VARCHAR)]
+[parameters: ('test',)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-27 12:14:36.553 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 12:14:56.385 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-27 12:14:56.488 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-27 12:19:58.353 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 12:29:32.220 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 12:29:43.946 | INFO     | application.routes:delete_tweet:224 - File test_image.jpg deleted from disk
+2026-02-27 12:29:43.965 | INFO     | application.routes:delete_tweet:228 - User test_user delete tweet: id = 1
+2026-02-27 12:29:44.166 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-02-27 12:29:44.247 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-27 12:29:44.255 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-27 12:29:44.321 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-02-27 12:29:44.374 | INFO     | application.routes:auth_user:112 - User not found
+2026-02-27 12:33:13.712 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 12:33:19.881 | INFO     | application.routes:delete_tweet:224 - File test_image.jpg deleted from disk
+2026-02-27 12:33:19.892 | INFO     | application.routes:delete_tweet:228 - User test_user delete tweet: id = 1
+2026-02-27 12:33:20.072 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-02-27 12:33:20.140 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-27 12:33:20.148 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-27 12:33:20.238 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-02-27 12:33:20.289 | INFO     | application.routes:auth_user:112 - User not found
+2026-02-27 12:37:00.005 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 12:37:05.157 | ERROR    | application.routes:db_error_middleware:90 - Internal Server Error: %s
+Traceback (most recent call last):
+
+  File "/usr/local/bin/pytest", line 6, in <module>
+    sys.exit(console_main())
+    │   │    └ <function console_main at 0x75de38c23060>
+    │   └ <built-in function exit>
+    └ <module 'sys' (built-in)>
+  File "/usr/local/lib/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+           └ <function main at 0x75de38c22fc0>
+  File "/usr/local/lib/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+         │                │      │    │                          └ <_pytest.config.Config object at 0x75de389f59d0>
+         │                │      │    └ <HookCaller 'pytest_cmdline_main'>
+         │                │      └ <_pytest.config.compat.PathAwareHookProxy object at 0x75de3889dfa0>
+         │                └ <_pytest.config.Config object at 0x75de389f59d0>
+         └ <enum 'ExitCode'>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           │    │         │    │     │    │                  │       └ True
+           │    │         │    │     │    │                  └ {'config': <_pytest.config.Config object at 0x75de389f59d0>}
+           │    │         │    │     │    └ <member '_hookimpls' of 'HookCaller' objects>
+           │    │         │    │     └ <HookCaller 'pytest_cmdline_main'>
+           │    │         │    └ <member 'name' of 'HookCaller' objects>
+           │    │         └ <HookCaller 'pytest_cmdline_main'>
+           │    └ <member '_hookexec' of 'HookCaller' objects>
+           └ <HookCaller 'pytest_cmdline_main'>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           │    │               │          │        │       └ True
+           │    │               │          │        └ {'config': <_pytest.config.Config object at 0x75de389f59d0>}
+           │    │               │          └ [<HookImpl plugin_name='main', plugin=<module '_pytest.main' from '/usr/local/lib/python3.12/site-packages/_pytest/main.py'>>...
+           │    │               └ 'pytest_cmdline_main'
+           │    └ <function _multicall at 0x75de392d7c40>
+           └ <_pytest.config.PytestPluginManager object at 0x75de3883b830>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          │         │         └ [<_pytest.config.Config object at 0x75de389f59d0>]
+          │         └ <member 'function' of 'HookImpl' objects>
+          └ <HookImpl plugin_name='main', plugin=<module '_pytest.main' from '/usr/local/lib/python3.12/site-packages/_pytest/main.py'>>
+  File "/usr/local/lib/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+    return wrap_session(config, _main)
+           │            │       └ <function _main at 0x75de38af8ea0>
+           │            └ <_pytest.config.Config object at 0x75de389f59d0>
+           └ <function wrap_session at 0x75de38af8d60>
+  File "/usr/local/lib/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+    │       │            │    │       └ <Session  exitstatus=<ExitCode.OK: 0> testsfailed=2 testscollected=6>
+    │       │            │    └ <_pytest.config.Config object at 0x75de389f59d0>
+    │       │            └ <function _main at 0x75de38af8ea0>
+    │       └ <ExitCode.OK: 0>
+    └ <Session  exitstatus=<ExitCode.OK: 0> testsfailed=2 testscollected=6>
+  File "/usr/local/lib/python3.12/site-packages/_pytest/main.py", line 372, in _main
+    config.hook.pytest_runtestloop(session=session)
+    │      │    │                          └ <Session  exitstatus=<ExitCode.OK: 0> testsfailed=2 testscollected=6>
+    │      │    └ <HookCaller 'pytest_runtestloop'>
+    │      └ <_pytest.config.compat.PathAwareHookProxy object at 0x75de3889dfa0>
+    └ <_pytest.config.Config object at 0x75de389f59d0>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           │    │         │    │     │    │                  │       └ True
+           │    │         │    │     │    │                  └ {'session': <Session  exitstatus=<ExitCode.OK: 0> testsfailed=2 testscollected=6>}
+           │    │         │    │     │    └ <member '_hookimpls' of 'HookCaller' objects>
+           │    │         │    │     └ <HookCaller 'pytest_runtestloop'>
+           │    │         │    └ <member 'name' of 'HookCaller' objects>
+           │    │         └ <HookCaller 'pytest_runtestloop'>
+           │    └ <member '_hookexec' of 'HookCaller' objects>
+           └ <HookCaller 'pytest_runtestloop'>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           │    │               │          │        │       └ True
+           │    │               │          │        └ {'session': <Session  exitstatus=<ExitCode.OK: 0> testsfailed=2 testscollected=6>}
+           │    │               │          └ [<HookImpl plugin_name='main', plugin=<module '_pytest.main' from '/usr/local/lib/python3.12/site-packages/_pytest/main.py'>>...
+           │    │               └ 'pytest_runtestloop'
+           │    └ <function _multicall at 0x75de392d7c40>
+           └ <_pytest.config.PytestPluginManager object at 0x75de3883b830>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          │         │         └ [<Session  exitstatus=<ExitCode.OK: 0> testsfailed=2 testscollected=6>]
+          │         └ <member 'function' of 'HookImpl' objects>
+          └ <HookImpl plugin_name='main', plugin=<module '_pytest.main' from '/usr/local/lib/python3.12/site-packages/_pytest/main.py'>>
+  File "/usr/local/lib/python3.12/site-packages/_pytest/main.py", line 396, in pytest_runtestloop
+    item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+    │    │                                        │              └ <Coroutine test_post_tweet>
+    │    │                                        └ <Coroutine test_upload_media>
+    │    └ <member 'config' of 'Node' objects>
+    └ <Coroutine test_upload_media>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           │    │         │    │     │    │                  │       └ True
+           │    │         │    │     │    │                  └ {'item': <Coroutine test_upload_media>, 'nextitem': <Coroutine test_post_tweet>}
+           │    │         │    │     │    └ <member '_hookimpls' of 'HookCaller' objects>
+           │    │         │    │     └ <HookCaller 'pytest_runtest_protocol'>
+           │    │         │    └ <member 'name' of 'HookCaller' objects>
+           │    │         └ <HookCaller 'pytest_runtest_protocol'>
+           │    └ <member '_hookexec' of 'HookCaller' objects>
+           └ <HookCaller 'pytest_runtest_protocol'>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           │    │               │          │        │       └ True
+           │    │               │          │        └ {'item': <Coroutine test_upload_media>, 'nextitem': <Coroutine test_post_tweet>}
+           │    │               │          └ [<HookImpl plugin_name='runner', plugin=<module '_pytest.runner' from '/usr/local/lib/python3.12/site-packages/_pytest/runner...
+           │    │               └ 'pytest_runtest_protocol'
+           │    └ <function _multicall at 0x75de392d7c40>
+           └ <_pytest.config.PytestPluginManager object at 0x75de3883b830>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          │         │         └ [<Coroutine test_upload_media>, <Coroutine test_post_tweet>]
+          │         └ <member 'function' of 'HookImpl' objects>
+          └ <HookImpl plugin_name='runner', plugin=<module '_pytest.runner' from '/usr/local/lib/python3.12/site-packages/_pytest/runner....
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 118, in pytest_runtest_protocol
+    runtestprotocol(item, nextitem=nextitem)
+    │               │              └ <Coroutine test_post_tweet>
+    │               └ <Coroutine test_upload_media>
+    └ <function runtestprotocol at 0x75de38ae7f60>
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 137, in runtestprotocol
+    reports.append(call_and_report(item, "call", log))
+    │       │      │               │             └ True
+    │       │      │               └ <Coroutine test_upload_media>
+    │       │      └ <function call_and_report at 0x75de38af8400>
+    │       └ <method 'append' of 'list' objects>
+    └ [<TestReport 'tests/test_media.py::test_upload_media' when='setup' outcome='passed'>]
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 244, in call_and_report
+    call = CallInfo.from_call(
+           │        └ <classmethod(<function CallInfo.from_call at 0x75de38af87c0>)>
+           └ <class '_pytest.runner.CallInfo'>
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+    result: TResult | None = func()
+            │                └ <function call_and_report.<locals>.<lambda> at 0x75de3915aac0>
+            └ +TResult
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 245, in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+            │                 │       └ {}
+            │                 └ <Coroutine test_upload_media>
+            └ <HookCaller 'pytest_runtest_call'>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           │    │         │    │     │    │                  │       └ False
+           │    │         │    │     │    │                  └ {'item': <Coroutine test_upload_media>}
+           │    │         │    │     │    └ <member '_hookimpls' of 'HookCaller' objects>
+           │    │         │    │     └ <HookCaller 'pytest_runtest_call'>
+           │    │         │    └ <member 'name' of 'HookCaller' objects>
+           │    │         └ <HookCaller 'pytest_runtest_call'>
+           │    └ <member '_hookexec' of 'HookCaller' objects>
+           └ <HookCaller 'pytest_runtest_call'>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           │    │               │          │        │       └ False
+           │    │               │          │        └ {'item': <Coroutine test_upload_media>}
+           │    │               │          └ [<HookImpl plugin_name='threadexception', plugin=<module '_pytest.threadexception' from '/usr/local/lib/python3.12/site-packa...
+           │    │               └ 'pytest_runtest_call'
+           │    └ <function _multicall at 0x75de392d7c40>
+           └ <_pytest.config.PytestPluginManager object at 0x75de3883b830>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          │         │         └ [<Coroutine test_upload_media>]
+          │         └ <member 'function' of 'HookImpl' objects>
+          └ <HookImpl plugin_name='runner', plugin=<module '_pytest.runner' from '/usr/local/lib/python3.12/site-packages/_pytest/runner....
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 179, in pytest_runtest_call
+    item.runtest()
+    │    └ <function PytestAsyncioFunction.runtest at 0x75de37ca2840>
+    └ <Coroutine test_upload_media>
+  File "/usr/local/lib/python3.12/site-packages/pytest_asyncio/plugin.py", line 469, in runtest
+    super().runtest()
+  File "/usr/local/lib/python3.12/site-packages/_pytest/python.py", line 1720, in runtest
+    self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+    │    │                                   └ <Coroutine test_upload_media>
+    │    └ <property object at 0x75de38a59ad0>
+    └ <Coroutine test_upload_media>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           │    │         │    │     │    │                  │       └ True
+           │    │         │    │     │    │                  └ {'pyfuncitem': <Coroutine test_upload_media>}
+           │    │         │    │     │    └ <member '_hookimpls' of 'HookCaller' objects>
+           │    │         │    │     └ <HookCaller 'pytest_pyfunc_call'>
+           │    │         │    └ <member 'name' of 'HookCaller' objects>
+           │    │         └ <HookCaller 'pytest_pyfunc_call'>
+           │    └ <member '_hookexec' of 'HookCaller' objects>
+           └ <HookCaller 'pytest_pyfunc_call'>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           │    │               │          │        │       └ True
+           │    │               │          │        └ {'pyfuncitem': <Coroutine test_upload_media>}
+           │    │               │          └ [<HookImpl plugin_name='python', plugin=<module '_pytest.python' from '/usr/local/lib/python3.12/site-packages/_pytest/python...
+           │    │               └ 'pytest_pyfunc_call'
+           │    └ <function _multicall at 0x75de392d7c40>
+           └ <_pytest.config.PytestPluginManager object at 0x75de3883b830>
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          │         │         └ [<Coroutine test_upload_media>]
+          │         └ <member 'function' of 'HookImpl' objects>
+          └ <HookImpl plugin_name='python', plugin=<module '_pytest.python' from '/usr/local/lib/python3.12/site-packages/_pytest/python....
+  File "/usr/local/lib/python3.12/site-packages/_pytest/python.py", line 166, in pytest_pyfunc_call
+    result = testfunction(**testargs)
+             │              └ {'client': <httpx.AsyncClient object at 0x75de34acbad0>, 'test_session': <sqlalchemy.ext.asyncio.session.AsyncSession object ...
+             └ <function test_upload_media at 0x75de34abbf60>
+  File "/usr/local/lib/python3.12/site-packages/pytest_asyncio/plugin.py", line 716, in inner
+    runner.run(coro, context=context)
+    │      │   │             └ <_contextvars.Context object at 0x75de35445d80>
+    │      │   └ <coroutine object test_upload_media at 0x75de353e76f0>
+    │      └ <function Runner.run at 0x75de386751c0>
+    └ <asyncio.runners.Runner object at 0x75de35496570>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-27' coro=<test_upload_media() running at /application/tests/test_media.py:24> cb=[_run_until_complet...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x75de38672d40>
+           │    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x75de35496570>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 678, in run_until_complete
+    self.run_forever()
+    │    └ <function BaseEventLoop.run_forever at 0x75de38672ca0>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 645, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x75de38674ae0>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 1999, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x75de38601080>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/asyncio/events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+
+  File "/application/tests/test_media.py", line 24, in test_upload_media
+    response = await client.post("/api/medias", files=files, headers=headers)
+                     │      │                         │              └ {'api-key': 'test'}
+                     │      │                         └ {'file': ('test_image.jpg', <_io.BytesIO object at 0x75de34ab07c0>, 'image/jpeg')}
+                     │      └ <function AsyncClient.post at 0x75de36e71620>
+                     └ <httpx.AsyncClient object at 0x75de34acbad0>
+
+  File "/usr/local/lib/python3.12/site-packages/httpx/_client.py", line 1859, in post
+    return await self.request(
+                 │    └ <function AsyncClient.request at 0x75de36e70fe0>
+                 └ <httpx.AsyncClient object at 0x75de34acbad0>
+  File "/usr/local/lib/python3.12/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+                 │    │    │             │                      └ <httpx._client.UseClientDefault object at 0x75de36f65100>
+                 │    │    │             └ <httpx._client.UseClientDefault object at 0x75de36f65100>
+                 │    │    └ <Request('POST', 'http://test/api/medias')>
+                 │    └ <function AsyncClient.send at 0x75de36e711c0>
+                 └ <httpx.AsyncClient object at 0x75de34acbad0>
+  File "/usr/local/lib/python3.12/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+                     │    └ <function AsyncClient._send_handling_auth at 0x75de36e71260>
+                     └ <httpx.AsyncClient object at 0x75de34acbad0>
+  File "/usr/local/lib/python3.12/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+                     │    └ <function AsyncClient._send_handling_redirects at 0x75de36e71300>
+                     └ <httpx.AsyncClient object at 0x75de34acbad0>
+  File "/usr/local/lib/python3.12/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+                     │    │                    └ <Request('POST', 'http://test/api/medias')>
+                     │    └ <function AsyncClient._send_single_request at 0x75de36e713a0>
+                     └ <httpx.AsyncClient object at 0x75de34acbad0>
+  File "/usr/local/lib/python3.12/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+                     │         │                    └ <Request('POST', 'http://test/api/medias')>
+                     │         └ <function ASGITransport.handle_async_request at 0x75de36e61300>
+                     └ <httpx.ASGITransport object at 0x75de34acbc20>
+  File "/usr/local/lib/python3.12/site-packages/httpx/_transports/asgi.py", line 170, in handle_async_request
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function ASGITransport.handle_async_request.<locals>.send at 0x75de2fcd8d60>
+          │    │   │      └ <function ASGITransport.handle_async_request.<locals>.receive at 0x75de3543cfe0>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+          │    └ <fastapi.applications.FastAPI object at 0x75de356a3a10>
+          └ <httpx.ASGITransport object at 0x75de34acbc20>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1135, in __call__
+    await super().__call__(scope, receive, send)
+                           │      │        └ <function ASGITransport.handle_async_request.<locals>.send at 0x75de2fcd8d60>
+                           │      └ <function ASGITransport.handle_async_request.<locals>.receive at 0x75de3543cfe0>
+                           └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+  File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <function ASGITransport.handle_async_request.<locals>.send at 0x75de2fcd8d60>
+          │    │                │      └ <function ASGITransport.handle_async_request.<locals>.receive at 0x75de3543cfe0>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+          │    └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x75de2fce7d70>
+          └ <fastapi.applications.FastAPI object at 0x75de356a3a10>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+          │    │   │      │        └ <function ServerErrorMiddleware.__call__.<locals>._send at 0x75de2fcd8e00>
+          │    │   │      └ <function ASGITransport.handle_async_request.<locals>.receive at 0x75de3543cfe0>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+          │    └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x75de2fce7b00>
+          └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x75de2fce7d70>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+                     │    │             │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x75de2fcd8fe0>
+                     │    │             └ <starlette.middleware.base._CachedRequest object at 0x75de2fce40b0>
+                     │    └ <function db_error_middleware at 0x75de354d80e0>
+                     └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x75de2fce7b00>
+
+> File "/application/application/routes.py", line 80, in db_error_middleware
+    response = await call_next(request)
+                     │         └ <starlette.middleware.base._CachedRequest object at 0x75de2fce40b0>
+                     └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x75de2fcd8fe0>
+
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+          │            │       │            │       └ <attribute '__context__' of 'BaseException' objects>
+          │            │       │            └ InvalidRequestError("One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggerin...
+          │            │       └ <attribute '__cause__' of 'BaseException' objects>
+          │            └ InvalidRequestError("One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggerin...
+          └ InvalidRequestError("One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggerin...
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+          │    │   │      │                      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x75de2fcd9440>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75de2fcd9260>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+          │    └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x75de2fce7fb0>
+          └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x75de2fce7b00>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+          │                            │    │    │     │      │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x75de2fcd9440>
+          │                            │    │    │     │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75de2fcd9260>
+          │                            │    │    │     └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+          │                            │    │    └ <starlette.requests.Request object at 0x75de354957c0>
+          │                            │    └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x75de2fce4cb0>
+          │                            └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x75de2fce7fb0>
+          └ <function wrap_app_handling_exceptions at 0x75de370ad940>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75de2fcd9760>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75de2fcd9260>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x75de2fce4cb0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75de2fcd9760>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75de2fcd9260>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+          │    └ <fastapi.routing.APIRouter object at 0x75de356a3a40>
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x75de2fce4cb0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75de2fcd9760>
+          │    │                │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75de2fcd9260>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+          │    └ <bound method Router.app of <fastapi.routing.APIRouter object at 0x75de356a3a40>>
+          └ <fastapi.routing.APIRouter object at 0x75de356a3a40>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+          │     │      │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75de2fcd9760>
+          │     │      │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75de2fcd9260>
+          │     │      └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+          │     └ <function Route.handle at 0x75de370aede0>
+          └ APIRoute(path='/api/medias', name='upload_media', methods=['POST'])
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75de2fcd9760>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75de2fcd9260>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+          │    └ <function request_response.<locals>.app at 0x75de353d9080>
+          └ APIRoute(path='/api/medias', name='upload_media', methods=['POST'])
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+          │                            │    │        │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75de2fcd9760>
+          │                            │    │        │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75de2fcd9260>
+          │                            │    │        └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+          │                            │    └ <starlette.requests.Request object at 0x75de2fce4650>
+          │                            └ <function request_response.<locals>.app.<locals>.app at 0x75de2fcd9800>
+          └ <function wrap_app_handling_exceptions at 0x75de370ad940>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x75de2fcd9940>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x75de2fcd9260>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1', 'method': 'POST', 'headers': [(b'host', b'test'), (b'acce...
+          └ <function request_response.<locals>.app.<locals>.app at 0x75de2fcd9800>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 101, in app
+    response = await f(request)
+                     │ └ <starlette.requests.Request object at 0x75de2fce4650>
+                     └ <function get_request_handler.<locals>.app at 0x75de353d8f40>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+                         └ <function run_endpoint_function at 0x75de36ecccc0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+                 │         │      └ {'session': <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x75de34aca9c0>, 'file': UploadFile(filename='test_image.j...
+                 │         └ <function upload_media at 0x75de353d8ea0>
+                 └ Dependant(path_params=[], query_params=[], header_params=[], cookie_params=[], body_params=[ModelField(field_info=File(Pydant...
+
+  File "/application/application/routes.py", line 167, in upload_media
+    new_media = Media(**media_data)
+                │       └ {'path': '/tmp/pytest-of-root/pytest-3/test_upload_media0/test_media/99053ff3-8aab-469a-babc-2e8e2cd9183a.jpg'}
+                └ <class 'application.models.Media'>
+
+  File "<string>", line 4, in __init__
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/state.py", line 591, in _initialize_instance
+    manager.dispatch.init(self, args, kwargs)
+    │       │        │    │     │     └ {'path': '/tmp/pytest-of-root/pytest-3/test_upload_media0/test_media/99053ff3-8aab-469a-babc-2e8e2cd9183a.jpg'}
+    │       │        │    │     └ ()
+    │       │        │    └ <sqlalchemy.orm.state.InstanceState object at 0x75de34afcb90>
+    │       │        └ <member 'init' of 'InstanceEventsDispatch' objects>
+    │       └ <sqlalchemy.event.base.InstanceEventsDispatch object at 0x75de35be8910>
+    └ <ClassManager of <class 'application.models.Media'> at 75de35becbe0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/event/attr.py", line 515, in __call__
+    fn(*args, **kw)
+    │   │       └ {}
+    │   └ (<sqlalchemy.orm.state.InstanceState object at 0x75de34afcb90>, (), {'path': '/tmp/pytest-of-root/pytest-3/test_upload_media0...
+    └ <function _event_on_init at 0x75de361a28e0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py", line 4419, in _event_on_init
+    instrumenting_mapper._check_configure()
+    │                    └ <function Mapper._check_configure at 0x75de36192840>
+    └ <Mapper at 0x75de35babc50; Media>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    │                      │    └ <sqlalchemy.orm.decl_api.registry object at 0x75de360544d0>
+    │                      └ <Mapper at 0x75de35babc50; Media>
+    └ <function _configure_registries at 0x75de361a2520>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    │                        │           └ True
+    │                        └ set()
+    └ <function _do_configure_registries at 0x75de361a2660>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py", line 4264, in _do_configure_registries
+    raise e
+          └ InvalidRequestError("One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggerin...
+
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Tweet(tweet)]'. Original exception was: Mapper 'Mapper[User(users)]' has no property 'tweet'.  If this property was indicated from other mappers or configure events, ensure registry.configure() has been called.
+2026-02-27 12:37:23.988 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 12:37:25.721 | INFO     | application.routes:delete_tweet:224 - File test_image.jpg deleted from disk
+2026-02-27 12:37:25.736 | INFO     | application.routes:delete_tweet:228 - User test_user delete tweet: id = 1
+2026-02-27 12:37:25.934 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-02-27 12:37:26.036 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-27 12:37:26.045 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-27 12:37:26.167 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-02-27 12:37:26.261 | INFO     | application.routes:auth_user:112 - User not found
+2026-02-27 12:42:24.935 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 12:42:30.488 | INFO     | application.routes:delete_tweet:224 - File test_image.jpg deleted from disk
+2026-02-27 12:42:30.496 | INFO     | application.routes:delete_tweet:228 - User test_user delete tweet: id = 1
+2026-02-27 12:42:30.652 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-02-27 12:42:30.728 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-27 12:42:30.738 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-27 12:42:30.834 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-02-27 12:42:30.892 | INFO     | application.routes:auth_user:112 - User not found
+2026-02-27 12:44:11.282 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 12:45:40.483 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 12:45:43.249 | INFO     | application.routes:delete_tweet:224 - File test_image.jpg deleted from disk
+2026-02-27 12:45:43.256 | INFO     | application.routes:delete_tweet:228 - User test_user delete tweet: id = 1
+2026-02-27 12:45:43.397 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-02-27 12:45:43.482 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-27 12:45:43.491 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-27 12:45:43.567 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-02-27 12:45:43.630 | INFO     | application.routes:auth_user:112 - User not found
+2026-02-27 13:01:59.483 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 13:27:08.169 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 13:27:34.227 | INFO     | application.routes:delete_tweet:220 - File test_image.jpg deleted from disk
+2026-02-27 13:27:34.235 | INFO     | application.routes:delete_tweet:224 - User test_user delete tweet: id = 1
+2026-02-27 13:27:34.367 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-02-27 13:27:34.454 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-27 13:27:34.462 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-27 13:27:34.541 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-02-27 13:27:34.605 | INFO     | application.routes:auth_user:112 - User not found
+2026-02-27 13:42:51.141 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 13:43:09.978 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-27 13:43:10.323 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-27 13:43:33.623 | INFO     | application.routes:delete_tweet:220 - File test_image.jpg deleted from disk
+2026-02-27 13:43:33.642 | INFO     | application.routes:delete_tweet:224 - User test_user delete tweet: id = 1
+2026-02-27 13:43:33.921 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-02-27 13:43:34.030 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-27 13:43:34.043 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-27 13:43:34.182 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-02-27 13:43:34.280 | INFO     | application.routes:auth_user:112 - User not found

@@ -21,7 +21,7 @@ import application.schemas
 from alembic import command
 from alembic.config import Config
 from application.database import engine, get_db
-from application.models import Media, Tweet, User
+from application.models import FollowLink, Likes, Media, Tweet, User
 
 logger.add(
     sys.stdout,
@@ -173,17 +173,6 @@ async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)
     return response
 
 
-@app.get("/api/tweets", response_model=schemas.AddTweet)
-async def get_tweets(tweet: schemas.AddTweet, session: AsyncSession = Depends(get_db)):
-    logger.info("api - get start!")
-
-    res = await session.execute(
-        select(Tweet).options(joinedload(Tweet.tweet_media_ids)).where(Tweet.id == 1)
-    )
-
-    return res.scalars().unique().one()
-
-
 @app.post("/api/user", response_model=schemas.UserInfo)
 async def add_user(user: schemas.UserInfo, session: AsyncSession = Depends(get_db)):
 
@@ -194,20 +183,6 @@ async def add_user(user: schemas.UserInfo, session: AsyncSession = Depends(get_d
     return JSONResponse(
         content={"response": "user successfully create!"}, status_code=201
     )
-
-
-@app.get("/{catchall:path}")
-async def serve_frontend(_: Request, catchall: str):
-    if catchall.startswith("api/"):
-        return JSONResponse(
-            status_code=404, content={"result": False, "error": "API route not found"}
-        )
-
-    file_path = os.path.join(STATIC_DIR, catchall)
-    if os.path.exists(file_path) and os.path.isfile(file_path):
-        return FileResponse(file_path)
-
-    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
 @app.delete("/api/tweets/{tweet_id}", response_model=schemas.DeleteTweet)
@@ -250,3 +225,47 @@ async def delete_tweet(
     response = {"result": True}
 
     return JSONResponse(content=response, status_code=200)
+
+
+@app.get("/api/tweets", response_model=schemas.GetTweets)
+async def get_tweets(
+    api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
+):
+    stmt = (
+        select(Tweet)
+        .options(
+            joinedload(Tweet.author),
+            joinedload(Tweet.tweet_media_ids),
+            joinedload(Tweet.liked_by_users).joinedload(Likes.user),
+        )
+        .where(
+            Tweet.user_id.in_(
+                select(FollowLink.followed_id).where(
+                    FollowLink.follower_id
+                    == (
+                        select(User.id).where(User.api_key == api_key).scalar_subquery()
+                    )
+                )
+            )
+        )
+    )
+
+    result_query = await session.execute(stmt)
+    tweets = result_query.scalars().unique().all()
+
+    # return schemas.GetTweets(tweets=list(tweets))
+    return schemas.GetTweets.model_validate({"tweets": tweets})
+
+
+@app.get("/{catchall:path}")
+async def serve_frontend(_: Request, catchall: str):
+    if catchall.startswith("api/"):
+        return JSONResponse(
+            status_code=404, content={"result": False, "error": "API route not found"}
+        )
+
+    file_path = os.path.join(STATIC_DIR, catchall)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
