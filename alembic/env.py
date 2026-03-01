@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, pool
 
 from alembic import context
 from application.database import Base
-from application.models import User, Tweet, Media, Likes, FollowLink
+from application.models import FollowLink, Likes, Media, Tweet, User
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

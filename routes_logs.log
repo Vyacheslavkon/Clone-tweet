@@ -35039,3 +35039,13 @@ sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - c
 2026-02-27 13:27:34.462 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
 2026-02-27 13:27:34.541 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
 2026-02-27 13:27:34.605 | INFO     | application.routes:auth_user:112 - User not found
+2026-02-27 13:42:51.141 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-02-27 13:43:09.978 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-27 13:43:10.323 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-02-27 13:43:33.623 | INFO     | application.routes:delete_tweet:220 - File test_image.jpg deleted from disk
+2026-02-27 13:43:33.642 | INFO     | application.routes:delete_tweet:224 - User test_user delete tweet: id = 1
+2026-02-27 13:43:33.921 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-02-27 13:43:34.030 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-02-27 13:43:34.043 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-02-27 13:43:34.182 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-02-27 13:43:34.280 | INFO     | application.routes:auth_user:112 - User not found

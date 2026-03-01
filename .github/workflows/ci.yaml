@@ -38,7 +38,8 @@ jobs:
       - name: Run Black
         run: black . --check --extend-exclude "alembic/"
 
-      - name: Run Isort
+      - name: Run Isort --extend-exclude "alembic/"
+
         run: isort --check-only --diff --profile black .
 
       - name: Run Flake8
