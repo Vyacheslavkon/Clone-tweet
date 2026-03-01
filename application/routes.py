@@ -8,7 +8,7 @@ from typing import Annotated
 
 import aiofiles
 from anyio import to_thread
-from fastapi import Depends, FastAPI, Header, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, Header, HTTPException, Path, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
 from sqlalchemy import select, update
@@ -173,8 +173,8 @@ async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)
     return response
 
 
-@app.post("/api/user", response_model=schemas.UserInfo)
-async def add_user(user: schemas.UserInfo, session: AsyncSession = Depends(get_db)):
+@app.post("/api/user", response_model=schemas.AddUser)
+async def add_user(user: schemas.AddUser, session: AsyncSession = Depends(get_db)):
 
     new_user = User(**user.model_dump())
     async with session.begin():
@@ -269,3 +269,28 @@ async def serve_frontend(_: Request, catchall: str):
         return FileResponse(file_path)
 
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+
+
+@app.post("/api/tweets/{id}/likes", response_model=schemas.AddLike)
+async def post_like(
+    id: Annotated[int, Path()],
+    api_key: Annotated[str, Header()],
+    session: AsyncSession = Depends(get_db),
+):
+
+    async with session.begin_nested() if session.in_transaction() else session.begin():
+        select_query = select(User).where(User.api_key == api_key)
+        result = await session.execute(select_query)
+        user = result.scalar_one_or_none()
+        if not user:
+            logger.info("User not found")
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user_id = user.id
+        like = schemas.AddLike(user_id=user_id, id=id)
+        new_like = Likes(**like.model_dump())
+
+        session.add(new_like)
+
+    response = {"result": True}
+    return JSONResponse(content=response, status_code=201)

@@ -43,6 +43,12 @@ class UserInfo(BaseModel):
     user: UserDetail
 
 
+class AddUser(BaseModel):
+
+    name: str
+    api_key: str
+
+
 class DeleteTweet(BaseModel):
 
     id: int
@@ -63,6 +69,13 @@ class Like(BaseModel):
         if hasattr(v, "name"):
             return v.name
         return v
+
+
+class AddLike(BaseModel):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    user_id: int
+    tweet_id: int = Field(alias="id")
 
 
 class Tweet(BaseModel):
