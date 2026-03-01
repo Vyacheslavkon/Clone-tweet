@@ -35049,3 +35049,487 @@ sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - c
 2026-02-27 13:43:34.043 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
 2026-02-27 13:43:34.182 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
 2026-02-27 13:43:34.280 | INFO     | application.routes:auth_user:112 - User not found
+2026-03-01 09:16:58.070 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 09:18:03.588 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-03-01 09:18:05.090 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-03-01 09:31:06.555 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 09:50:09.078 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-03-01 09:50:09.230 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-03-01 09:50:26.386 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Max
+2026-03-01 09:50:26.599 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Max
+2026-03-01 09:51:20.380 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-03-01 09:51:20.683 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-03-01 09:51:22.192 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-03-01 09:54:13.339 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 10:18:59.720 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 10:20:35.331 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 10:21:17.817 | ERROR    | application.routes:db_error_middleware:90 - Internal Server Error: %s
+Traceback (most recent call last):
+
+  File "asyncpg/protocol/prepared_stmt.pyx", line 175, in asyncpg.protocol.protocol.PreparedStatementState._encode_bind_msg
+    codec.encode(self.settings, writer, arg)
+  File "asyncpg/protocol/codecs/base.pyx", line 251, in asyncpg.protocol.protocol.Codec.encode
+    return self.encoder(self, settings, buf, obj)
+  File "asyncpg/protocol/codecs/base.pyx", line 153, in asyncpg.protocol.protocol.Codec.encode_scalar
+    self.c_encoder(settings, buf, obj)
+  File "asyncpg/pgproto/codecs/int.pyx", line 54, in asyncpg.pgproto.pgproto.int4_encode
+    val = cpython.PyLong_AsLong(obj)
+
+TypeError: 'str' object cannot be interpreted as an integer
+
+
+The above exception was the direct cause of the following exception:
+
+
+Traceback (most recent call last):
+
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 550, in _prepare_and_execute
+    self._rows = deque(await prepared_stmt.fetch(*parameters))
+    │    │       │           │             │      └ ('test', 79)
+    │    │       │           │             └ <function PreparedStatement.fetch at 0x78bda5416d40>
+    │    │       │           └ <asyncpg.prepared_stmt.PreparedStatement object at 0x78bda41aba60>
+    │    │       └ <class 'collections.deque'>
+    │    └ <member '_rows' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x78bda4186e60>
+  File "/usr/local/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 177, in fetch
+    data = await self.__bind_execute(args, 0, timeout)
+                 │                   │        └ None
+                 │                   └ ('test', 79)
+                 └ <asyncpg.prepared_stmt.PreparedStatement object at 0x78bda41aba60>
+  File "/usr/local/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 268, in __bind_execute
+    data, status, _ = await self.__do_execute(
+                            └ <asyncpg.prepared_stmt.PreparedStatement object at 0x78bda41aba60>
+  File "/usr/local/lib/python3.12/site-packages/asyncpg/prepared_stmt.py", line 257, in __do_execute
+    return await executor(protocol)
+                 │        └ <asyncpg.protocol.protocol.Protocol object at 0x78bda4fddbd0>
+                 └ <function PreparedStatement.__bind_execute.<locals>.<lambda> at 0x78bda4192e80>
+  File "asyncpg/protocol/protocol.pyx", line 184, in bind_execute
+    args_buf = state._encode_bind_msg(args)
+  File "asyncpg/protocol/prepared_stmt.pyx", line 204, in asyncpg.protocol.protocol.PreparedStatementState._encode_bind_msg
+    raise exceptions.DataError(
+          │          └ <class 'asyncpg.exceptions.DataError'>
+          └ <module 'asyncpg.exceptions' from '/usr/local/lib/python3.12/site-packages/asyncpg/exceptions/__init__.py'>
+
+asyncpg.exceptions.DataError: invalid input for query argument $1: 'test' ('str' object cannot be interpreted as an integer)
+
+
+The above exception was the direct cause of the following exception:
+
+
+Traceback (most recent call last):
+
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    │    │       └ <function DefaultDialect.do_execute at 0x78bda5e8b9c0>
+    │    └ <sqlalchemy.dialects.postgresql.asyncpg.PGDialect_asyncpg object at 0x78bda53cbcb0>
+    └ <sqlalchemy.engine.base.Connection object at 0x78bda50051c0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    │      │       │          └ ('test', 79)
+    │      │       └ 'INSERT INTO likes (user_id, tweet_id) VALUES ($1::INTEGER, $2::INTEGER)'
+    │      └ <function AsyncAdapt_asyncpg_cursor.execute at 0x78bda55d16c0>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x78bda4186e60>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+    │    └ <member '_adapt_connection' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x78bda4186e60>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           │       │             └ <coroutine object AsyncAdapt_asyncpg_cursor._prepare_and_execute at 0x78bda5117370>
+           │       └ <attribute 'parent' of 'greenlet.greenlet' objects>
+           └ <_AsyncIoGreenlet object at 0x78bda4fb1b40 (otid=0x78bda68c2220) dead>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+                  └ <coroutine object AsyncAdapt_asyncpg_connection._rollback_and_discard at 0x78bda41693c0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+    │    └ <function AsyncAdapt_asyncpg_cursor._handle_exception at 0x78bda55d14e0>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x78bda4186e60>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+    │    │                                   └ DataError("invalid input for query argument $1: 'test' ('str' object cannot be interpreted as an integer)")
+    │    └ <member '_adapt_connection' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x78bda4186e60>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+          │                     └ DataError("invalid input for query argument $1: 'test' ('str' object cannot be interpreted as an integer)")
+          └ Error("<class 'asyncpg.exceptions.DataError'>: invalid input for query argument $1: 'test' ('str' object cannot be interprete...
+
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.Error: <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $1: 'test' ('str' object cannot be interpreted as an integer)
+
+
+The above exception was the direct cause of the following exception:
+
+
+Traceback (most recent call last):
+
+  File "<string>", line 1, in <module>
+  File "/usr/local/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               │     │   └ 4
+               │     └ 7
+               └ <function _main at 0x78bda87b14e0>
+  File "/usr/local/lib/python3.12/multiprocessing/spawn.py", line 135, in _main
+    return self._bootstrap(parent_sentinel)
+           │    │          └ 4
+           │    └ <function BaseProcess._bootstrap at 0x78bda88977e0>
+           └ <SpawnProcess name='SpawnProcess-5' parent=1 started>
+  File "/usr/local/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+    │    └ <function BaseProcess.run at 0x78bda8896d40>
+    └ <SpawnProcess name='SpawnProcess-5' parent=1 started>
+  File "/usr/local/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    │    │        │    │        │    └ {'config': <uvicorn.config.Config object at 0x78bda7921010>, 'target': <bound method Server.run of <uvicorn.server.Server obj...
+    │    │        │    │        └ <SpawnProcess name='SpawnProcess-5' parent=1 started>
+    │    │        │    └ ()
+    │    │        └ <SpawnProcess name='SpawnProcess-5' parent=1 started>
+    │    └ <function subprocess_started at 0x78bda771d120>
+    └ <SpawnProcess name='SpawnProcess-5' parent=1 started>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+    │              └ [<socket.socket fd=3, family=2, type=1, proto=0, laddr=('0.0.0.0', 8000)>]
+    └ <bound method Server.run of <uvicorn.server.Server object at 0x78bda7769be0>>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           │           │    │             │                      │    │      └ <function Config.get_loop_factory at 0x78bda7924400>
+           │           │    │             │                      │    └ <uvicorn.config.Config object at 0x78bda7921010>
+           │           │    │             │                      └ <uvicorn.server.Server object at 0x78bda7769be0>
+           │           │    │             └ [<socket.socket fd=3, family=2, type=1, proto=0, laddr=('0.0.0.0', 8000)>]
+           │           │    └ <function Server.serve at 0x78bda771c720>
+           │           └ <uvicorn.server.Server object at 0x78bda7769be0>
+           └ <function run at 0x78bda7aeac00>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x78bda8830120>
+           │      └ <function Runner.run at 0x78bda7b15ee0>
+           └ <asyncio.runners.Runner object at 0x78bda870cc80>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /usr/local/lib/python3.12/site-packages/uvicorn/server.py:71> wai...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x78bda7b03a60>
+           │    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x78bda870cc80>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 678, in run_until_complete
+    self.run_forever()
+    │    └ <function BaseEventLoop.run_forever at 0x78bda7b039c0>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 645, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x78bda7b15800>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 1999, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x78bda84f5e40>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/asyncio/events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+                   └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x78bda7743350>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+                 │    │   │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x78bda41538c0>>
+                 │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x78bda41538c0>>
+                 │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+                 │    └ <fastapi.applications.FastAPI object at 0x78bda5056b40>
+                 └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x78bda7743350>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1135, in __call__
+    await super().__call__(scope, receive, send)
+                           │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x78bda41538c0>>
+                           │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x78bda41538c0>>
+                           └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+  File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x78bda41538c0>>
+          │    │                │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x78bda41538c0>>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x78bda5057230>
+          └ <fastapi.applications.FastAPI object at 0x78bda5056b40>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+          │    │   │      │        └ <function ServerErrorMiddleware.__call__.<locals>._send at 0x78bda415bf60>
+          │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x78bda41538c0>>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x78bda5057500>
+          └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x78bda5057230>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+                     │    │             │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x78bda415bba0>
+                     │    │             └ <starlette.middleware.base._CachedRequest object at 0x78bda4153470>
+                     │    └ <function db_error_middleware at 0x78bda508ccc0>
+                     └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x78bda5057500>
+
+> File "/application/application/routes.py", line 80, in db_error_middleware
+    response = await call_next(request)
+                     │         └ <starlette.middleware.base._CachedRequest object at 0x78bda4153470>
+                     └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x78bda415bba0>
+
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+          │            │       │            │       └ <attribute '__context__' of 'BaseException' objects>
+          │            │       │            └ DBAPIError("(sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query ar...
+          │            │       └ <attribute '__cause__' of 'BaseException' objects>
+          │            └ DBAPIError("(sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query ar...
+          └ DBAPIError("(sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query ar...
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+          │    │   │      │                      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x78bda415b9c0>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x78bda415ba60>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x78bda5057620>
+          └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x78bda5057500>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+          │                            │    │    │     │      │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x78bda415b9c0>
+          │                            │    │    │     │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x78bda415ba60>
+          │                            │    │    │     └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │                            │    │    └ <starlette.requests.Request object at 0x78bda50e4980>
+          │                            │    └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x78bda5057380>
+          │                            └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x78bda5057620>
+          └ <function wrap_app_handling_exceptions at 0x78bda698d8a0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x78bda415b6a0>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x78bda415ba60>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x78bda5057380>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x78bda415b6a0>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x78bda415ba60>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <fastapi.routing.APIRouter object at 0x78bda5056b70>
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x78bda5057380>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x78bda415b6a0>
+          │    │                │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x78bda415ba60>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <bound method Router.app of <fastapi.routing.APIRouter object at 0x78bda5056b70>>
+          └ <fastapi.routing.APIRouter object at 0x78bda5056b70>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+          │     │      │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x78bda415b6a0>
+          │     │      │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x78bda415ba60>
+          │     │      └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │     └ <function Route.handle at 0x78bda698ed40>
+          └ APIRoute(path='/api/tweets/{id}/likes', name='post_like', methods=['POST'])
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x78bda415b6a0>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x78bda415ba60>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <function request_response.<locals>.app at 0x78bda4f86a20>
+          └ APIRoute(path='/api/tweets/{id}/likes', name='post_like', methods=['POST'])
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+          │                            │    │        │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x78bda415b6a0>
+          │                            │    │        │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x78bda415ba60>
+          │                            │    │        └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │                            │    └ <starlette.requests.Request object at 0x78bda4153c80>
+          │                            └ <function request_response.<locals>.app.<locals>.app at 0x78bda415b600>
+          └ <function wrap_app_handling_exceptions at 0x78bda698d8a0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x78bda415b240>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x78bda415ba60>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          └ <function request_response.<locals>.app.<locals>.app at 0x78bda415b600>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 101, in app
+    response = await f(request)
+                     │ └ <starlette.requests.Request object at 0x78bda4153c80>
+                     └ <function get_request_handler.<locals>.app at 0x78bda4f868e0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+                         └ <function run_endpoint_function at 0x78bda69b0cc0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+                 │         │      └ {'session': <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x78bda4153ef0>, 'id': 79, 'api_key': 'test'}
+                 │         └ <function post_like at 0x78bda4f86840>
+                 └ Dependant(path_params=[ModelField(field_info=Path(PydanticUndefined), name='id', mode='validation', config=None)], query_para...
+
+  File "/application/application/routes.py", line 280, in post_like
+    async with session.begin_nested() if session.in_transaction() else session.begin():
+               │       │                 │       │                     │       └ <function AsyncSession.begin at 0x78bda5a9ccc0>
+               │       │                 │       │                     └ <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x78bda4153ef0>
+               │       │                 │       └ <function AsyncSession.in_transaction at 0x78bda5a9dbc0>
+               │       │                 └ <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x78bda4153ef0>
+               │       └ <function AsyncSession.begin_nested at 0x78bda5a9cd60>
+               └ <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x78bda4153ef0>
+
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/ext/asyncio/session.py", line 1887, in __aexit__
+    await greenlet_spawn(
+          └ <function greenlet_spawn at 0x78bda690a700>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 203, in greenlet_spawn
+    result = context.switch(value)
+             │       │      └ None
+             │       └ <method 'switch' of 'greenlet.greenlet' objects>
+             └ <_AsyncIoGreenlet object at 0x78bda4fb1b40 (otid=0x78bda68c2220) dead>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/util.py", line 147, in __exit__
+    with util.safe_reraise():
+         │    └ <class 'sqlalchemy.util.langhelpers.safe_reraise'>
+         └ <module 'sqlalchemy.util' from '/usr/local/lib/python3.12/site-packages/sqlalchemy/util/__init__.py'>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+          │         │              └ <traceback object at 0x78bda41fa980>
+          │         └ <method 'with_traceback' of 'BaseException' objects>
+          └ DBAPIError("(sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query ar...
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/util.py", line 145, in __exit__
+    self.commit()
+    │    └ <function SessionTransaction.commit at 0x78bda5bb9300>
+    └ <sqlalchemy.orm.session.SessionTransaction object at 0x78bda4f95d10>
+  File "<string>", line 2, in commit
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                │  │      │      └ {'_to_root': False}
+                │  │      └ ()
+                │  └ <sqlalchemy.orm.session.SessionTransaction object at 0x78bda4f95d10>
+                └ <function SessionTransaction.commit at 0x78bda5bb9260>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1311, in commit
+    self._prepare_impl()
+    │    └ <function SessionTransaction._prepare_impl at 0x78bda5bb9120>
+    └ <sqlalchemy.orm.session.SessionTransaction object at 0x78bda4f95d10>
+  File "<string>", line 2, in _prepare_impl
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                │  │      │      └ {}
+                │  │      └ ()
+                │  └ <sqlalchemy.orm.session.SessionTransaction object at 0x78bda4f95d10>
+                └ <function SessionTransaction._prepare_impl at 0x78bda5bb9080>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1286, in _prepare_impl
+    self.session.flush()
+    │    │       └ <function Session.flush at 0x78bda5bc9260>
+    │    └ <sqlalchemy.orm.session.Session object at 0x78bda41526f0>
+    └ <sqlalchemy.orm.session.SessionTransaction object at 0x78bda4f95d10>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4331, in flush
+    self._flush(objects)
+    │    │      └ None
+    │    └ <function Session._flush at 0x78bda5bc9440>
+    └ <sqlalchemy.orm.session.Session object at 0x78bda41526f0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4466, in _flush
+    with util.safe_reraise():
+         │    └ <class 'sqlalchemy.util.langhelpers.safe_reraise'>
+         └ <module 'sqlalchemy.util' from '/usr/local/lib/python3.12/site-packages/sqlalchemy/util/__init__.py'>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+          │         │              └ <traceback object at 0x78bda41fac40>
+          │         └ <method 'with_traceback' of 'BaseException' objects>
+          └ DBAPIError("(sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query ar...
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 4427, in _flush
+    flush_context.execute()
+    │             └ <function UOWTransaction.execute at 0x78bda5b51120>
+    └ <sqlalchemy.orm.unitofwork.UOWTransaction object at 0x78bda4152240>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+    │   │       └ <sqlalchemy.orm.unitofwork.UOWTransaction object at 0x78bda4152240>
+    │   └ <function SaveUpdateAll.execute at 0x78bda5b51c60>
+    └ SaveUpdateAll(Mapper[Likes(likes)])
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+    │    │         │               └ <function save_obj at 0x78bda5b539c0>
+    │    │         └ <module 'sqlalchemy.orm.persistence' from '/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py'>
+    │    └ <module 'sqlalchemy.util.preloaded' from '/usr/local/lib/python3.12/site-packages/sqlalchemy/util/preloaded.py'>
+    └ <module 'sqlalchemy.util' from '/usr/local/lib/python3.12/site-packages/sqlalchemy/util/__init__.py'>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+    └ <function _emit_insert_statements at 0x78bda5b8aca0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py", line 1048, in _emit_insert_statements
+    result = connection.execute(
+             │          └ <function Connection.execute at 0x78bda5ff09a0>
+             └ <sqlalchemy.engine.base.Connection object at 0x78bda50051c0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           └ <bound method ClauseElement._execute_on_connection of <sqlalchemy.sql.dml.Insert object at 0x78bda41c7c80>>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           │          └ <function Connection._execute_clauseelement at 0x78bda5ff0cc0>
+           └ <sqlalchemy.engine.base.Connection object at 0x78bda50051c0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          │    └ <function Connection._execute_context at 0x78bda5ff0ea0>
+          └ <sqlalchemy.engine.base.Connection object at 0x78bda50051c0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           │    └ <function Connection._exec_single_context at 0x78bda5ff0f40>
+           └ <sqlalchemy.engine.base.Connection object at 0x78bda50051c0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    │    └ <function Connection._handle_dbapi_exception at 0x78bda5ff11c0>
+    └ <sqlalchemy.engine.base.Connection object at 0x78bda50051c0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+          │                    │              │                 └ Error("<class 'asyncpg.exceptions.DataError'>: invalid input for query argument $1: 'test' ('str' object cannot be interprete...
+          │                    │              └ (<class 'sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.Error'>, Error("<class 'asyncpg.exceptions.DataError...
+          │                    └ <method 'with_traceback' of 'BaseException' objects>
+          └ DBAPIError("(sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query ar...
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    │    │       └ <function DefaultDialect.do_execute at 0x78bda5e8b9c0>
+    │    └ <sqlalchemy.dialects.postgresql.asyncpg.PGDialect_asyncpg object at 0x78bda53cbcb0>
+    └ <sqlalchemy.engine.base.Connection object at 0x78bda50051c0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    │      │       │          └ ('test', 79)
+    │      │       └ 'INSERT INTO likes (user_id, tweet_id) VALUES ($1::INTEGER, $2::INTEGER)'
+    │      └ <function AsyncAdapt_asyncpg_cursor.execute at 0x78bda55d16c0>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x78bda4186e60>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+    │    └ <member '_adapt_connection' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x78bda4186e60>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           │       │             └ <coroutine object AsyncAdapt_asyncpg_cursor._prepare_and_execute at 0x78bda5117370>
+           │       └ <attribute 'parent' of 'greenlet.greenlet' objects>
+           └ <_AsyncIoGreenlet object at 0x78bda4fb1b40 (otid=0x78bda68c2220) dead>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+                  └ <coroutine object AsyncAdapt_asyncpg_connection._rollback_and_discard at 0x78bda41693c0>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+    │    └ <function AsyncAdapt_asyncpg_cursor._handle_exception at 0x78bda55d14e0>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x78bda4186e60>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+    │    │                                   └ DataError("invalid input for query argument $1: 'test' ('str' object cannot be interpreted as an integer)")
+    │    └ <member '_adapt_connection' of 'AsyncAdapt_asyncpg_cursor' objects>
+    └ <sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_cursor object at 0x78bda4186e60>
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+          │                     └ DataError("invalid input for query argument $1: 'test' ('str' object cannot be interpreted as an integer)")
+          └ Error("<class 'asyncpg.exceptions.DataError'>: invalid input for query argument $1: 'test' ('str' object cannot be interprete...
+
+sqlalchemy.exc.DBAPIError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $1: 'test' ('str' object cannot be interpreted as an integer)
+[SQL: INSERT INTO likes (user_id, tweet_id) VALUES ($1::INTEGER, $2::INTEGER)]
+[parameters: ('test', 79)]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-03-01 10:22:56.483 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 10:27:34.752 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 10:29:22.023 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 10:31:43.439 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 10:46:06.896 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 10:58:11.436 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 11:13:14.925 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 11:16:32.135 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 11:32:43.258 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 11:33:57.810 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 11:38:15.928 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 11:42:14.374 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 11:42:24.920 | INFO     | application.routes:delete_tweet:220 - File test_image.jpg deleted from disk
+2026-03-01 11:42:24.941 | INFO     | application.routes:delete_tweet:224 - User test_user delete tweet: id = 1
+2026-03-01 11:42:25.174 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-03-01 11:42:25.383 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-03-01 11:42:25.392 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-03-01 11:42:25.490 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-03-01 11:42:25.567 | INFO     | application.routes:auth_user:112 - User not found
