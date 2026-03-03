@@ -35533,3 +35533,388 @@ sqlalchemy.exc.DBAPIError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class
 2026-03-01 11:42:25.392 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
 2026-03-01 11:42:25.490 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
 2026-03-01 11:42:25.567 | INFO     | application.routes:auth_user:112 - User not found
+2026-03-01 11:57:50.886 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-01 11:58:19.498 | INFO     | application.routes:delete_tweet:220 - File test_image.jpg deleted from disk
+2026-03-01 11:58:19.519 | INFO     | application.routes:delete_tweet:224 - User test_user delete tweet: id = 1
+2026-03-01 11:58:19.888 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-03-01 11:58:20.138 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-03-01 11:58:20.156 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-03-01 11:58:20.289 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-03-01 11:58:20.405 | INFO     | application.routes:auth_user:112 - User not found
+2026-03-01 11:58:50.202 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-03-01 11:58:50.370 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/Slava
+2026-03-03 09:17:12.405 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 09:22:08.667 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 09:38:52.124 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 09:46:34.251 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 10:01:46.560 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 10:02:35.919 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 10:03:18.834 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 10:07:15.653 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 10:14:08.650 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 10:20:53.606 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 10:26:45.554 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 10:31:53.311 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 10:51:34.067 | INFO     | application.routes:delete_tweet:220 - File test_image.jpg deleted from disk
+2026-03-03 10:51:34.106 | INFO     | application.routes:delete_tweet:224 - User test_user delete tweet: id = 2
+2026-03-03 10:51:34.472 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-03-03 10:51:34.825 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-03-03 10:51:34.865 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-03-03 10:51:35.043 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-03-03 10:51:35.201 | INFO     | application.routes:auth_user:112 - User not found
+2026-03-03 10:52:51.588 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 10:52:55.317 | INFO     | application.routes:delete_tweet:220 - File test_image.jpg deleted from disk
+2026-03-03 10:52:55.329 | INFO     | application.routes:delete_tweet:224 - User test_user delete tweet: id = 2
+2026-03-03 10:52:55.662 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-03-03 10:52:55.884 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-03-03 10:52:55.893 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-03-03 10:52:56.003 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-03-03 10:52:56.093 | INFO     | application.routes:auth_user:112 - User not found
+2026-03-03 10:54:44.308 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 10:54:46.725 | INFO     | application.routes:delete_tweet:220 - File test_image.jpg deleted from disk
+2026-03-03 10:54:46.736 | INFO     | application.routes:delete_tweet:224 - User test_user delete tweet: id = 2
+2026-03-03 10:54:46.989 | INFO     | application.routes:upload_media:171 - Image: %s saved successful.
+2026-03-03 10:54:47.260 | INFO     | application.routes:add_tweet:124 - Request completed: api/post/tweet
+2026-03-03 10:54:47.270 | INFO     | application.routes:add_tweet:149 - Tweet %s successful saved.
+2026-03-03 10:54:47.398 | INFO     | application.routes:auth_user:110 - request completed: api/users/me/test_user
+2026-03-03 10:54:47.527 | INFO     | application.routes:auth_user:112 - User not found
+2026-03-03 11:04:19.029 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 11:04:26.072 | INFO     | application.routes:delete_tweet:240 - File test_image.jpg deleted from disk
+2026-03-03 11:04:26.085 | INFO     | application.routes:delete_tweet:244 - User test_user delete tweet: id = 2
+2026-03-03 11:04:26.385 | INFO     | application.routes:upload_media:191 - Image: %s saved successful.
+2026-03-03 11:04:26.613 | INFO     | application.routes:add_tweet:143 - Request completed: api/post/tweet
+2026-03-03 11:04:26.619 | INFO     | application.routes:add_tweet:169 - Tweet %s successful saved.
+2026-03-03 11:04:26.732 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 11:04:26.827 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 11:05:58.587 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Slava
+2026-03-03 11:05:59.035 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Slava
+2026-03-03 11:06:14.591 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Slava
+2026-03-03 11:06:14.723 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Slava
+2026-03-03 11:06:25.805 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Max
+2026-03-03 11:06:25.975 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Max
+2026-03-03 11:07:12.850 | INFO     | application.routes:upload_media:191 - Image: %s saved successful.
+2026-03-03 11:07:13.104 | INFO     | application.routes:add_tweet:143 - Request completed: api/post/tweet
+2026-03-03 11:07:13.205 | INFO     | application.routes:add_tweet:169 - Tweet %s successful saved.
+2026-03-03 11:10:04.041 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Max
+2026-03-03 11:10:04.332 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Max
+2026-03-03 11:10:09.283 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Slava
+2026-03-03 11:10:09.469 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Slava
+2026-03-03 11:10:26.858 | INFO     | application.routes:upload_media:191 - Image: %s saved successful.
+2026-03-03 11:10:26.941 | INFO     | application.routes:add_tweet:143 - Request completed: api/post/tweet
+2026-03-03 11:10:27.053 | INFO     | application.routes:add_tweet:169 - Tweet %s successful saved.
+2026-03-03 11:11:47.146 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 11:11:53.434 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Slava
+2026-03-03 11:11:53.822 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Slava
+2026-03-03 11:12:02.407 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Max
+2026-03-03 11:12:02.502 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Max
+2026-03-03 11:12:17.784 | INFO     | application.routes:upload_media:191 - Image: %s saved successful.
+2026-03-03 11:12:17.801 | INFO     | application.routes:add_tweet:143 - Request completed: api/post/tweet
+2026-03-03 11:12:17.845 | INFO     | application.routes:add_tweet:169 - Tweet %s successful saved.
+2026-03-03 11:27:34.792 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 11:28:07.894 | INFO     | application.routes:add_tweet:143 - Request completed: api/post/tweet
+2026-03-03 11:30:16.577 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 11:31:15.130 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 11:31:45.837 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-03 11:31:45.987 | INFO     | application.routes:add_tweet:143 - Request completed: api/post/tweet
+2026-03-03 11:32:51.875 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 11:33:02.028 | INFO     | application.routes:delete_tweet:233 - File test_image.jpg deleted from disk
+2026-03-03 11:33:02.045 | INFO     | application.routes:delete_tweet:237 - User test_user delete tweet: id = 2
+2026-03-03 11:33:02.610 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 11:33:02.907 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 11:33:03.101 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 11:33:03.211 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 11:40:46.422 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 11:40:52.694 | INFO     | application.routes:delete_tweet:233 - File test_image.jpg deleted from disk
+2026-03-03 11:40:52.705 | INFO     | application.routes:delete_tweet:237 - User test_user delete tweet: id = 2
+2026-03-03 11:40:53.013 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 11:40:53.317 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 11:40:53.494 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 11:40:53.613 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 11:44:13.598 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 11:44:27.615 | INFO     | application.routes:delete_tweet:240 - File test_image.jpg deleted from disk
+2026-03-03 11:44:27.634 | INFO     | application.routes:delete_tweet:245 - User test_user delete tweet: id = 2
+2026-03-03 11:44:28.072 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 11:44:28.362 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 11:44:28.519 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 11:44:28.693 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 11:45:01.687 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 11:47:35.788 | INFO     | application.routes:delete_tweet:245 - User Slava delete tweet: id = 75
+2026-03-03 11:51:47.691 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 11:52:02.717 | INFO     | application.routes:delete_tweet:240 - File test_image.jpg deleted from disk
+2026-03-03 11:52:02.734 | INFO     | application.routes:delete_tweet:245 - User test_user delete tweet: id = 2
+2026-03-03 11:52:03.032 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 11:52:03.344 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 11:52:03.518 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 11:52:03.677 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 11:52:20.229 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 11:52:22.839 | INFO     | application.routes:delete_tweet:240 - File test_image.jpg deleted from disk
+2026-03-03 11:52:22.855 | INFO     | application.routes:delete_tweet:245 - User test_user delete tweet: id = 2
+2026-03-03 11:52:23.262 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 11:52:23.587 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 11:52:23.745 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 11:52:23.864 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 11:52:33.065 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 11:52:34.888 | INFO     | application.routes:delete_tweet:240 - File test_image.jpg deleted from disk
+2026-03-03 11:52:34.899 | INFO     | application.routes:delete_tweet:245 - User test_user delete tweet: id = 2
+2026-03-03 11:52:35.172 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 11:52:35.496 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 11:52:35.645 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 11:52:35.750 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 11:56:58.878 | INFO     | application.routes:delete_tweet:240 - File /application/media/2915f6ff-489c-4207-9589-d5976d0807bf.png deleted from disk
+2026-03-03 11:56:59.163 | INFO     | application.routes:delete_tweet:245 - User Slava delete tweet: id = 33
+2026-03-03 12:01:19.398 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 12:03:10.966 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 12:03:22.297 | INFO     | application.routes:delete_tweet:225 - File test_image.jpg deleted from disk
+2026-03-03 12:03:22.308 | INFO     | application.routes:delete_tweet:230 - User test_user delete tweet: id = 2
+2026-03-03 12:03:22.594 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 12:03:22.876 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 12:03:23.043 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 12:03:23.155 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 12:16:11.565 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 12:16:18.816 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 12:16:18.997 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 12:16:19.081 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 12:16:19.138 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 12:22:02.793 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 12:22:14.955 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 12:22:15.120 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 12:22:15.222 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 12:22:15.276 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 12:24:52.073 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 12:24:58.283 | INFO     | application.routes:delete_tweet:225 - File test_image.jpg deleted from disk
+2026-03-03 12:24:58.290 | INFO     | application.routes:delete_tweet:230 - User test_user delete tweet: id = 2
+2026-03-03 12:24:58.446 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 12:24:58.632 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 12:24:58.727 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 12:24:58.781 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 12:29:34.602 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 12:29:45.031 | INFO     | application.routes:delete_tweet:225 - File test_image.jpg deleted from disk
+2026-03-03 12:29:45.038 | INFO     | application.routes:delete_tweet:230 - User test_user delete tweet: id = 2
+2026-03-03 12:29:45.225 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 12:29:45.411 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 12:29:45.487 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 12:29:45.546 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 12:31:49.492 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 12:32:12.140 | INFO     | application.routes:delete_tweet:225 - File test_image.jpg deleted from disk
+2026-03-03 12:32:12.148 | INFO     | application.routes:delete_tweet:230 - User test_user delete tweet: id = 2
+2026-03-03 12:32:12.305 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 12:32:12.487 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 12:32:12.595 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 12:32:12.670 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 12:33:05.531 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 12:33:24.627 | ERROR    | application.routes:db_error_middleware:90 - Internal Server Error: %s
+Traceback (most recent call last):
+
+  File "<string>", line 1, in <module>
+  File "/usr/local/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               │     │   └ 4
+               │     └ 7
+               └ <function _main at 0x7ee1337794e0>
+  File "/usr/local/lib/python3.12/multiprocessing/spawn.py", line 135, in _main
+    return self._bootstrap(parent_sentinel)
+           │    │          └ 4
+           │    └ <function BaseProcess._bootstrap at 0x7ee13385f7e0>
+           └ <SpawnProcess name='SpawnProcess-30' parent=1 started>
+  File "/usr/local/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+    │    └ <function BaseProcess.run at 0x7ee13385ed40>
+    └ <SpawnProcess name='SpawnProcess-30' parent=1 started>
+  File "/usr/local/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    │    │        │    │        │    └ {'config': <uvicorn.config.Config object at 0x7ee1328ef0b0>, 'target': <bound method Server.run of <uvicorn.server.Server obj...
+    │    │        │    │        └ <SpawnProcess name='SpawnProcess-30' parent=1 started>
+    │    │        │    └ ()
+    │    │        └ <SpawnProcess name='SpawnProcess-30' parent=1 started>
+    │    └ <function subprocess_started at 0x7ee1326e5120>
+    └ <SpawnProcess name='SpawnProcess-30' parent=1 started>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+    │              └ [<socket.socket fd=3, family=2, type=1, proto=0, laddr=('0.0.0.0', 8000)>]
+    └ <bound method Server.run of <uvicorn.server.Server object at 0x7ee132909e80>>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           │           │    │             │                      │    │      └ <function Config.get_loop_factory at 0x7ee1328f0400>
+           │           │    │             │                      │    └ <uvicorn.config.Config object at 0x7ee1328ef0b0>
+           │           │    │             │                      └ <uvicorn.server.Server object at 0x7ee132909e80>
+           │           │    │             └ [<socket.socket fd=3, family=2, type=1, proto=0, laddr=('0.0.0.0', 8000)>]
+           │           │    └ <function Server.serve at 0x7ee1326e4720>
+           │           └ <uvicorn.server.Server object at 0x7ee132909e80>
+           └ <function run at 0x7ee132ab6c00>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x7ee1337f8120>
+           │      └ <function Runner.run at 0x7ee132ae1ee0>
+           └ <asyncio.runners.Runner object at 0x7ee13290a930>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /usr/local/lib/python3.12/site-packages/uvicorn/server.py:71> wai...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x7ee132acfa60>
+           │    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x7ee13290a930>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 678, in run_until_complete
+    self.run_forever()
+    │    └ <function BaseEventLoop.run_forever at 0x7ee132acf9c0>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 645, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x7ee132ae1800>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 1999, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x7ee1334c1e40>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/asyncio/events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+                   └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x7ee13375fc20>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+                 │    │   │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7ee12e757e00>>
+                 │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7ee12e757e00>>
+                 │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+                 │    └ <fastapi.applications.FastAPI object at 0x7ee130013020>
+                 └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x7ee13375fc20>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1135, in __call__
+    await super().__call__(scope, receive, send)
+                           │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7ee12e757e00>>
+                           │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7ee12e757e00>>
+                           └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+  File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7ee12e757e00>>
+          │    │                │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7ee12e757e00>>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x7ee130013ad0>
+          └ <fastapi.applications.FastAPI object at 0x7ee130013020>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+          │    │   │      │        └ <function ServerErrorMiddleware.__call__.<locals>._send at 0x7ee12e767ec0>
+          │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7ee12e757e00>>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x7ee1300136e0>
+          └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x7ee130013ad0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+                     │    │             │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x7ee12e767c40>
+                     │    │             └ <starlette.middleware.base._CachedRequest object at 0x7ee12e7579e0>
+                     │    └ <function db_error_middleware at 0x7ee130054f40>
+                     └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x7ee1300136e0>
+
+> File "/application/application/routes.py", line 80, in db_error_middleware
+    response = await call_next(request)
+                     │         └ <starlette.middleware.base._CachedRequest object at 0x7ee12e7579e0>
+                     └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x7ee12e767c40>
+
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+          │            │       │            │       └ <attribute '__context__' of 'BaseException' objects>
+          │            │       │            └ TypeError("object NoneType can't be used in 'await' expression")
+          │            │       └ <attribute '__cause__' of 'BaseException' objects>
+          │            └ TypeError("object NoneType can't be used in 'await' expression")
+          └ TypeError("object NoneType can't be used in 'await' expression")
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+          │    │   │      │                      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x7ee12e767880>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7ee12e767ba0>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x7ee130013aa0>
+          └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x7ee1300136e0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+          │                            │    │    │     │      │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x7ee12e767880>
+          │                            │    │    │     │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7ee12e767ba0>
+          │                            │    │    │     └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │                            │    │    └ <starlette.requests.Request object at 0x7ee12e757e30>
+          │                            │    └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x7ee130013a70>
+          │                            └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x7ee130013aa0>
+          └ <function wrap_app_handling_exceptions at 0x7ee131929a80>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7ee12e788d60>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7ee12e767ba0>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x7ee130013a70>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7ee12e788d60>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7ee12e767ba0>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <fastapi.routing.APIRouter object at 0x7ee130012ed0>
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x7ee130013a70>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7ee12e788d60>
+          │    │                │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7ee12e767ba0>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <bound method Router.app of <fastapi.routing.APIRouter object at 0x7ee130012ed0>>
+          └ <fastapi.routing.APIRouter object at 0x7ee130012ed0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+          │     │      │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7ee12e788d60>
+          │     │      │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7ee12e767ba0>
+          │     │      └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │     └ <function Route.handle at 0x7ee13192af20>
+          └ APIRoute(path='/api/tweets/{id}/likes', name='post_like', methods=['POST'])
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7ee12e788d60>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7ee12e767ba0>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <function request_response.<locals>.app at 0x7ee12ff46d40>
+          └ APIRoute(path='/api/tweets/{id}/likes', name='post_like', methods=['POST'])
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+          │                            │    │        │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7ee12e788d60>
+          │                            │    │        │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7ee12e767ba0>
+          │                            │    │        └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │                            │    └ <starlette.requests.Request object at 0x7ee12e78c2f0>
+          │                            └ <function request_response.<locals>.app.<locals>.app at 0x7ee12e788cc0>
+          └ <function wrap_app_handling_exceptions at 0x7ee131929a80>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7ee12e788b80>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7ee12e767ba0>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          └ <function request_response.<locals>.app.<locals>.app at 0x7ee12e788cc0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 101, in app
+    response = await f(request)
+                     │ └ <starlette.requests.Request object at 0x7ee12e78c2f0>
+                     └ <function get_request_handler.<locals>.app at 0x7ee12ff46c00>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+                         └ <function run_endpoint_function at 0x7ee13194cea0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+                 │         │      └ {'session': <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x7ee12e78c560>, 'current_user': <application.models.User ...
+                 │         └ <function post_like at 0x7ee12ff46b60>
+                 └ Dependant(path_params=[ModelField(field_info=Path(PydanticUndefined), name='id', mode='validation', config=None)], query_para...
+
+  File "/application/application/routes.py", line 301, in post_like
+    await session.add(new_like)
+          │       │   └ <application.models.Likes object at 0x7ee12e7bc2c0>
+          │       └ <function AsyncSession.add at 0x7ee130a59940>
+          └ <sqlalchemy.ext.asyncio.session.AsyncSession object at 0x7ee12e78c560>
+
+TypeError: object NoneType can't be used in 'await' expression
+2026-03-03 12:33:53.139 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 12:39:46.804 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-03 12:39:57.099 | INFO     | application.routes:delete_tweet:225 - File test_image.jpg deleted from disk
+2026-03-03 12:39:57.114 | INFO     | application.routes:delete_tweet:230 - User test_user delete tweet: id = 2
+2026-03-03 12:39:57.347 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-03 12:39:57.538 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-03 12:39:57.612 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-03 12:39:57.683 | INFO     | application.routes:auth_user:130 - User not found
+2026-03-03 12:51:07.577 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Slava
+2026-03-03 12:51:08.601 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Slava
