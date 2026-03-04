@@ -8,7 +8,16 @@ from typing import Annotated
 
 import aiofiles
 from anyio import to_thread
-from fastapi import Depends, FastAPI, Header, HTTPException, Path, Request, UploadFile
+from fastapi import (
+    Depends,
+    FastAPI,
+    Header,
+    HTTPException,
+    Path,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
 from sqlalchemy import select, update
@@ -80,7 +89,7 @@ async def db_error_middleware(request: Request, call_next):
         response = await call_next(request)
         process_time = time.time() - start_time
         logger.debug(
-            "Request {} {} completed in {}.4f s",
+            "Request {} {} completed in {:.4f} s",
             request.method,
             request.url.path,
             process_time,
@@ -90,6 +99,21 @@ async def db_error_middleware(request: Request, call_next):
         logger.exception("Internal Server Error: %s", e)
         traceback.print_exc()
         raise e
+
+
+async def get_current_user(
+    api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
+) -> User:
+
+    query = select(User).where(User.api_key == api_key)
+    result = await session.execute(query)
+    user = result.scalars().one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
+        )
+    return user
 
 
 @app.get("/api/users/me", response_model=schemas.UserInfo)
@@ -117,22 +141,15 @@ async def auth_user(
 
 @app.post("/api/tweets", response_model=schemas.AddTweet)
 async def add_tweet(
-    api_key: Annotated[str, Header()],
     tweet: schemas.AddTweet,
     session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> JSONResponse:
     logger.info("Request completed: api/post/tweet")
     tweet_data = tweet.model_dump(exclude={"tweet_media_ids"})
     async with session.begin_nested() if session.in_transaction() else session.begin():
-        select_query = select(User).where(User.api_key == api_key)
-        result = await session.execute(select_query)
-        user = result.scalar_one_or_none()
-        if not user:
-            logger.info("User not found")
-            raise HTTPException(status_code=404, detail="User not found")
 
-        user_id = user.id
-        tweet_data["user_id"] = user_id
+        tweet_data["user_id"] = current_user.id
         new_tweet = Tweet(**tweet_data)
         session.add(new_tweet)
         await session.flush()
@@ -145,8 +162,9 @@ async def add_tweet(
             )
             await session.execute(update_query)
 
+        await session.commit()
+
     response = {"result": True, "tweet_id": new_tweet.id}
-    logger.info("Tweet %s successful saved.", new_tweet.id)
     return JSONResponse(content=response, status_code=201)
 
 
@@ -188,22 +206,13 @@ async def add_user(user: schemas.AddUser, session: AsyncSession = Depends(get_db
 @app.delete("/api/tweets/{tweet_id}", response_model=schemas.DeleteTweet)
 async def delete_tweet(
     tweet_id: int,
-    api_key: Annotated[str, Header()],
     session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> JSONResponse:
-    query_user = select(User).where(User.api_key == api_key)
-
-    result_user = await session.execute(query_user)
-    user = result_user.scalars().first()
-
-    if not user:
-        raise HTTPException(status_code=400, detail="Incorrect data.")
-
-    user_id = user.id
 
     query_tweet = (
         select(Tweet)
-        .where(Tweet.user_id == user_id, Tweet.id == tweet_id)
+        .where(Tweet.user_id == current_user.id, Tweet.id == tweet_id)
         .options(selectinload(Tweet.tweet_media_ids))
     )
 
@@ -211,7 +220,8 @@ async def delete_tweet(
     tweet = result_tweet.scalars().first()
 
     if not tweet:
-        logger.warning("attempted unauthorized deletion! User:{}", user.name)
+
+        logger.warning("attempted unauthorized deletion! User:{}", current_user.name)
         raise HTTPException(status_code=400, detail="Cannot be deleted")
 
     for media in tweet.tweet_media_ids:
@@ -221,7 +231,8 @@ async def delete_tweet(
 
     await session.delete(tweet)
     await session.commit()
-    logger.info("User {} delete tweet: id = {}", user.name, tweet_id)
+
+    logger.info("User {} delete tweet: id = {}", current_user.name, tweet_id)
     response = {"result": True}
 
     return JSONResponse(content=response, status_code=200)
@@ -274,23 +285,50 @@ async def serve_frontend(_: Request, catchall: str):
 @app.post("/api/tweets/{id}/likes", response_model=schemas.AddLike)
 async def post_like(
     id: Annotated[int, Path()],
-    api_key: Annotated[str, Header()],
+    # api_key: Annotated[str, Header()],
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+
+    async with session.begin_nested() if session.in_transaction() else session.begin():
+        # select_query = select(User).where(User.api_key == api_key)
+        # result = await session.execute(select_query)
+        # user = result.scalar_one_or_none()
+        # if not user:
+        #     logger.info("User not found")
+        #     raise HTTPException(status_code=404, detail="User not found")
+        #
+        # user_id = user.id
+        # like = schemas.AddLike(user_id=user_id, id=id)
+        like = schemas.AddLike(user_id=current_user.id, id=id)
+        new_like = Likes(**like.model_dump())
+
+        session.add(new_like)
+        await session.commit()
+
+    response = {"result": True}
+    return JSONResponse(content=response, status_code=201)
+
+
+@app.delete("/api/tweets/{id}/likes")
+async def delete_like(
+    id: Annotated[int, Path()],
+    current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
 
     async with session.begin_nested() if session.in_transaction() else session.begin():
-        select_query = select(User).where(User.api_key == api_key)
-        result = await session.execute(select_query)
-        user = result.scalar_one_or_none()
-        if not user:
-            logger.info("User not found")
-            raise HTTPException(status_code=404, detail="User not found")
 
-        user_id = user.id
-        like = schemas.AddLike(user_id=user_id, id=id)
-        new_like = Likes(**like.model_dump())
+        like_query = select(Likes).where(
+            Likes.user_id == current_user.id, Likes.tweet_id == id
+        )
+        result = await session.execute(like_query)
+        like = result.scalars().one_or_none()
 
-        session.add(new_like)
+        if not like:
+            raise HTTPException(status_code=404, detail="Like not found")
 
-    response = {"result": True}
-    return JSONResponse(content=response, status_code=201)
+        await session.delete(like)
+        await session.commit()
+
+    return {"result": True}
