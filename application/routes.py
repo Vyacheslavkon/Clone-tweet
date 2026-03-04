@@ -238,23 +238,45 @@ async def delete_tweet(
     return JSONResponse(content=response, status_code=200)
 
 
+
+# async def get_tweets(
+#     api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
+# ):
+    # stmt = (
+    #     select(Tweet)
+    #     .options(
+    #         joinedload(Tweet.author),
+    #         joinedload(Tweet.tweet_media_ids),
+    #         joinedload(Tweet.liked_by_users).joinedload(Likes.user),
+    #     )
+    #     .where(
+    #         Tweet.user_id.in_(
+    #             select(FollowLink.followed_id).where(
+    #                 FollowLink.follower_id
+    #                 == (
+    #                     select(User.id).where(User.api_key == api_key).scalar_subquery()
+    #                 )
+    #             )
+    #         )
+    #     )
+    # )
 @app.get("/api/tweets", response_model=schemas.GetTweets)
 async def get_tweets(
-    api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), session: AsyncSession = Depends(get_db)
 ):
     stmt = (
         select(Tweet)
         .options(
-            joinedload(Tweet.author),
-            joinedload(Tweet.tweet_media_ids),
-            joinedload(Tweet.liked_by_users).joinedload(Likes.user),
+            selectinload(Tweet.author),
+            selectinload(Tweet.tweet_media_ids),
+            selectinload(Tweet.likes),
         )
         .where(
             Tweet.user_id.in_(
                 select(FollowLink.followed_id).where(
                     FollowLink.follower_id
                     == (
-                        select(User.id).where(User.api_key == api_key).scalar_subquery()
+                        select(User.id).where(User.id == current_user.id).scalar_subquery()
                     )
                 )
             )
@@ -264,7 +286,7 @@ async def get_tweets(
     result_query = await session.execute(stmt)
     tweets = result_query.scalars().unique().all()
 
-    # return schemas.GetTweets(tweets=list(tweets))
+    #return schemas.GetTweets(tweets=list(tweets))
     return schemas.GetTweets.model_validate({"tweets": tweets})
 
 
@@ -330,5 +352,20 @@ async def delete_like(
 
         await session.delete(like)
         await session.commit()
+
+    return {"result": True}
+
+@app.post("/api/users/{id}/follow")
+async  def following(id: Annotated[int, Path()],
+                     session: AsyncSession = Depends(get_db),
+
+                    current_user: User = Depends(get_current_user),):
+
+    subscription = schemas.FollowlinkSchem(follower_id=current_user.id, followed_id=id)
+    new_subscription = FollowLink(**subscription.model_dump())
+
+    session.add(new_subscription)
+    await session.commit()
+    logger.info("New entry added.")
 
     return {"result": True}

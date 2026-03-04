@@ -72,15 +72,15 @@ class User(Base):
     followers: Mapped[list["User"]] = relationship(
         "User",
         secondary="followers",
-        primaryjoin="User.id == followers.c.followed_id",
-        secondaryjoin="User.id == followers.c.follower_id",
+        primaryjoin="User.id ==  FollowLink.followed_id",
+        secondaryjoin="User.id ==  FollowLink.follower_id",
         back_populates="following",
     )
 
     following: Mapped[list["User"]] = relationship(
         "User",
         secondary="followers",
-        primaryjoin="User.id == FollowLink.follower_id",
+        primaryjoin="User.id ==  FollowLink.follower_id",
         secondaryjoin="User.id == FollowLink.followed_id",
         back_populates="followers",
     )

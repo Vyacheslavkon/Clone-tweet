@@ -12,6 +12,9 @@ class GetMedia(BaseModel):
 
     path: str
 
+    model_config = ConfigDict(from_attributes=True)
+
+
 
 class AddTweet(BaseModel):
 
@@ -35,12 +38,16 @@ class UserDetail(UserBase):
     followers: list[UserBase] = []
     following: list[UserBase] = []
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class UserInfo(BaseModel):
 
     result: str = "true"
 
     user: UserDetail
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AddUser(BaseModel):
@@ -59,8 +66,8 @@ class DeleteTweet(BaseModel):
 class Like(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    user_id: int
-    name: str = Field(validation_alias="user_name")  # Ожидаем под таким именем
+    user_id: int = Field(validation_alias="id")
+    name: str = Field(validation_alias="name")
 
     @field_validator("name", mode="before")
     @classmethod
@@ -69,6 +76,8 @@ class Like(BaseModel):
         if hasattr(v, "name"):
             return v.name
         return v
+
+
 
 
 class AddLike(BaseModel):
@@ -84,17 +93,26 @@ class Tweet(BaseModel):
 
     id: int
 
-    # tweet_data: str = Field(alias="content")
     tweet_data: str = Field(
         serialization_alias="content", validation_alias="tweet_data"
     )
 
-    tweet_media_ids: list[GetMedia] = Field(alias="attachments")
+    #tweet_media_ids: list[GetMedia] = Field(alias="attachments")
+    attachments: list[str] = Field(validation_alias="tweet_media_ids")
 
-    user_id: UserBase = Field(serialization_alias="author")
-    # author: UserBase = Field(validation_alias="user")
+    author: UserBase = Field(validation_alias="author")
 
     likes: list[Like]
+
+    @field_validator("attachments", mode="before")
+    @classmethod
+    def transform_media_to_links(cls, v):
+        # v — это список объектов Media из SQLAlchemy
+        # Вытаскиваем из каждого объекта только путь (поле file_path или как оно у вас в Media)
+        if isinstance(v, list):
+            return [f"/media/{media.path}" for media in v if hasattr(media, "path")]
+
+        return v
 
 
 class GetTweets(BaseModel):
@@ -102,5 +120,13 @@ class GetTweets(BaseModel):
     result: bool = True
 
     tweets: list[Tweet]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FollowlinkSchem(BaseModel):
+
+    follower_id: int
+    followed_id: int
 
     model_config = ConfigDict(from_attributes=True)
