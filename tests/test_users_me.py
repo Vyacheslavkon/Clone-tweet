@@ -2,7 +2,6 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-
 async def test_users_me(client: AsyncClient, test_session: AsyncSession, add_user):
     headers = {"api-key": "test"}
     response = await client.get("/api/users/me", headers=headers)

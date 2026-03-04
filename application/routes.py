@@ -8,7 +8,16 @@ from typing import Annotated
 
 import aiofiles
 from anyio import to_thread
-from fastapi import Depends, FastAPI, Header, HTTPException, Path, Request, UploadFile, status
+from fastapi import (
+    Depends,
+    FastAPI,
+    Header,
+    HTTPException,
+    Path,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
 from sqlalchemy import select, update
@@ -92,10 +101,9 @@ async def db_error_middleware(request: Request, call_next):
         raise e
 
 
-async def get_current_user( api_key: Annotated[str, Header()],
-                            session: AsyncSession = Depends(get_db)
-                                ) -> User:
-
+async def get_current_user(
+    api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
+) -> User:
 
     query = select(User).where(User.api_key == api_key)
     result = await session.execute(query)
@@ -103,11 +111,9 @@ async def get_current_user( api_key: Annotated[str, Header()],
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
     return user
-
 
 
 @app.get("/api/users/me", response_model=schemas.UserInfo)
@@ -137,7 +143,7 @@ async def auth_user(
 async def add_tweet(
     tweet: schemas.AddTweet,
     session: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> JSONResponse:
     logger.info("Request completed: api/post/tweet")
     tweet_data = tweet.model_dump(exclude={"tweet_media_ids"})
@@ -155,7 +161,6 @@ async def add_tweet(
                 .values(tweet_id=new_tweet.id)
             )
             await session.execute(update_query)
-
 
         await session.commit()
 
@@ -202,7 +207,7 @@ async def add_user(user: schemas.AddUser, session: AsyncSession = Depends(get_db
 async def delete_tweet(
     tweet_id: int,
     session: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> JSONResponse:
 
     query_tweet = (
@@ -216,7 +221,7 @@ async def delete_tweet(
 
     if not tweet:
 
-        logger.warning("attempted unauthorized deletion! User:{}",  current_user.name)
+        logger.warning("attempted unauthorized deletion! User:{}", current_user.name)
         raise HTTPException(status_code=400, detail="Cannot be deleted")
 
     for media in tweet.tweet_media_ids:
@@ -280,9 +285,9 @@ async def serve_frontend(_: Request, catchall: str):
 @app.post("/api/tweets/{id}/likes", response_model=schemas.AddLike)
 async def post_like(
     id: Annotated[int, Path()],
-    #api_key: Annotated[str, Header()],
+    # api_key: Annotated[str, Header()],
     session: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
 
     async with session.begin_nested() if session.in_transaction() else session.begin():
@@ -305,16 +310,18 @@ async def post_like(
     return JSONResponse(content=response, status_code=201)
 
 
-
 @app.delete("/api/tweets/{id}/likes")
-async def delete_like( id: Annotated[int, Path()],
-                        current_user: User = Depends(get_current_user),
-                       session: AsyncSession = Depends(get_db)):
+async def delete_like(
+    id: Annotated[int, Path()],
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+):
 
     async with session.begin_nested() if session.in_transaction() else session.begin():
 
-        like_query = select(Likes).where(Likes.user_id == current_user.id,
-                                                                Likes.tweet_id == id)
+        like_query = select(Likes).where(
+            Likes.user_id == current_user.id, Likes.tweet_id == id
+        )
         result = await session.execute(like_query)
         like = result.scalars().one_or_none()
 

@@ -1,8 +1,9 @@
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from application import  models
+from application import models
+
 
 async def test_post_tweet(
     client: AsyncClient, test_session: AsyncSession, test_tweet_with_media, add_user

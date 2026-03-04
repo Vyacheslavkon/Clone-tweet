@@ -1,11 +1,9 @@
 import io
 
-import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application import routes
-
 
 
 async def test_upload_media(

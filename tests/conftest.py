@@ -100,7 +100,7 @@ async def test_tweet_with_media(
     await test_session.flush()
     await test_session.refresh(tweet)
 
-    #return tweet
+    # return tweet
     yield tweet
 
     if os.path.exists(temp_path):

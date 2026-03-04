@@ -35918,3 +35918,10 @@ TypeError: object NoneType can't be used in 'await' expression
 2026-03-03 12:39:57.683 | INFO     | application.routes:auth_user:130 - User not found
 2026-03-03 12:51:07.577 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Slava
 2026-03-03 12:51:08.601 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/Slava
+2026-03-04 08:18:03.569 | INFO     | application.routes:run_upgrade:54 - Migrations applied successfully
+2026-03-04 08:18:49.480 | INFO     | application.routes:delete_tweet:225 - File test_image.jpg deleted from disk
+2026-03-04 08:18:49.494 | INFO     | application.routes:delete_tweet:230 - User test_user delete tweet: id = 2
+2026-03-04 08:18:49.788 | INFO     | application.routes:upload_media:184 - Image: %s saved successful.
+2026-03-04 08:18:50.113 | INFO     | application.routes:add_tweet:142 - Request completed: api/post/tweet
+2026-03-04 08:18:50.268 | INFO     | application.routes:auth_user:128 - request completed: api/users/me/test_user
+2026-03-04 08:18:50.380 | INFO     | application.routes:auth_user:130 - User not found
