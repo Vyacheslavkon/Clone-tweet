@@ -41,6 +41,7 @@ logger.add("routes_logs.log", rotation="10 MB", level="INFO", compression="zip")
 
 ROOT_PATH = os.getcwd()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR_FOR_MEDIA = os.path.abspath(os.path.dirname(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 MEDIA_DIR = os.path.join(BASE_DIR, "media")
 ROOT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
@@ -80,7 +81,7 @@ app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/js", StaticFiles(directory=os.path.join(STATIC_DIR, "js")), name="js")
 app.mount("/css", StaticFiles(directory=os.path.join(STATIC_DIR, "css")), name="css")
-
+app.mount("/application/media", StaticFiles(directory=MEDIA_DIR), name="media")
 
 @app.middleware("http")
 async def db_error_middleware(request: Request, call_next):

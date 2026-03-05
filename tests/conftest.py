@@ -82,6 +82,21 @@ async def add_user(test_session: AsyncSession):
     await test_session.refresh(new_user)
     return new_user
 
+@pytest.fixture
+async def second_user(test_session: AsyncSession, add_user):
+    new_user = models.User(api_key="user", name="second_user", )
+
+    test_session.add(new_user)
+    await test_session.flush()
+    await test_session.refresh(new_user)
+
+    follow = models.FollowLink(follower_id=new_user.id, followed_id=add_user.id)
+    test_session.add(follow)
+    await test_session.flush()
+    await test_session.refresh(follow)
+
+    return new_user
+
 
 @pytest.fixture
 async def test_tweet_with_media(
@@ -105,3 +120,15 @@ async def test_tweet_with_media(
 
     if os.path.exists(temp_path):
         os.remove(temp_path)
+
+
+@pytest.fixture
+async def create_like(test_session: AsyncSession, test_tweet_with_media, second_user):
+
+    new_like = models.Likes(user_id=second_user.id, tweet_id=test_tweet_with_media.id)
+
+    test_session.add(new_like)
+    await test_session.flush()
+    await test_session.refresh(new_like)
+
+    return new_like

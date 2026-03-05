@@ -42875,3 +42875,150 @@ tweets.2.likes.0.user_name
 2026-03-04 13:06:42.693 | INFO     | application.routes:add_tweet:148 - Request completed: api/post/tweet
 2026-03-04 13:06:42.880 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/test_user
 2026-03-04 13:06:43.115 | INFO     | application.routes:auth_user:136 - User not found
+2026-03-05 09:02:16.506 | INFO     | application.routes:run_upgrade:63 - Migrations applied successfully
+2026-03-05 09:03:19.033 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:03:19.414 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:04:17.602 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:04:18.001 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:10:11.298 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Max
+2026-03-05 09:10:12.123 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Max
+2026-03-05 09:10:18.328 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:10:18.896 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:10:55.585 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Max
+2026-03-05 09:10:56.258 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Max
+2026-03-05 09:11:17.467 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:11:17.716 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:11:28.864 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Max
+2026-03-05 09:11:29.258 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Max
+2026-03-05 09:11:54.686 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:11:55.071 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:19:43.541 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:19:43.793 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:20:08.195 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:20:08.794 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:21:58.225 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:21:58.685 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:24:11.921 | INFO     | application.routes:run_upgrade:63 - Migrations applied successfully
+2026-03-05 09:24:22.710 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:24:22.843 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:24:38.361 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:24:38.781 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:38:23.947 | INFO     | application.routes:run_upgrade:63 - Migrations applied successfully
+2026-03-05 09:38:43.795 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:38:44.223 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:39:19.749 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:39:20.312 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:40:02.655 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:40:03.055 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:41:03.618 | INFO     | application.routes:run_upgrade:63 - Migrations applied successfully
+2026-03-05 09:41:08.508 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:41:08.710 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:41:16.687 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:41:17.109 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:46:49.098 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:46:49.240 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:48:17.235 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:48:17.323 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:55:33.635 | INFO     | application.routes:run_upgrade:63 - Migrations applied successfully
+2026-03-05 09:55:43.017 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 09:55:43.261 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 10:03:32.680 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 10:03:33.166 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 10:10:39.325 | INFO     | application.routes:run_upgrade:63 - Migrations applied successfully
+2026-03-05 10:11:26.113 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 10:11:27.854 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 10:11:42.159 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 10:11:42.322 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 10:15:52.333 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 10:15:52.547 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 10:23:35.823 | INFO     | application.routes:run_upgrade:63 - Migrations applied successfully
+2026-03-05 10:23:42.601 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 10:23:42.971 | INFO     | application.routes:auth_user:134 - request completed: api/users/me/Slava
+2026-03-05 10:25:48.468 | INFO     | application.routes:run_upgrade:63 - Migrations applied successfully
+2026-03-05 10:36:16.488 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-05 10:37:23.187 | INFO     | application.routes:run_upgrade:65 - Migrations applied successfully
+2026-03-05 10:37:27.727 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:37:27.844 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:37:30.189 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:37:30.444 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:37:44.383 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:37:44.542 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:50:26.790 | INFO     | application.routes:run_upgrade:65 - Migrations applied successfully
+2026-03-05 10:53:14.598 | INFO     | application.routes:run_upgrade:65 - Migrations applied successfully
+2026-03-05 10:54:09.021 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:54:09.276 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:54:09.978 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:56:59.372 | INFO     | application.routes:run_upgrade:65 - Migrations applied successfully
+2026-03-05 10:57:05.552 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:57:05.713 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:57:19.153 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:57:19.609 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:58:18.522 | INFO     | application.routes:run_upgrade:65 - Migrations applied successfully
+2026-03-05 10:58:23.388 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:58:23.685 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:59:32.290 | INFO     | application.routes:run_upgrade:65 - Migrations applied successfully
+2026-03-05 10:59:40.146 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 10:59:40.423 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 11:00:09.769 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 11:00:09.946 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 11:05:55.312 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 11:05:55.636 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 11:07:14.040 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 11:07:18.528 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-05 11:23:16.242 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-05 11:27:47.548 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-05 11:27:47.673 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-05 11:27:59.750 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-05 11:28:00.048 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-05 11:42:07.054 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-05 11:42:14.906 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-05 11:42:15.214 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-05 11:58:04.486 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-05 11:58:04.494 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-05 11:58:04.579 | INFO     | application.routes:following:370 - New entry added.
+2026-03-05 11:58:04.747 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-05 11:58:04.913 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-05 11:58:05.009 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-05 11:58:05.081 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-05 12:19:21.967 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-05 12:45:12.116 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-05 12:45:13.660 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-05 12:45:13.680 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-05 12:45:13.854 | INFO     | application.routes:following:370 - New entry added.
+2026-03-05 12:45:14.259 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-05 12:45:14.570 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-05 12:45:14.686 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-05 12:45:14.747 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-05 12:45:39.989 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-05 12:45:41.488 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-05 12:45:41.511 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-05 12:45:41.654 | INFO     | application.routes:following:370 - New entry added.
+2026-03-05 12:45:42.064 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-05 12:45:42.284 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-05 12:45:42.383 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-05 12:45:42.447 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-05 12:48:08.138 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-05 12:48:08.448 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-05 12:48:54.165 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-05 12:48:57.228 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-05 12:48:57.235 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-05 12:48:57.312 | INFO     | application.routes:following:370 - New entry added.
+2026-03-05 12:48:57.500 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-05 12:48:57.669 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-05 12:48:57.777 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-05 12:48:57.844 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-05 13:01:03.551 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-05 13:01:05.234 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-05 13:01:05.241 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-05 13:01:05.343 | INFO     | application.routes:following:370 - New entry added.
+2026-03-05 13:01:05.520 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-05 13:01:05.695 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-05 13:01:05.798 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-05 13:01:05.854 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-05 13:04:22.370 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-05 13:04:22.378 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-05 13:04:22.473 | INFO     | application.routes:following:370 - New entry added.
+2026-03-05 13:04:22.677 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-05 13:04:22.865 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-05 13:04:22.961 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-05 13:04:23.021 | INFO     | application.routes:auth_user:137 - User not found

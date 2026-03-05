@@ -110,7 +110,7 @@ class Tweet(BaseModel):
         # v — это список объектов Media из SQLAlchemy
         # Вытаскиваем из каждого объекта только путь (поле file_path или как оно у вас в Media)
         if isinstance(v, list):
-            return [f"/media/{media.path}" for media in v if hasattr(media, "path")]
+            return [f"{media.path}" for media in v if hasattr(media, "path")]
 
         return v
 
