@@ -136,3 +136,14 @@ async def create_like(test_session: AsyncSession, test_tweet_with_media, second_
     await test_session.refresh(new_like)
 
     return new_like
+
+
+@pytest.fixture
+async def follow(test_session: AsyncSession, add_user, second_user):
+
+    new_follow = models.FollowLink(follower_id=add_user.id, followed_id=second_user.id)
+    test_session.add(new_follow)
+    await test_session.flush()
+    await test_session.refresh(new_follow)
+
+    return new_follow

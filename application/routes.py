@@ -21,7 +21,7 @@ from fastapi import (
 from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
 from sqlalchemy import select, update
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.staticfiles import StaticFiles
@@ -163,9 +163,10 @@ async def add_tweet(
                 .values(tweet_id=new_tweet.id)
             )
             await session.execute(update_query)
+            logger.info("Added media. User: {}", current_user.name)
 
         await session.commit()
-
+        logger.info("Tweet successfully saved. User: {}", current_user.name)
     response = {"result": True, "tweet_id": new_tweet.id}
     return JSONResponse(content=response, status_code=201)
 
@@ -205,12 +206,12 @@ async def add_user(user: schemas.AddUser, session: AsyncSession = Depends(get_db
     )
 
 
-@app.delete("/api/tweets/{tweet_id}", response_model=schemas.DeleteTweet)
+@app.delete("/api/tweets/{tweet_id}", response_model=schemas.ResultTrue)
 async def delete_tweet(
     tweet_id: int,
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> JSONResponse:
+):
 
     query_tweet = (
         select(Tweet)
@@ -232,35 +233,18 @@ async def delete_tweet(
             logger.info("File {} deleted from disk", media.path)
 
     await session.delete(tweet)
-    await session.commit()
+    try:
+        await session.commit()
 
-    logger.info("User {} delete tweet: id = {}", current_user.name, tweet_id)
-    response = {"result": True}
+        logger.info("User {} delete tweet: id = {}", current_user.name, tweet_id)
+    except IntegrityError:
+        await session.rollback()
+        logger.warning("User: {}  Entry does not exist.", current_user.name)
+        raise HTTPException(status_code=400, detail="Entry does not exist.")
 
-    return JSONResponse(content=response, status_code=200)
+    return {"result": True}
 
 
-# async def get_tweets(
-#     api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
-# ):
-# stmt = (
-#     select(Tweet)
-#     .options(
-#         joinedload(Tweet.author),
-#         joinedload(Tweet.tweet_media_ids),
-#         joinedload(Tweet.liked_by_users).joinedload(Likes.user),
-#     )
-#     .where(
-#         Tweet.user_id.in_(
-#             select(FollowLink.followed_id).where(
-#                 FollowLink.follower_id
-#                 == (
-#                     select(User.id).where(User.api_key == api_key).scalar_subquery()
-#                 )
-#             )
-#         )
-#     )
-# )
 @app.get("/api/tweets", response_model=schemas.GetTweets)
 async def get_tweets(
     current_user: User = Depends(get_current_user),
@@ -289,8 +273,8 @@ async def get_tweets(
 
     result_query = await session.execute(stmt)
     tweets = result_query.scalars().unique().all()
+    logger.info("User {}. The tweet feed is loaded", current_user.name)
 
-    # return schemas.GetTweets(tweets=list(tweets))
     return schemas.GetTweets.model_validate({"tweets": tweets})
 
 
@@ -308,70 +292,99 @@ async def serve_frontend(_: Request, catchall: str):
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
-@app.post("/api/tweets/{id}/likes", response_model=schemas.AddLike)
+@app.post("/api/tweets/{id}/likes", response_model=schemas.ResultTrue)
 async def post_like(
     id: Annotated[int, Path()],
-    # api_key: Annotated[str, Header()],
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
 
-    async with session.begin_nested() if session.in_transaction() else session.begin():
-        # select_query = select(User).where(User.api_key == api_key)
-        # result = await session.execute(select_query)
-        # user = result.scalar_one_or_none()
-        # if not user:
-        #     logger.info("User not found")
-        #     raise HTTPException(status_code=404, detail="User not found")
-        #
-        # user_id = user.id
-        # like = schemas.AddLike(user_id=user_id, id=id)
-        like = schemas.AddLike(user_id=current_user.id, id=id)
-        new_like = Likes(**like.model_dump())
+    new_like = Likes(user_id=current_user.id, tweet_id=id)
+    session.add(new_like)
 
-        session.add(new_like)
+    try:
         await session.commit()
+        logger.warning("User {}. Like created!", current_user.name)
+    except IntegrityError:
+        await session.rollback()
+        logger.warning("User {}. Like already exists!", current_user.name)
+        raise HTTPException(status_code=400, detail="Like already exists")
 
-    response = {"result": True}
-    return JSONResponse(content=response, status_code=201)
+    return {"result": True}
 
 
-@app.delete("/api/tweets/{id}/likes")
+@app.delete("/api/tweets/{id}/likes", response_model=schemas.ResultTrue)
 async def delete_like(
     id: Annotated[int, Path()],
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
 
-    async with session.begin_nested() if session.in_transaction() else session.begin():
+    like_query = select(Likes).where(
+        Likes.user_id == current_user.id, Likes.tweet_id == id
+    )
+    result = await session.execute(like_query)
+    like = result.scalars().one_or_none()
 
-        like_query = select(Likes).where(
-            Likes.user_id == current_user.id, Likes.tweet_id == id
-        )
-        result = await session.execute(like_query)
-        like = result.scalars().one_or_none()
-
-        if not like:
-            raise HTTPException(status_code=404, detail="Like not found")
-
-        await session.delete(like)
+    await session.delete(like)
+    try:
         await session.commit()
+        logger.info("User: {} Unlike tweet {}", current_user.name, id)
+    except IntegrityError:
+        await session.rollback()
+        logger.warning("User: {}  Entry does not exist.", current_user.name)
+        raise HTTPException(status_code=400, detail="Entry does not exist.")
 
     return {"result": True}
 
 
-@app.post("/api/users/{id}/follow")
+@app.post("/api/users/{id}/follow", response_model=schemas.ResultTrue)
 async def following(
     id: Annotated[int, Path()],
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
 
-    subscription = schemas.FollowlinkSchem(follower_id=current_user.id, followed_id=id)
-    new_subscription = FollowLink(**subscription.model_dump())
+    new_subscription = FollowLink(follower_id=current_user.id, followed_id=id)
 
     session.add(new_subscription)
-    await session.commit()
-    logger.info("New entry added.")
+    try:
+        await session.commit()
+        logger.info("User: {}. New entry added.", current_user.name)
+    except IntegrityError as e:
+        await session.rollback()
+        logger.warning("The entry already exists. Error: {}", e)
+        raise HTTPException(status_code=400, detail="The entry already exists.")
+
+    return {"result": True}
+
+
+@app.delete("/api/users/{id}/follow", response_model=schemas.ResultTrue)
+async def delete_follow(
+    id: Annotated[int, Path()],
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+
+    query_follow = select(FollowLink).where(
+        FollowLink.followed_id == id, FollowLink.follower_id == current_user.id
+    )
+
+    result = await session.execute(query_follow)
+
+    follow = result.scalars().one_or_none()
+
+    await session.delete(follow)
+    try:
+        await session.commit()
+        logger.info(
+            "User: {}. The user's id = {} subscription has been canceled",
+            current_user.name,
+            id,
+        )
+    except IntegrityError as e:
+        await session.rollback()
+        logger.warning("Entry does not exist. Error: {}", e)
+        raise HTTPException(status_code=400, detail="Entry does not exist.")
 
     return {"result": True}
