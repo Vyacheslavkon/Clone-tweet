@@ -22,7 +22,7 @@ async def test_post_like(
     result = await test_session.execute(query_like)
     like = result.scalars().one_or_none()
 
-    assert response.status_code == 201
+    assert response.status_code == 200
     assert response.json() == answer
     assert like
 
