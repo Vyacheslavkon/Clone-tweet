@@ -82,9 +82,13 @@ async def add_user(test_session: AsyncSession):
     await test_session.refresh(new_user)
     return new_user
 
+
 @pytest.fixture
 async def second_user(test_session: AsyncSession, add_user):
-    new_user = models.User(api_key="user", name="second_user", )
+    new_user = models.User(
+        api_key="user",
+        name="second_user",
+    )
 
     test_session.add(new_user)
     await test_session.flush()

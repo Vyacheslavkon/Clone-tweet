@@ -15,7 +15,6 @@ class GetMedia(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-
 class AddTweet(BaseModel):
 
     tweet_data: str
@@ -78,8 +77,6 @@ class Like(BaseModel):
         return v
 
 
-
-
 class AddLike(BaseModel):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
@@ -97,7 +94,7 @@ class Tweet(BaseModel):
         serialization_alias="content", validation_alias="tweet_data"
     )
 
-    #tweet_media_ids: list[GetMedia] = Field(alias="attachments")
+    # tweet_media_ids: list[GetMedia] = Field(alias="attachments")
     attachments: list[str] = Field(validation_alias="tweet_media_ids")
 
     author: UserBase = Field(validation_alias="author")
@@ -107,8 +104,7 @@ class Tweet(BaseModel):
     @field_validator("attachments", mode="before")
     @classmethod
     def transform_media_to_links(cls, v):
-        # v — это список объектов Media из SQLAlchemy
-        # Вытаскиваем из каждого объекта только путь (поле file_path или как оно у вас в Media)
+
         if isinstance(v, list):
             return [f"{media.path}" for media in v if hasattr(media, "path")]
 

@@ -23,7 +23,7 @@ from loguru import logger
 from sqlalchemy import select, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import selectinload
 from starlette.staticfiles import StaticFiles
 
 import application.schemas
@@ -82,6 +82,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/js", StaticFiles(directory=os.path.join(STATIC_DIR, "js")), name="js")
 app.mount("/css", StaticFiles(directory=os.path.join(STATIC_DIR, "css")), name="css")
 app.mount("/application/media", StaticFiles(directory=MEDIA_DIR), name="media")
+
 
 @app.middleware("http")
 async def db_error_middleware(request: Request, call_next):
@@ -239,31 +240,31 @@ async def delete_tweet(
     return JSONResponse(content=response, status_code=200)
 
 
-
 # async def get_tweets(
 #     api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
 # ):
-    # stmt = (
-    #     select(Tweet)
-    #     .options(
-    #         joinedload(Tweet.author),
-    #         joinedload(Tweet.tweet_media_ids),
-    #         joinedload(Tweet.liked_by_users).joinedload(Likes.user),
-    #     )
-    #     .where(
-    #         Tweet.user_id.in_(
-    #             select(FollowLink.followed_id).where(
-    #                 FollowLink.follower_id
-    #                 == (
-    #                     select(User.id).where(User.api_key == api_key).scalar_subquery()
-    #                 )
-    #             )
-    #         )
-    #     )
-    # )
+# stmt = (
+#     select(Tweet)
+#     .options(
+#         joinedload(Tweet.author),
+#         joinedload(Tweet.tweet_media_ids),
+#         joinedload(Tweet.liked_by_users).joinedload(Likes.user),
+#     )
+#     .where(
+#         Tweet.user_id.in_(
+#             select(FollowLink.followed_id).where(
+#                 FollowLink.follower_id
+#                 == (
+#                     select(User.id).where(User.api_key == api_key).scalar_subquery()
+#                 )
+#             )
+#         )
+#     )
+# )
 @app.get("/api/tweets", response_model=schemas.GetTweets)
 async def get_tweets(
-    current_user: User = Depends(get_current_user), session: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
 ):
     stmt = (
         select(Tweet)
@@ -277,7 +278,9 @@ async def get_tweets(
                 select(FollowLink.followed_id).where(
                     FollowLink.follower_id
                     == (
-                        select(User.id).where(User.id == current_user.id).scalar_subquery()
+                        select(User.id)
+                        .where(User.id == current_user.id)
+                        .scalar_subquery()
                     )
                 )
             )
@@ -287,7 +290,7 @@ async def get_tweets(
     result_query = await session.execute(stmt)
     tweets = result_query.scalars().unique().all()
 
-    #return schemas.GetTweets(tweets=list(tweets))
+    # return schemas.GetTweets(tweets=list(tweets))
     return schemas.GetTweets.model_validate({"tweets": tweets})
 
 
@@ -356,11 +359,13 @@ async def delete_like(
 
     return {"result": True}
 
-@app.post("/api/users/{id}/follow")
-async  def following(id: Annotated[int, Path()],
-                     session: AsyncSession = Depends(get_db),
 
-                    current_user: User = Depends(get_current_user),):
+@app.post("/api/users/{id}/follow")
+async def following(
+    id: Annotated[int, Path()],
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
 
     subscription = schemas.FollowlinkSchem(follower_id=current_user.id, followed_id=id)
     new_subscription = FollowLink(**subscription.model_dump())

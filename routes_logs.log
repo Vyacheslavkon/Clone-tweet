@@ -43022,3 +43022,133 @@ tweets.2.likes.0.user_name
 2026-03-05 13:04:22.865 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
 2026-03-05 13:04:22.961 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
 2026-03-05 13:04:23.021 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 08:56:09.973 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 08:57:05.690 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-06 08:57:05.710 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-06 08:57:05.887 | INFO     | application.routes:following:370 - New entry added.
+2026-03-06 08:57:07.360 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-06 08:57:07.645 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-06 08:57:07.818 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-06 08:57:07.933 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 09:04:43.046 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 09:04:51.496 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-06 09:04:51.508 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-06 09:04:51.661 | INFO     | application.routes:following:370 - New entry added.
+2026-03-06 09:04:52.095 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-06 09:04:52.404 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-06 09:04:52.569 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-06 09:04:52.693 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 09:05:13.586 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 09:05:21.561 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-06 09:05:21.572 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-06 09:05:21.734 | INFO     | application.routes:following:370 - New entry added.
+2026-03-06 09:05:22.178 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-06 09:05:22.615 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-06 09:05:22.824 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-06 09:05:22.899 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 09:06:19.894 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 09:06:39.765 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-06 09:06:39.776 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-06 09:06:39.918 | INFO     | application.routes:following:370 - New entry added.
+2026-03-06 09:06:40.375 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-06 09:06:40.734 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-06 09:06:40.891 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-06 09:06:41.009 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 09:08:47.082 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 09:08:53.912 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-06 09:08:53.923 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-06 09:08:54.062 | INFO     | application.routes:following:370 - New entry added.
+2026-03-06 09:08:54.463 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-06 09:08:54.724 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-06 09:08:54.873 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-06 09:08:55.000 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 09:10:20.504 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 09:10:34.256 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-06 09:10:34.265 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-06 09:10:34.407 | INFO     | application.routes:following:370 - New entry added.
+2026-03-06 09:10:35.089 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-06 09:10:35.388 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-06 09:10:35.525 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-06 09:10:35.625 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 09:13:44.730 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 09:13:46.875 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-06 09:13:46.886 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-06 09:13:47.041 | INFO     | application.routes:following:370 - New entry added.
+2026-03-06 09:13:47.437 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-06 09:13:47.734 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-06 09:13:47.885 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-06 09:13:47.987 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 09:15:16.474 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 09:15:19.192 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-06 09:15:19.203 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-06 09:15:19.343 | INFO     | application.routes:following:370 - New entry added.
+2026-03-06 09:15:19.757 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-06 09:15:20.059 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-06 09:15:20.199 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-06 09:15:20.328 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 09:16:04.830 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 09:16:10.880 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-06 09:16:10.891 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-06 09:16:11.030 | INFO     | application.routes:following:370 - New entry added.
+2026-03-06 09:16:11.444 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-06 09:16:11.745 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-06 09:16:11.905 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-06 09:16:11.994 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 09:23:14.447 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 09:23:16.608 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-06 09:23:16.618 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-06 09:23:16.770 | INFO     | application.routes:following:370 - New entry added.
+2026-03-06 09:23:17.115 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-06 09:23:17.403 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-06 09:23:17.573 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-06 09:23:17.716 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 09:23:44.629 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 09:23:46.819 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-06 09:23:46.826 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-06 09:23:46.916 | INFO     | application.routes:following:370 - New entry added.
+2026-03-06 09:23:47.205 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-06 09:23:47.390 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-06 09:23:47.509 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-06 09:23:47.615 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 09:24:00.374 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 09:24:03.121 | INFO     | application.routes:delete_tweet:231 - File test_image.jpg deleted from disk
+2026-03-06 09:24:03.133 | INFO     | application.routes:delete_tweet:236 - User test_user delete tweet: id = 2
+2026-03-06 09:24:03.279 | INFO     | application.routes:following:370 - New entry added.
+2026-03-06 09:24:03.586 | INFO     | application.routes:upload_media:190 - Image: %s saved successful.
+2026-03-06 09:24:03.875 | INFO     | application.routes:add_tweet:149 - Request completed: api/post/tweet
+2026-03-06 09:24:04.037 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/test_user
+2026-03-06 09:24:04.157 | INFO     | application.routes:auth_user:137 - User not found
+2026-03-06 09:25:21.664 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:25:22.865 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:25:42.182 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:25:42.303 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:26:01.635 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:26:02.550 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:28:11.349 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-06 09:28:45.424 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:28:45.513 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:28:46.190 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:29:00.538 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Max
+2026-03-06 09:29:00.673 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Max
+2026-03-06 09:29:09.691 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:29:09.849 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:29:32.571 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:29:32.961 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:31:34.494 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:31:35.032 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:32:12.756 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:32:12.892 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:32:48.476 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:32:49.089 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:35:53.180 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:35:53.721 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:47:01.122 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:47:01.634 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:52:28.985 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:52:29.494 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:53:06.299 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:53:06.843 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:53:26.661 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:53:26.875 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:53:45.314 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
+2026-03-06 09:53:45.730 | INFO     | application.routes:auth_user:135 - request completed: api/users/me/Slava
