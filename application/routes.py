@@ -23,7 +23,7 @@ from loguru import logger
 from sqlalchemy import select, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import selectinload
 from starlette.staticfiles import StaticFiles
 
 import application.schemas
@@ -41,6 +41,7 @@ logger.add("routes_logs.log", rotation="10 MB", level="INFO", compression="zip")
 
 ROOT_PATH = os.getcwd()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR_FOR_MEDIA = os.path.abspath(os.path.dirname(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 MEDIA_DIR = os.path.join(BASE_DIR, "media")
 ROOT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
@@ -80,6 +81,7 @@ app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/js", StaticFiles(directory=os.path.join(STATIC_DIR, "js")), name="js")
 app.mount("/css", StaticFiles(directory=os.path.join(STATIC_DIR, "css")), name="css")
+app.mount("/application/media", StaticFiles(directory=MEDIA_DIR), name="media")
 
 
 @app.middleware("http")
@@ -238,23 +240,47 @@ async def delete_tweet(
     return JSONResponse(content=response, status_code=200)
 
 
+# async def get_tweets(
+#     api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
+# ):
+# stmt = (
+#     select(Tweet)
+#     .options(
+#         joinedload(Tweet.author),
+#         joinedload(Tweet.tweet_media_ids),
+#         joinedload(Tweet.liked_by_users).joinedload(Likes.user),
+#     )
+#     .where(
+#         Tweet.user_id.in_(
+#             select(FollowLink.followed_id).where(
+#                 FollowLink.follower_id
+#                 == (
+#                     select(User.id).where(User.api_key == api_key).scalar_subquery()
+#                 )
+#             )
+#         )
+#     )
+# )
 @app.get("/api/tweets", response_model=schemas.GetTweets)
 async def get_tweets(
-    api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
 ):
     stmt = (
         select(Tweet)
         .options(
-            joinedload(Tweet.author),
-            joinedload(Tweet.tweet_media_ids),
-            joinedload(Tweet.liked_by_users).joinedload(Likes.user),
+            selectinload(Tweet.author),
+            selectinload(Tweet.tweet_media_ids),
+            selectinload(Tweet.likes),
         )
         .where(
             Tweet.user_id.in_(
                 select(FollowLink.followed_id).where(
                     FollowLink.follower_id
                     == (
-                        select(User.id).where(User.api_key == api_key).scalar_subquery()
+                        select(User.id)
+                        .where(User.id == current_user.id)
+                        .scalar_subquery()
                     )
                 )
             )
@@ -330,5 +356,22 @@ async def delete_like(
 
         await session.delete(like)
         await session.commit()
+
+    return {"result": True}
+
+
+@app.post("/api/users/{id}/follow")
+async def following(
+    id: Annotated[int, Path()],
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+
+    subscription = schemas.FollowlinkSchem(follower_id=current_user.id, followed_id=id)
+    new_subscription = FollowLink(**subscription.model_dump())
+
+    session.add(new_subscription)
+    await session.commit()
+    logger.info("New entry added.")
 
     return {"result": True}
