@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 import traceback
 import uuid
@@ -31,13 +30,8 @@ from alembic import command
 from alembic.config import Config
 from application.database import engine, get_db
 from application.models import FollowLink, Likes, Media, Tweet, User
+from logger_config import setup_logging
 
-logger.add(
-    sys.stdout,
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | "
-    "{name}:{function}:{line} - {message}",
-)
-logger.add("routes_logs.log", rotation="10 MB", level="INFO", compression="zip")
 
 ROOT_PATH = os.getcwd()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -75,6 +69,7 @@ async def lifespan(_: FastAPI):
 
     await engine.dispose()
 
+setup_logging()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -138,7 +133,7 @@ async def auth_user(
         logger.info("User not found")
         raise HTTPException(status_code=404, detail="User not found")
 
-    # return {"result": "true", "user": user}
+
     return {"result": True, "user": user}
 
 

@@ -58,7 +58,7 @@ class Likes(Base):
     user: Mapped["User"] = relationship(back_populates="likes")  # hoo liked
     tweet: Mapped["Tweet"] = relationship(
         back_populates="liked_by_users"
-    )  # к какому твиту
+    )
 
 
 class User(Base):

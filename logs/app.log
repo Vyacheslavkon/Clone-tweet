@@ -1,0 +1,8 @@
+2026-03-08 12:16:29 | INFO     | logger_config:setup_logging:51 - Логгер успешно инициализирован и готов к работе
+2026-03-08 12:16:29 | INFO     | application.routes:run_upgrade:65 - Migrations applied successfully
+2026-03-08 12:18:26 | INFO     | application.routes:auth_user:138 - request completed: api/users/me/Slava
+2026-03-08 12:18:26 | INFO     | application.routes:auth_user:138 - request completed: api/users/me/Slava
+2026-03-08 12:18:26 | INFO     | application.routes:get_tweets:279 - User Slava. The tweet feed is loaded
+2026-03-08 12:19:35 | INFO     | logger_config:setup_logging:51 - Логгер успешно инициализирован и готов к работе
+2026-03-08 12:19:35 | INFO     | application.routes:run_upgrade:58 - Migrations applied successfully
+2026-03-08 12:19:35 | INFO     | logger_config:setup_logging:51 - Логгер успешно инициализирован и готов к работе
