@@ -73,7 +73,7 @@ async def client():
 
 
 @pytest.fixture
-async def add_user(test_session: AsyncSession):
+async def first_user(test_session: AsyncSession):
 
     new_user = models.User(api_key="test", name="test_user")
 
@@ -84,7 +84,7 @@ async def add_user(test_session: AsyncSession):
 
 
 @pytest.fixture
-async def second_user(test_session: AsyncSession, add_user):
+async def second_user(test_session: AsyncSession, first_user):
     new_user = models.User(
         api_key="user",
         name="second_user",
@@ -94,7 +94,7 @@ async def second_user(test_session: AsyncSession, add_user):
     await test_session.flush()
     await test_session.refresh(new_user)
 
-    follow = models.FollowLink(follower_id=new_user.id, followed_id=add_user.id)
+    follow = models.FollowLink(follower_id=new_user.id, followed_id=first_user.id)
     test_session.add(follow)
     await test_session.flush()
     await test_session.refresh(follow)
@@ -104,7 +104,7 @@ async def second_user(test_session: AsyncSession, add_user):
 
 @pytest.fixture
 async def test_tweet_with_media(
-    test_session: AsyncSession, client: AsyncClient, add_user
+    test_session: AsyncSession, client: AsyncClient, first_user
 ):
     temp_path = "test_image.jpg"
     with open(temp_path, "w") as f:
@@ -112,14 +112,13 @@ async def test_tweet_with_media(
 
     media = models.Media(path=temp_path)
     tweet = models.Tweet(
-        user_id=add_user.id, tweet_media_ids=[media], tweet_data="test data"
+        user_id=first_user.id, tweet_media_ids=[media], tweet_data="test data"
     )
 
     test_session.add(tweet)
     await test_session.flush()
     await test_session.refresh(tweet)
 
-    # return tweet
     yield tweet
 
     if os.path.exists(temp_path):
@@ -139,9 +138,11 @@ async def create_like(test_session: AsyncSession, test_tweet_with_media, second_
 
 
 @pytest.fixture
-async def follow(test_session: AsyncSession, add_user, second_user):
+async def follow(test_session: AsyncSession, first_user, second_user):
 
-    new_follow = models.FollowLink(follower_id=add_user.id, followed_id=second_user.id)
+    new_follow = models.FollowLink(
+        follower_id=first_user.id, followed_id=second_user.id
+    )
     test_session.add(new_follow)
     await test_session.flush()
     await test_session.refresh(new_follow)

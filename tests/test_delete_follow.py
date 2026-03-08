@@ -6,16 +6,16 @@ from application import models
 
 
 async def test_delete_follow(
-    client: AsyncClient, test_session: AsyncSession, add_user, second_user, follow
+    client: AsyncClient, test_session: AsyncSession, first_user, second_user, follow
 ):
 
-    headers = {"api-key": add_user.api_key}
+    headers = {"api-key": first_user.api_key}
     response = await client.delete(
         f"/api/users/{second_user.id}/follow", headers=headers
     )
 
     query_follow = select(models.FollowLink).where(
-        models.FollowLink.follower_id == add_user.id,
+        models.FollowLink.follower_id == first_user.id,
         models.FollowLink.followed_id == second_user.id,
     )
 

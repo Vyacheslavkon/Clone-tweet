@@ -138,7 +138,8 @@ async def auth_user(
         logger.info("User not found")
         raise HTTPException(status_code=404, detail="User not found")
 
-    return {"result": "true", "user": user}
+    # return {"result": "true", "user": user}
+    return {"result": True, "user": user}
 
 
 @app.post("/api/tweets", response_model=schemas.AddTweet)
@@ -276,6 +277,38 @@ async def get_tweets(
     logger.info("User {}. The tweet feed is loaded", current_user.name)
 
     return schemas.GetTweets.model_validate({"tweets": tweets})
+
+
+@app.get("/api/users/{id}", response_model=schemas.UserInfo)
+async def get_profile_with_id(
+    id: Annotated[int, Path()],
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+):
+
+    query_user = (
+        select(User)
+        .where(User.id == id)
+        .options(selectinload(User.followers), selectinload(User.following))
+    )
+
+    result = await session.execute(query_user)
+    user = result.scalars().one_or_none()
+
+    if not user:
+
+        logger.warning(
+            "User with id {} not found. Request completed by user {}", current_user.name
+        )
+        raise HTTPException(status_code=400, detail="Bad request!")
+
+    logger.info(
+        "Completed request user {} on profile user {} successfully.",
+        current_user.name,
+        user.name,
+    )
+
+    return {"result": True, "user": user}
 
 
 @app.get("/{catchall:path}")

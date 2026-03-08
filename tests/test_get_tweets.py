@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 async def test_tweet_feed(
     client: AsyncClient,
     test_session: AsyncSession,
-    add_user,
+    first_user,
     test_tweet_with_media,
     second_user,
     create_like,
@@ -23,7 +23,7 @@ async def test_tweet_feed(
                 "attachments": [
                     media.path for media in test_tweet_with_media.tweet_media_ids
                 ],
-                "author": {"id": add_user.id, "name": add_user.name},
+                "author": {"id": first_user.id, "name": first_user.name},
                 "likes": [{"user_id": second_user.id, "name": second_user.name}],
             }
         ],
