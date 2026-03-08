@@ -6,7 +6,7 @@ from application import models
 
 
 async def test_post_like(
-    client: AsyncClient, test_session: AsyncSession, add_user, test_tweet_with_media
+    client: AsyncClient, test_session: AsyncSession, first_user, test_tweet_with_media
 ):
 
     id = test_tweet_with_media.id
@@ -16,7 +16,7 @@ async def test_post_like(
     answer = {"result": True}
 
     query_like = select(models.Likes).where(
-        models.Likes.user_id == add_user.id,
+        models.Likes.user_id == first_user.id,
         models.Likes.tweet_id == test_tweet_with_media.id,
     )
     result = await test_session.execute(query_like)
@@ -28,7 +28,7 @@ async def test_post_like(
 
 
 async def no_valid_data(
-    client: AsyncClient, test_session: AsyncSession, add_user, test_tweet_with_media
+    client: AsyncClient, test_session: AsyncSession, first_user, test_tweet_with_media
 ):
 
     id_no_valid = "test"

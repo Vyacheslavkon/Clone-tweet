@@ -45526,3 +45526,469 @@ fastapi.exceptions.ResponseValidationError: 1 validation error:
 2026-03-06 13:06:47.645 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
 2026-03-06 13:09:31.507 | INFO     | application.routes:delete_tweet:233 - File /application/media/2c6cc89f-7d13-471f-8489-f819273bc3fd.png deleted from disk
 2026-03-06 13:09:32.104 | INFO     | application.routes:delete_tweet:239 - User Slava delete tweet: id = 87
+2026-03-08 05:59:43.564 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 06:06:52.455 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 06:07:03.305 | INFO     | application.routes:get_profile_with_id:297 - Completed request user Slava on profile user Max successfully.
+2026-03-08 06:07:03.307 | ERROR    | application.routes:db_error_middleware:101 - Internal Server Error: %s
+Traceback (most recent call last):
+
+  File "<string>", line 1, in <module>
+  File "/usr/local/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               │     │   └ 4
+               │     └ 7
+               └ <function _main at 0x7c46bcc494e0>
+  File "/usr/local/lib/python3.12/multiprocessing/spawn.py", line 135, in _main
+    return self._bootstrap(parent_sentinel)
+           │    │          └ 4
+           │    └ <function BaseProcess._bootstrap at 0x7c46bcd2b7e0>
+           └ <SpawnProcess name='SpawnProcess-2' parent=1 started>
+  File "/usr/local/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+    │    └ <function BaseProcess.run at 0x7c46bcd2ad40>
+    └ <SpawnProcess name='SpawnProcess-2' parent=1 started>
+  File "/usr/local/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    │    │        │    │        │    └ {'config': <uvicorn.config.Config object at 0x7c46bbdb3050>, 'target': <bound method Server.run of <uvicorn.server.Server obj...
+    │    │        │    │        └ <SpawnProcess name='SpawnProcess-2' parent=1 started>
+    │    │        │    └ ()
+    │    │        └ <SpawnProcess name='SpawnProcess-2' parent=1 started>
+    │    └ <function subprocess_started at 0x7c46bbbad120>
+    └ <SpawnProcess name='SpawnProcess-2' parent=1 started>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+    │              └ [<socket.socket fd=3, family=2, type=1, proto=0, laddr=('0.0.0.0', 8000)>]
+    └ <bound method Server.run of <uvicorn.server.Server object at 0x7c46bbbf9cd0>>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           │           │    │             │                      │    │      └ <function Config.get_loop_factory at 0x7c46bbdb4400>
+           │           │    │             │                      │    └ <uvicorn.config.Config object at 0x7c46bbdb3050>
+           │           │    │             │                      └ <uvicorn.server.Server object at 0x7c46bbbf9cd0>
+           │           │    │             └ [<socket.socket fd=3, family=2, type=1, proto=0, laddr=('0.0.0.0', 8000)>]
+           │           │    └ <function Server.serve at 0x7c46bbbac720>
+           │           └ <uvicorn.server.Server object at 0x7c46bbbf9cd0>
+           └ <function run at 0x7c46bbf7ac00>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x7c46bccc4120>
+           │      └ <function Runner.run at 0x7c46bbfa5ee0>
+           └ <asyncio.runners.Runner object at 0x7c46bce73920>
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /usr/local/lib/python3.12/site-packages/uvicorn/server.py:71> wai...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x7c46bbf8fa60>
+           │    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x7c46bce73920>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 678, in run_until_complete
+    self.run_forever()
+    │    └ <function BaseEventLoop.run_forever at 0x7c46bbf8f9c0>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 645, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x7c46bbfa5800>
+    └ <_UnixSelectorEventLoop running=True closed=False debug=False>
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 1999, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x7c46bc989e40>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/asyncio/events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=True>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=True>)>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+                   └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x7c46bbba0c20>
+  File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+                 │    │   │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c46b8b46000>>
+                 │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c46b8b46000>>
+                 │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+                 │    └ <fastapi.applications.FastAPI object at 0x7c46b94db110>
+                 └ <uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware object at 0x7c46bbba0c20>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1135, in __call__
+    await super().__call__(scope, receive, send)
+                           │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c46b8b46000>>
+                           │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c46b8b46000>>
+                           └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+  File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <bound method RequestResponseCycle.send of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c46b8b46000>>
+          │    │                │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c46b8b46000>>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x7c46b94dbce0>
+          └ <fastapi.applications.FastAPI object at 0x7c46b94db110>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+          │    │   │      │        └ <function ServerErrorMiddleware.__call__.<locals>._send at 0x7c46b8b2d260>
+          │    │   │      └ <bound method RequestResponseCycle.receive of <uvicorn.protocols.http.h11_impl.RequestResponseCycle object at 0x7c46b8b46000>>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x7c46b94dba70>
+          └ <starlette.middleware.errors.ServerErrorMiddleware object at 0x7c46b94dbce0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+                     │    │             │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x7c46b8b51620>
+                     │    │             └ <starlette.middleware.base._CachedRequest object at 0x7c46b8b45d90>
+                     │    └ <function db_error_middleware at 0x7c46b9519080>
+                     └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x7c46b94dba70>
+
+> File "/application/application/routes.py", line 91, in db_error_middleware
+    response = await call_next(request)
+                     │         └ <starlette.middleware.base._CachedRequest object at 0x7c46b8b45d90>
+                     └ <function BaseHTTPMiddleware.__call__.<locals>.call_next at 0x7c46b8b51620>
+
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+          │            │       │            │       └ <attribute '__context__' of 'BaseException' objects>
+          │            │       │            └ ResponseValidationError()
+          │            │       └ <attribute '__cause__' of 'BaseException' objects>
+          │            └ ResponseValidationError()
+          └ ResponseValidationError()
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+          │    │   │      │                      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x7c46b8b514e0>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c46b8b51580>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x7c46b94dba40>
+          └ <starlette.middleware.base.BaseHTTPMiddleware object at 0x7c46b94dba70>
+  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+          │                            │    │    │     │      │        └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.send_no_error at 0x7c46b8b514e0>
+          │                            │    │    │     │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c46b8b51580>
+          │                            │    │    │     └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │                            │    │    └ <starlette.requests.Request object at 0x7c46b8b46030>
+          │                            │    └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x7c46b94dbaa0>
+          │                            └ <starlette.middleware.exceptions.ExceptionMiddleware object at 0x7c46b94dba40>
+          └ <function wrap_app_handling_exceptions at 0x7c46badf1b20>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c46b8b51260>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c46b8b51580>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x7c46b94dbaa0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c46b8b51260>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c46b8b51580>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <fastapi.routing.APIRouter object at 0x7c46b94db140>
+          └ <fastapi.middleware.asyncexitstack.AsyncExitStackMiddleware object at 0x7c46b94dbaa0>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+          │    │                │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c46b8b51260>
+          │    │                │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c46b8b51580>
+          │    │                └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <bound method Router.app of <fastapi.routing.APIRouter object at 0x7c46b94db140>>
+          └ <fastapi.routing.APIRouter object at 0x7c46b94db140>
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+          │     │      │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c46b8b51260>
+          │     │      │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c46b8b51580>
+          │     │      └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │     └ <function Route.handle at 0x7c46badf2fc0>
+          └ APIRoute(path='/api/users/{id}', name='get_profile_with_id', methods=['GET'])
+  File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+          │    │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c46b8b51260>
+          │    │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c46b8b51580>
+          │    │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │    └ <function request_response.<locals>.app at 0x7c46b9412c00>
+          └ APIRoute(path='/api/users/{id}', name='get_profile_with_id', methods=['GET'])
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+          │                            │    │        │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c46b8b51260>
+          │                            │    │        │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c46b8b51580>
+          │                            │    │        └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          │                            │    └ <starlette.requests.Request object at 0x7c46b8b464b0>
+          │                            └ <function request_response.<locals>.app.<locals>.app at 0x7c46b8b511c0>
+          └ <function wrap_app_handling_exceptions at 0x7c46badf1b20>
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+          │   │      │        └ <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x7c46b8b51080>
+          │   │      └ <function BaseHTTPMiddleware.__call__.<locals>.call_next.<locals>.receive_or_disconnect at 0x7c46b8b51580>
+          │   └ {'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.3'}, 'http_version': '1.1', 'server': ('172.27.0.4', 8000), 'c...
+          └ <function request_response.<locals>.app.<locals>.app at 0x7c46b8b511c0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 101, in app
+    response = await f(request)
+                     │ └ <starlette.requests.Request object at 0x7c46b8b464b0>
+                     └ <function get_request_handler.<locals>.app at 0x7c46b9412ac0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 377, in app
+    content = await serialize_response(
+                    └ <function serialize_response at 0x7c46bae14ea0>
+  File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 215, in serialize_response
+    raise ResponseValidationError(
+          └ <class 'fastapi.exceptions.ResponseValidationError'>
+
+fastapi.exceptions.ResponseValidationError: 1 validation error:
+  {'type': 'string_type', 'loc': ('response', 'result'), 'msg': 'Input should be a valid string', 'input': True}
+
+  File "/application/application/routes.py", line 281, in get_profile_with_id
+    GET /api/users/{id}
+2026-03-08 06:09:22.197 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 06:09:28.393 | INFO     | application.routes:get_profile_with_id:297 - Completed request user Slava on profile user Max successfully.
+2026-03-08 06:11:45.480 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 06:11:52.424 | INFO     | application.routes:get_profile_with_id:297 - Completed request user Slava on profile user Max successfully.
+2026-03-08 06:13:07.691 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 06:13:22.892 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 06:13:56.388 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 06:13:56.566 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 06:13:56.724 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 06:13:56.744 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 06:13:56.912 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 06:13:57.109 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 06:13:57.251 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 06:13:57.462 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 06:13:57.602 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 06:13:57.607 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 06:13:57.695 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 06:13:58.037 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 06:14:39.739 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 06:14:45.246 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 06:14:45.430 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 06:14:45.567 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 06:14:45.579 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 06:14:45.767 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 06:14:45.957 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 06:14:46.097 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 06:14:46.239 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 06:14:46.383 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 06:14:46.390 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 06:14:46.550 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 06:14:46.671 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 06:51:17.161 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 06:51:19.010 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 06:51:19.168 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 06:51:19.345 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 06:51:19.385 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 06:51:19.564 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 06:51:19.710 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-08 06:51:19.880 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 06:51:20.011 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 06:51:20.170 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 06:51:20.415 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 06:51:20.421 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 06:51:20.569 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 06:51:20.673 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 06:53:04.126 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 06:53:05.960 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 06:53:06.123 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 06:53:06.300 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 06:53:06.313 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 06:53:06.459 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 06:53:06.594 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-08 06:53:06.902 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 06:53:07.035 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 06:53:07.152 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 06:53:07.281 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 06:53:07.287 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 06:53:07.405 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 06:53:07.500 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 06:57:01.223 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 06:57:03.882 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 06:57:04.036 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 06:57:04.180 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 06:57:04.192 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 06:57:04.320 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 06:57:04.481 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-08 06:57:04.778 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 06:57:04.891 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 06:57:05.089 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 06:57:05.238 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 06:57:05.245 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 06:57:05.409 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 06:57:05.500 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 07:01:33.383 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 07:01:33.571 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 07:01:33.764 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 07:01:33.779 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 07:01:33.941 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 07:01:34.085 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-08 07:01:34.357 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 07:01:34.489 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 07:01:34.630 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 07:01:34.819 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 07:01:34.826 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 07:01:34.968 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 07:01:35.109 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 07:01:46.052 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 07:01:46.448 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 07:01:46.793 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 07:01:46.816 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 07:01:46.997 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 07:01:47.179 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-08 07:01:47.469 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 07:01:47.619 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 07:01:47.741 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 07:01:47.856 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 07:01:47.861 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 07:01:47.996 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 07:01:48.102 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 07:14:58.586 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 07:15:04.337 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 07:15:04.543 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 07:15:04.683 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 07:15:04.694 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 07:15:04.857 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 07:15:05.020 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-08 07:15:05.367 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 07:15:05.485 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 07:15:05.607 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 07:15:05.770 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 07:15:05.776 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 07:15:05.973 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 07:15:06.090 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 07:15:16.016 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 07:15:16.178 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 07:15:16.366 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 07:15:16.384 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 07:15:16.508 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 07:15:16.654 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-08 07:15:16.974 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 07:15:17.091 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 07:15:17.242 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 07:15:17.374 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 07:15:17.380 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 07:15:17.530 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 07:15:17.661 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 07:28:05.014 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 07:28:09.709 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 07:28:09.880 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 07:28:10.003 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 07:28:10.011 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 07:28:10.129 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 07:28:10.236 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-08 07:28:10.359 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 07:28:11.919 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 07:28:12.164 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 07:28:12.317 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 07:28:12.324 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 07:28:12.463 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 07:28:12.558 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 07:29:55.312 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 07:31:41.199 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 07:31:43.723 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 07:31:43.876 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 07:31:44.032 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 07:31:44.046 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 07:31:44.203 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 07:31:44.362 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-08 07:31:44.640 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 07:31:44.776 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 07:31:44.934 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 07:31:45.074 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 07:31:45.082 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 07:31:45.222 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 07:31:45.340 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 07:32:15.006 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 07:32:15.202 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 07:32:15.363 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 07:32:15.377 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 07:32:15.539 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 07:32:15.708 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-08 07:32:16.056 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 07:32:16.169 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 07:32:16.317 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 07:32:16.500 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 07:32:16.507 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 07:32:16.690 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 07:32:16.823 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 07:33:00.456 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 07:33:06.429 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 07:33:06.578 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 07:33:06.723 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 07:33:06.732 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 07:33:06.813 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 07:33:06.913 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-08 07:33:07.023 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 07:33:07.113 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 07:33:07.253 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 07:33:07.394 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 07:33:07.400 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 07:33:07.501 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 07:33:07.632 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 07:45:43.126 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 07:46:01.492 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 07:46:08.717 | INFO     | application.routes:delete_follow:403 - User: test_user. The user's id = 2 subscription has been canceled
+2026-03-08 07:46:08.881 | INFO     | application.routes:delete_like:355 - User: test_user Unlike tweet 1
+2026-03-08 07:46:09.009 | INFO     | application.routes:delete_tweet:234 - File test_image.jpg deleted from disk
+2026-03-08 07:46:09.022 | INFO     | application.routes:delete_tweet:240 - User test_user delete tweet: id = 2
+2026-03-08 07:46:09.183 | INFO     | application.routes:following:376 - User: Max. New entry added.
+2026-03-08 07:46:09.327 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-08 07:46:09.536 | INFO     | application.routes:get_tweets:277 - User second_user. The tweet feed is loaded
+2026-03-08 07:46:09.664 | INFO     | application.routes:upload_media:193 - Image: %s saved successful.
+2026-03-08 07:46:09.792 | WARNING  | application.routes:post_like:330 - User test_user. Like created!
+2026-03-08 07:46:09.950 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 07:46:09.958 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: test_user
+2026-03-08 07:46:10.082 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/test_user
+2026-03-08 07:46:10.208 | INFO     | application.routes:auth_user:138 - User not found
+2026-03-08 07:49:59.328 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 07:51:18.297 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 07:51:19.087 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 07:51:20.122 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 07:54:24.129 | INFO     | application.routes:get_profile_with_id:298 - Completed request user Slava on profile user Slava successfully.
+2026-03-08 07:54:52.820 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 07:54:59.101 | INFO     | application.routes:delete_like:355 - User: Slava Unlike tweet 82
+2026-03-08 07:54:59.146 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 07:55:00.819 | WARNING  | application.routes:post_like:330 - User Slava. Like created!
+2026-03-08 07:55:00.892 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 07:56:54.391 | WARNING  | application.routes:delete_tweet:228 - attempted unauthorized deletion! User:Slava
+2026-03-08 07:57:39.856 | WARNING  | application.routes:delete_tweet:228 - attempted unauthorized deletion! User:Slava
+2026-03-08 07:57:40.375 | WARNING  | application.routes:delete_tweet:228 - attempted unauthorized deletion! User:Slava
+2026-03-08 07:58:02.356 | WARNING  | application.routes:delete_tweet:228 - attempted unauthorized deletion! User:Slava
+2026-03-08 08:00:47.198 | INFO     | application.routes:get_profile_with_id:298 - Completed request user Slava on profile user Slava successfully.
+2026-03-08 08:00:53.463 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:02:04.501 | INFO     | application.routes:get_profile_with_id:298 - Completed request user Slava on profile user Slava successfully.
+2026-03-08 08:05:15.978 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 08:08:05.970 | INFO     | application.routes:run_upgrade:64 - Migrations applied successfully
+2026-03-08 08:08:44.063 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 08:08:44.636 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 08:08:45.818 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:09:20.547 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 08:09:20.689 | INFO     | application.routes:get_profile_with_id:298 - Completed request user Slava on profile user Slava successfully.
+2026-03-08 08:09:21.056 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:09:30.027 | INFO     | application.routes:get_profile_with_id:298 - Completed request user Slava on profile user Slava successfully.
+2026-03-08 08:16:42.934 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:16:56.598 | INFO     | application.routes:get_profile_with_id:298 - Completed request user Slava on profile user Slava successfully.
+2026-03-08 08:17:24.329 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:22:11.502 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:22:11.520 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 08:22:11.615 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 08:22:11.652 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:22:20.430 | INFO     | application.routes:get_tweets:277 - User Max. The tweet feed is loaded
+2026-03-08 08:22:20.444 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Max
+2026-03-08 08:22:20.578 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Max
+2026-03-08 08:22:20.614 | INFO     | application.routes:get_tweets:277 - User Max. The tweet feed is loaded
+2026-03-08 08:22:34.484 | INFO     | application.routes:add_tweet:151 - Request completed: api/post/tweet
+2026-03-08 08:22:34.740 | INFO     | application.routes:add_tweet:170 - Tweet successfully saved. User: Max
+2026-03-08 08:22:34.778 | INFO     | application.routes:get_tweets:277 - User Max. The tweet feed is loaded
+2026-03-08 08:22:44.075 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:22:44.085 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 08:22:44.236 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 08:22:44.245 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:22:55.716 | WARNING  | application.routes:post_like:330 - User Slava. Like created!
+2026-03-08 08:22:59.320 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:24:25.202 | WARNING  | application.routes:delete_tweet:228 - attempted unauthorized deletion! User:Slava
+2026-03-08 08:26:34.572 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:26:34.620 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 08:26:34.786 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 08:26:34.806 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:26:43.711 | INFO     | application.routes:get_tweets:277 - User Max. The tweet feed is loaded
+2026-03-08 08:26:43.726 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Max
+2026-03-08 08:26:43.813 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Max
+2026-03-08 08:26:43.870 | INFO     | application.routes:get_tweets:277 - User Max. The tweet feed is loaded
+2026-03-08 08:26:46.270 | INFO     | application.routes:get_profile_with_id:298 - Completed request user Max on profile user Max successfully.
+2026-03-08 08:27:43.589 | INFO     | application.routes:get_profile_with_id:298 - Completed request user Max on profile user Max successfully.
+2026-03-08 08:27:43.604 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Max
+2026-03-08 08:27:43.643 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Max
+2026-03-08 08:27:43.662 | INFO     | application.routes:get_tweets:277 - User Max. The tweet feed is loaded
+2026-03-08 08:27:51.183 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded
+2026-03-08 08:27:51.204 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 08:27:51.264 | INFO     | application.routes:auth_user:136 - request completed: api/users/me/Slava
+2026-03-08 08:27:51.301 | INFO     | application.routes:get_tweets:277 - User Slava. The tweet feed is loaded

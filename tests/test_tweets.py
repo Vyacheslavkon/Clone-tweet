@@ -6,7 +6,7 @@ from application import models
 
 
 async def test_post_tweet(
-    client: AsyncClient, test_session: AsyncSession, test_tweet_with_media, add_user
+    client: AsyncClient, test_session: AsyncSession, test_tweet_with_media, first_user
 ):
     tweet_data = {"tweet_data": "data test."}
     headers = {"api-key": "test"}

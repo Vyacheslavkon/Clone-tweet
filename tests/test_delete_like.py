@@ -6,11 +6,11 @@ from application import models
 
 
 async def test_like_delete(
-    client: AsyncClient, test_session: AsyncSession, add_user, test_tweet_with_media
+    client: AsyncClient, test_session: AsyncSession, first_user, test_tweet_with_media
 ):
 
-    headers = {"api-key": add_user.api_key}
-    new_like = models.Likes(user_id=add_user.id, tweet_id=test_tweet_with_media.id)
+    headers = {"api-key": first_user.api_key}
+    new_like = models.Likes(user_id=first_user.id, tweet_id=test_tweet_with_media.id)
 
     test_session.add(new_like)
     await test_session.flush()
@@ -21,7 +21,7 @@ async def test_like_delete(
     )
 
     query_like = select(models.Likes).where(
-        models.Likes.user_id == add_user.id,
+        models.Likes.user_id == first_user.id,
         models.Likes.tweet_id == test_tweet_with_media.id,
     )
     result = await test_session.execute(query_like)

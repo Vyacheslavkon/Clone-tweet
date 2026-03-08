@@ -42,7 +42,8 @@ class UserDetail(UserBase):
 
 class UserInfo(BaseModel):
 
-    result: str = "true"
+    # result: str = "true"
+    result: bool = True
 
     user: UserDetail
 
