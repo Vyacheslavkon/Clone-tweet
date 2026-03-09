@@ -57,7 +57,7 @@ def run_upgrade():
         command.upgrade(alembic_cfg, "head")
         logger.info("Migrations applied successfully")
     except SQLAlchemyError as e:
-        logger.error("Error running migrations: %s", e)
+        logger.error("Error running migrations: {}", e)
 
 
 @asynccontextmanager
@@ -93,7 +93,7 @@ async def db_error_middleware(request: Request, call_next):
         )
         return response
     except Exception as e:  # noqa
-        logger.exception("Internal Server Error: %s", e)
+        logger.exception("Internal Server Error: {}", e)
         traceback.print_exc()
         raise e
 
@@ -110,21 +110,22 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
+    logger.info("User {} identified.", user.name)
     return user
 
 
 @app.get("/api/users/me", response_model=schemas.UserInfo)
 async def auth_user(
-    api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
+   current_user: User = Depends(get_current_user), session: AsyncSession = Depends(get_db)
 ):
 
-    query = (
+    query_user = (
         select(User)
-        .where(User.api_key == api_key)
+        .where(User.id == current_user.id)
         .options(selectinload(User.followers), selectinload(User.following))
     )
 
-    result = await session.execute(query)
+    result = await session.execute(query_user)
     user = result.scalars().first()
     if user:
 
@@ -374,15 +375,18 @@ async def following(
 ):
 
     new_subscription = FollowLink(follower_id=current_user.id, followed_id=id)
-
+    user_name = current_user.name
     session.add(new_subscription)
     try:
         await session.commit()
-        logger.info("User: {}. New entry added.", current_user.name)
+        logger.info("User: {}. New entry added.",user_name)
     except IntegrityError as e:
         await session.rollback()
-        logger.warning("The entry already exists. Error: {}", e)
-        raise HTTPException(status_code=400, detail="The entry already exists.")
+        if "unique" in str(e).lower():
+            logger.warning("Duplicate follow attempt by {}", user_name)
+            raise HTTPException(status_code=400, detail="Already following.")
+
+        raise HTTPException(status_code=404, detail="Target user not found.")
 
     return {"result": True}
 
@@ -402,17 +406,19 @@ async def delete_follow(
 
     follow = result.scalars().one_or_none()
 
-    await session.delete(follow)
-    try:
-        await session.commit()
-        logger.info(
-            "User: {}. The user's id = {} subscription has been canceled",
-            current_user.name,
-            id,
-        )
-    except IntegrityError as e:
-        await session.rollback()
-        logger.warning("Entry does not exist. Error: {}", e)
+    if not follow:
+        logger.warning("Entry does not exist. Send request user {}", current_user.name)
         raise HTTPException(status_code=400, detail="Entry does not exist.")
+
+    await session.delete(follow)
+
+
+    await session.commit()
+    logger.info(
+        "User: {}. The user's id = {} subscription has been canceled",
+        current_user.name,
+        id,
+    )
+
 
     return {"result": True}

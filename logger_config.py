@@ -48,4 +48,3 @@ def setup_logging():
     enqueue = True
     )
 
-    logger.info("Логгер успешно инициализирован и готов к работе")

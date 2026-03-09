@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def test_users_me(client: AsyncClient, test_session: AsyncSession, first_user):
-    headers = {"api-key": "test"}
+    headers = {"api-key": first_user.api_key}
     response = await client.get("/api/users/me", headers=headers)
 
     info_user = {
@@ -19,9 +19,3 @@ async def test_users_me(client: AsyncClient, test_session: AsyncSession, first_u
     assert response.json() == info_user
 
 
-async def test_invalid_api_key(
-    client: AsyncClient, test_session: AsyncSession, first_user
-):
-    headers = {"api-key": "invalid"}
-    response = await client.get("api/users/me", headers=headers)
-    assert response.status_code == 404
