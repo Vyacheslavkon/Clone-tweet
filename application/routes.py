@@ -20,7 +20,7 @@ from fastapi import (
 from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
 from sqlalchemy import select, update
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError, MissingGreenlet
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.staticfiles import StaticFiles
@@ -127,12 +127,9 @@ async def auth_user(
 
     result = await session.execute(query_user)
     user = result.scalars().first()
-    if user:
 
-        logger.info("request completed: api/users/me/{}", user.name)
-    if not user:
-        logger.info("User not found")
-        raise HTTPException(status_code=404, detail="User not found")
+
+    logger.info("request completed: api/users/me/{}", user.name)
 
 
     return {"result": True, "user": user}
@@ -170,8 +167,8 @@ async def add_tweet(
 
 @app.post("/api/medias", response_model=schemas.UploadMedia)
 async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)):
-    if not file.filename:
-        raise HTTPException(status_code=400, detail="Filename is missing")
+    # if not file.filename:
+    #     raise HTTPException(status_code=400, detail="Filename is missing")
 
     ext = os.path.splitext(file.filename)[1]
     unique_name = f"{uuid.uuid4()}{ext}"
@@ -183,10 +180,11 @@ async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)
     media_data = dict()
     media_data["path"] = file_path
     new_media = Media(**media_data)
-    async with session.begin():
+    #async with session.begin():
+    async with session.begin_nested() if session.in_transaction() else session.begin():
         session.add(new_media)
     response = {"media_id": new_media.id}
-    logger.info("Image: %s saved successful.", new_media.id)
+    logger.info("Image: {} saved successful.", new_media.id)
 
     return response
 
@@ -327,17 +325,22 @@ async def post_like(
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    tweet = await session.get(Tweet, id)  # Самый быстрый способ найти по PK
+    if not tweet:
+        raise HTTPException(status_code=404, detail="Tweet not found")
+
 
     new_like = Likes(user_id=current_user.id, tweet_id=id)
     session.add(new_like)
-
+    user_name = current_user.name
     try:
         await session.commit()
-        logger.warning("User {}. Like created!", current_user.name)
-    except IntegrityError:
+        logger.warning("User {}. Like created!", user_name)
+    except (IntegrityError, MissingGreenlet):
         await session.rollback()
-        logger.warning("User {}. Like already exists!", current_user.name)
+        logger.warning("User {}. Like already exists!", user_name)
         raise HTTPException(status_code=400, detail="Like already exists")
+
 
     return {"result": True}
 
@@ -348,6 +351,7 @@ async def delete_like(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
+    user_name = current_user.name
 
     like_query = select(Likes).where(
         Likes.user_id == current_user.id, Likes.tweet_id == id
@@ -355,14 +359,18 @@ async def delete_like(
     result = await session.execute(like_query)
     like = result.scalars().one_or_none()
 
+    if not like:
+        logger.warning("User: {}  Entry does not exist.", user_name)
+        raise HTTPException(status_code=404, detail="Entry does not exist.")
+
     await session.delete(like)
     try:
         await session.commit()
-        logger.info("User: {} Unlike tweet {}", current_user.name, id)
+        logger.info("User: {} Unlike tweet {}", user_name, id)
     except IntegrityError:
         await session.rollback()
-        logger.warning("User: {}  Entry does not exist.", current_user.name)
-        raise HTTPException(status_code=400, detail="Entry does not exist.")
+        logger.warning("User: {}  Unable to delete object.", user_name)
+        raise HTTPException(status_code=400, detail="Unable to delete object.")
 
     return {"result": True}
 

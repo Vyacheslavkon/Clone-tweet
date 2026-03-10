@@ -7,7 +7,7 @@ from application import routes
 
 
 async def test_upload_media(
-    client: AsyncClient, test_session: AsyncSession, tmp_path, monkeypatch
+    client: AsyncClient, test_session: AsyncSession, tmp_path, monkeypatch, first_user
 ):
     test_media_dir = tmp_path / "test_media"
     test_media_dir.mkdir()
@@ -17,7 +17,7 @@ async def test_upload_media(
     file = io.BytesIO(file_content)
 
     files = {"file": ("test_image.jpg", file, "image/jpeg")}
-    headers = {"api-key": "test"}
+    headers = {"api-key": first_user.api_key}
 
     response = await client.post("/api/medias", files=files, headers=headers)
     answer = response.json()
@@ -27,3 +27,19 @@ async def test_upload_media(
     assert created_files[0].suffix == ".jpg"
     assert response.status_code == 200
     assert isinstance(answer["media_id"], int)
+
+
+async def test_not_file(client: AsyncClient, test_session: AsyncSession, first_user):
+
+    files = {}
+
+
+    headers = {"api-key": first_user.api_key}
+
+    response = await client.post("/api/medias", files=files, headers=headers)
+
+    assert response.status_code == 422
+
+
+
+

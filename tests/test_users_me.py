@@ -19,3 +19,5 @@ async def test_users_me(client: AsyncClient, test_session: AsyncSession, first_u
     assert response.json() == info_user
 
 
+
+4
