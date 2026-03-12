@@ -11,7 +11,7 @@ services:
       - ./requirement.txt:/application/requirement.txt
       - ./tests:/application/tests
       - ./media:/application/media
-      - ${LOG_PATH:-./logs}:/application/logs
+      - ./${LOG_PATH:-./logs}:/application/logs
 
     logging:
       driver: "json-file"
