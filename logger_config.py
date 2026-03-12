@@ -25,7 +25,7 @@ def setup_logging():
     )
 
     logger.add(
-        f"/application/{log_path}/app.log",
+        f"{log_path}/app.log",
         level=log_level,
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | "
         "{name}:{function}:{line} - {message}",
@@ -36,7 +36,7 @@ def setup_logging():
     )
 
     logger.add(
-        f"/application/{log_path}/errors.log",
+        f"{log_path}/errors.log",
         level="ERROR",
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | "
         "{name}:{function}:{line} - {message}",
