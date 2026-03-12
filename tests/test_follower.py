@@ -6,21 +6,16 @@ from application import models
 
 
 async def test_post_follower(
-    client: AsyncClient, test_session: AsyncSession, first_user
+    client: AsyncClient, test_session: AsyncSession, first_user, second_user
 ):
 
-    headers = {"api-key": "super"}
+    headers = {"api-key": first_user.api_key}
 
-    follower_user_test = models.User(name="Max", api_key="super")
-    test_session.add(follower_user_test)
-    await test_session.flush()
-    await test_session.refresh(follower_user_test)
-
-    response = await client.post(f"/api/users/{first_user.id}/follow", headers=headers)
+    response = await client.post(f"/api/users/{second_user.id}/follow", headers=headers)
     answer = {"result": True}
 
     followlink_query = select(models.FollowLink).where(
-        models.FollowLink.followed_id == first_user.id
+        models.FollowLink.followed_id == second_user.id
     )
     result = await test_session.execute(followlink_query)
     follow = result.scalars().one_or_none()
@@ -28,3 +23,34 @@ async def test_post_follower(
     assert response.status_code == 200
     assert follow
     assert response.json() == answer
+
+
+async def test_no_followed(
+    client: AsyncClient, test_session: AsyncSession, first_user, second_user
+):
+
+    headers = {"api-key": first_user.api_key}
+    non_existent_id = 138
+
+    response = await client.post(
+        f"/api/users/{non_existent_id}/follow", headers=headers
+    )
+
+    answer = "Target user not found."
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == answer
+
+
+async def test_not_unique(
+    client: AsyncClient, test_session: AsyncSession, first_user, second_user
+):
+
+    headers = {"api-key": second_user.api_key}
+
+    response = await client.post(f"/api/users/{first_user.id}/follow", headers=headers)
+
+    answer = "Already following."
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == answer

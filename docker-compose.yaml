@@ -11,8 +11,13 @@ services:
       - ./requirement.txt:/application/requirement.txt
       - ./tests:/application/tests
       - ./media:/application/media
-      - ./routes_logs.log:/application/routes_logs.log
+      - ./${LOG_PATH:-./logs}:/application/logs
 
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
 
     ports:

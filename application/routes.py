@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 import traceback
 import uuid
@@ -21,7 +20,7 @@ from fastapi import (
 from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
 from sqlalchemy import select, update
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, MissingGreenlet, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.staticfiles import StaticFiles
@@ -31,13 +30,7 @@ from alembic import command
 from alembic.config import Config
 from application.database import engine, get_db
 from application.models import FollowLink, Likes, Media, Tweet, User
-
-logger.add(
-    sys.stdout,
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | "
-    "{name}:{function}:{line} - {message}",
-)
-logger.add("routes_logs.log", rotation="10 MB", level="INFO", compression="zip")
+from logger_config import setup_logging
 
 ROOT_PATH = os.getcwd()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -63,7 +56,7 @@ def run_upgrade():
         command.upgrade(alembic_cfg, "head")
         logger.info("Migrations applied successfully")
     except SQLAlchemyError as e:
-        logger.error("Error running migrations: %s", e)
+        logger.error("Error running migrations: {}", e)
 
 
 @asynccontextmanager
@@ -75,6 +68,8 @@ async def lifespan(_: FastAPI):
 
     await engine.dispose()
 
+
+setup_logging()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -98,7 +93,7 @@ async def db_error_middleware(request: Request, call_next):
         )
         return response
     except Exception as e:  # noqa
-        logger.exception("Internal Server Error: %s", e)
+        logger.exception("Internal Server Error: {}", e)
         traceback.print_exc()
         raise e
 
@@ -115,30 +110,25 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
+    logger.info("User {} identified.", user.name)
     return user
 
 
 @app.get("/api/users/me", response_model=schemas.UserInfo)
 async def auth_user(
-    api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
 ):
 
-    query = (
+    query_user = (
         select(User)
-        .where(User.api_key == api_key)
+        .where(User.id == current_user.id)
         .options(selectinload(User.followers), selectinload(User.following))
     )
 
-    result = await session.execute(query)
+    result = await session.execute(query_user)
     user = result.scalars().first()
-    if user:
 
-        logger.info("request completed: api/users/me/{}", user.name)
-    if not user:
-        logger.info("User not found")
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # return {"result": "true", "user": user}
     return {"result": True, "user": user}
 
 
@@ -187,10 +177,11 @@ async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)
     media_data = dict()
     media_data["path"] = file_path
     new_media = Media(**media_data)
-    async with session.begin():
+    # async with session.begin():
+    async with session.begin_nested() if session.in_transaction() else session.begin():
         session.add(new_media)
     response = {"media_id": new_media.id}
-    logger.info("Image: %s saved successful.", new_media.id)
+    logger.info("Image: {} saved successful.", new_media.id)
 
     return response
 
@@ -331,16 +322,19 @@ async def post_like(
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    tweet = await session.get(Tweet, id)  # Самый быстрый способ найти по PK
+    if not tweet:
+        raise HTTPException(status_code=404, detail="Tweet not found")
 
     new_like = Likes(user_id=current_user.id, tweet_id=id)
     session.add(new_like)
-
+    user_name = current_user.name
     try:
         await session.commit()
-        logger.warning("User {}. Like created!", current_user.name)
-    except IntegrityError:
+        logger.warning("User {}. Like created!", user_name)
+    except (IntegrityError, MissingGreenlet):
         await session.rollback()
-        logger.warning("User {}. Like already exists!", current_user.name)
+        logger.warning("User {}. Like already exists!", user_name)
         raise HTTPException(status_code=400, detail="Like already exists")
 
     return {"result": True}
@@ -352,6 +346,7 @@ async def delete_like(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
+    user_name = current_user.name
 
     like_query = select(Likes).where(
         Likes.user_id == current_user.id, Likes.tweet_id == id
@@ -359,14 +354,18 @@ async def delete_like(
     result = await session.execute(like_query)
     like = result.scalars().one_or_none()
 
+    if not like:
+        logger.warning("User: {}  Entry does not exist.", user_name)
+        raise HTTPException(status_code=404, detail="Entry does not exist.")
+
     await session.delete(like)
     try:
         await session.commit()
-        logger.info("User: {} Unlike tweet {}", current_user.name, id)
+        logger.info("User: {} Unlike tweet {}", user_name, id)
     except IntegrityError:
         await session.rollback()
-        logger.warning("User: {}  Entry does not exist.", current_user.name)
-        raise HTTPException(status_code=400, detail="Entry does not exist.")
+        logger.warning("User: {}  Unable to delete object.", user_name)
+        raise HTTPException(status_code=400, detail="Unable to delete object.")
 
     return {"result": True}
 
@@ -379,15 +378,18 @@ async def following(
 ):
 
     new_subscription = FollowLink(follower_id=current_user.id, followed_id=id)
-
+    user_name = current_user.name
     session.add(new_subscription)
     try:
         await session.commit()
-        logger.info("User: {}. New entry added.", current_user.name)
+        logger.info("User: {}. New entry added.", user_name)
     except IntegrityError as e:
         await session.rollback()
-        logger.warning("The entry already exists. Error: {}", e)
-        raise HTTPException(status_code=400, detail="The entry already exists.")
+        if "unique" in str(e).lower():
+            logger.warning("Duplicate follow attempt by {}", user_name)
+            raise HTTPException(status_code=400, detail="Already following.")
+
+        raise HTTPException(status_code=404, detail="Target user not found.")
 
     return {"result": True}
 
@@ -407,17 +409,17 @@ async def delete_follow(
 
     follow = result.scalars().one_or_none()
 
-    await session.delete(follow)
-    try:
-        await session.commit()
-        logger.info(
-            "User: {}. The user's id = {} subscription has been canceled",
-            current_user.name,
-            id,
-        )
-    except IntegrityError as e:
-        await session.rollback()
-        logger.warning("Entry does not exist. Error: {}", e)
+    if not follow:
+        logger.warning("Entry does not exist. Send request user {}", current_user.name)
         raise HTTPException(status_code=400, detail="Entry does not exist.")
+
+    await session.delete(follow)
+
+    await session.commit()
+    logger.info(
+        "User: {}. The user's id = {} subscription has been canceled",
+        current_user.name,
+        id,
+    )
 
     return {"result": True}

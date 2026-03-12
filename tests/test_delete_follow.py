@@ -25,3 +25,15 @@ async def test_delete_follow(
 
     assert response.status_code == 200
     assert not follow
+
+
+async def test_not_follow(
+    client: AsyncClient, test_session: AsyncSession, first_user, follow
+):
+
+    headers = {"api-key": first_user.api_key}
+    response = await client.delete("/api/users/28/follow", headers=headers)
+    answer = "Entry does not exist."
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == answer

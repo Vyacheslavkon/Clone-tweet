@@ -42,7 +42,6 @@ class UserDetail(UserBase):
 
 class UserInfo(BaseModel):
 
-    # result: str = "true"
     result: bool = True
 
     user: UserDetail
@@ -72,7 +71,7 @@ class Like(BaseModel):
     @field_validator("name", mode="before")
     @classmethod
     def get_name_from_user_relation(cls, v, info):
-        # Если 'v' это объект пользователя из связи Like.user
+
         if hasattr(v, "name"):
             return v.name
         return v
@@ -95,7 +94,6 @@ class Tweet(BaseModel):
         serialization_alias="content", validation_alias="tweet_data"
     )
 
-    # tweet_media_ids: list[GetMedia] = Field(alias="attachments")
     attachments: list[str] = Field(validation_alias="tweet_media_ids")
 
     author: UserBase = Field(validation_alias="author")
