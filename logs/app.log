@@ -7645,3 +7645,166 @@ sqlalchemy.exc.InvalidRequestError: A transaction is already begun on this Sessi
 2026-03-10 13:12:39 | INFO     | application.routes:delete_like:369 - User: Slava Unlike tweet 79
 2026-03-10 13:12:39 | INFO     | application.routes:get_current_user:113 - User Slava identified.
 2026-03-10 13:12:39 | INFO     | application.routes:get_tweets:271 - User Slava. The tweet feed is loaded
+2026-03-12 09:10:32 | INFO     | application.routes:run_upgrade:58 - Migrations applied successfully
+2026-03-12 09:11:47 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:11:47 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/Slava
+2026-03-12 09:11:48 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:11:48 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/Slava
+2026-03-12 09:11:49 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:11:49 | INFO     | application.routes:get_tweets:271 - User Slava. The tweet feed is loaded
+2026-03-12 09:12:45 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:46 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:46 | INFO     | application.routes:delete_follow:425 - User: test_user. The user's id = 4 subscription has been canceled
+2026-03-12 09:12:46 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:46 | WARNING  | application.routes:delete_follow:418 - Entry does not exist. Send request user test_user
+2026-03-12 09:12:46 | INFO     | application.routes:get_current_user:113 - User second_user identified.
+2026-03-12 09:12:46 | INFO     | application.routes:delete_like:369 - User: second_user Unlike tweet 1
+2026-03-12 09:12:46 | INFO     | application.routes:get_current_user:113 - User second_user identified.
+2026-03-12 09:12:46 | WARNING  | application.routes:delete_like:363 - User: second_user  Entry does not exist.
+2026-03-12 09:12:46 | INFO     | application.routes:get_current_user:113 - User second_user identified.
+2026-03-12 09:12:46 | WARNING  | application.routes:delete_like:372 - User: second_user  Unable to delete object.
+2026-03-12 09:12:46 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:46 | INFO     | application.routes:delete_tweet:228 - File test_image.jpg deleted from disk
+2026-03-12 09:12:46 | INFO     | application.routes:delete_tweet:234 - User test_user delete tweet: id = 4
+2026-03-12 09:12:47 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:47 | WARNING  | application.routes:delete_tweet:222 - attempted unauthorized deletion! User:test_user
+2026-03-12 09:12:47 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:47 | INFO     | application.routes:delete_tweet:228 - File test_image.jpg deleted from disk
+2026-03-12 09:12:47 | WARNING  | application.routes:delete_tweet:237 - User: test_user  Entry does not exist.
+2026-03-12 09:12:47 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:47 | INFO     | application.routes:following:390 - User: test_user. New entry added.
+2026-03-12 09:12:47 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:47 | INFO     | application.routes:get_current_user:113 - User second_user identified.
+2026-03-12 09:12:47 | WARNING  | application.routes:following:394 - Duplicate follow attempt by second_user
+2026-03-12 09:12:47 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:47 | INFO     | application.routes:get_profile_with_id:299 - Completed request user test_user on profile user second_user successfully.
+2026-03-12 09:12:48 | INFO     | application.routes:get_current_user:113 - User second_user identified.
+2026-03-12 09:12:48 | INFO     | application.routes:get_tweets:271 - User second_user. The tweet feed is loaded
+2026-03-12 09:12:48 | INFO     | application.routes:upload_media:187 - Image: 8 saved successful.
+2026-03-12 09:12:48 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:48 | WARNING  | application.routes:post_like:338 - User test_user. Like created!
+2026-03-12 09:12:48 | INFO     | application.routes:get_current_user:113 - User second_user identified.
+2026-03-12 09:12:48 | WARNING  | application.routes:post_like:341 - User second_user. Like already exists!
+2026-03-12 09:12:48 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:48 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:48 | INFO     | application.routes:add_tweet:144 - Request completed: api/post/tweet
+2026-03-12 09:12:48 | INFO     | application.routes:add_tweet:163 - Tweet successfully saved. User: test_user
+2026-03-12 09:12:48 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:48 | INFO     | application.routes:add_tweet:144 - Request completed: api/post/tweet
+2026-03-12 09:12:49 | INFO     | application.routes:add_tweet:160 - Added media. User: test_user
+2026-03-12 09:12:49 | INFO     | application.routes:add_tweet:163 - Tweet successfully saved. User: test_user
+2026-03-12 09:12:49 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:12:49 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/test_user
+2026-03-12 09:14:06 | INFO     | application.routes:upload_media:187 - Image: 46 saved successful.
+2026-03-12 09:14:06 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:14:06 | INFO     | application.routes:add_tweet:144 - Request completed: api/post/tweet
+2026-03-12 09:14:06 | INFO     | application.routes:add_tweet:160 - Added media. User: Slava
+2026-03-12 09:14:06 | INFO     | application.routes:add_tweet:163 - Tweet successfully saved. User: Slava
+2026-03-12 09:14:06 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:14:06 | INFO     | application.routes:get_tweets:271 - User Slava. The tweet feed is loaded
+2026-03-12 09:14:14 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:14:14 | INFO     | application.routes:get_tweets:271 - User Slava. The tweet feed is loaded
+2026-03-12 09:14:14 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:14:14 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/Slava
+2026-03-12 09:14:14 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:14:14 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/Slava
+2026-03-12 09:14:14 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:14:14 | INFO     | application.routes:get_tweets:271 - User Slava. The tweet feed is loaded
+2026-03-12 09:14:21 | INFO     | application.routes:get_current_user:113 - User Max identified.
+2026-03-12 09:14:21 | INFO     | application.routes:get_tweets:271 - User Max. The tweet feed is loaded
+2026-03-12 09:14:21 | INFO     | application.routes:get_current_user:113 - User Max identified.
+2026-03-12 09:14:21 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/Max
+2026-03-12 09:14:21 | INFO     | application.routes:get_current_user:113 - User Max identified.
+2026-03-12 09:14:21 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/Max
+2026-03-12 09:14:21 | INFO     | application.routes:get_current_user:113 - User Max identified.
+2026-03-12 09:14:21 | INFO     | application.routes:get_tweets:271 - User Max. The tweet feed is loaded
+2026-03-12 09:14:44 | INFO     | application.routes:upload_media:187 - Image: 47 saved successful.
+2026-03-12 09:14:44 | INFO     | application.routes:get_current_user:113 - User Max identified.
+2026-03-12 09:14:44 | INFO     | application.routes:add_tweet:144 - Request completed: api/post/tweet
+2026-03-12 09:14:44 | INFO     | application.routes:add_tweet:160 - Added media. User: Max
+2026-03-12 09:14:44 | INFO     | application.routes:add_tweet:163 - Tweet successfully saved. User: Max
+2026-03-12 09:14:44 | INFO     | application.routes:get_current_user:113 - User Max identified.
+2026-03-12 09:14:44 | INFO     | application.routes:get_tweets:271 - User Max. The tweet feed is loaded
+2026-03-12 09:14:53 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:14:53 | INFO     | application.routes:get_tweets:271 - User Slava. The tweet feed is loaded
+2026-03-12 09:14:54 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:14:54 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/Slava
+2026-03-12 09:14:54 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:14:54 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/Slava
+2026-03-12 09:14:54 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:14:54 | INFO     | application.routes:get_tweets:271 - User Slava. The tweet feed is loaded
+2026-03-12 09:15:19 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:15:19 | WARNING  | application.routes:post_like:338 - User Slava. Like created!
+2026-03-12 09:15:19 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:15:19 | INFO     | application.routes:get_tweets:271 - User Slava. The tweet feed is loaded
+2026-03-12 09:19:31 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:19:32 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:19:34 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/Slava
+2026-03-12 09:19:34 | INFO     | application.routes:get_tweets:271 - User Slava. The tweet feed is loaded
+2026-03-12 09:19:35 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:19:35 | INFO     | application.routes:get_current_user:113 - User Slava identified.
+2026-03-12 09:19:46 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/Slava
+2026-03-12 09:19:46 | INFO     | application.routes:get_tweets:271 - User Slava. The tweet feed is loaded
+2026-03-12 09:20:38 | INFO     | application.routes:get_current_user:113 - User Max identified.
+2026-03-12 09:20:38 | WARNING  | application.routes:delete_follow:418 - Entry does not exist. Send request user Max
+2026-03-12 09:20:56 | INFO     | application.routes:get_current_user:113 - User Max identified.
+2026-03-12 09:20:57 | INFO     | application.routes:following:390 - User: Max. New entry added.
+2026-03-12 09:21:10 | INFO     | application.routes:get_current_user:113 - User Max identified.
+2026-03-12 09:21:10 | INFO     | application.routes:get_current_user:113 - User Max identified.
+2026-03-12 09:21:10 | INFO     | application.routes:get_tweets:271 - User Max. The tweet feed is loaded
+2026-03-12 09:21:10 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/Max
+2026-03-12 09:21:10 | INFO     | application.routes:get_current_user:113 - User Max identified.
+2026-03-12 09:21:10 | INFO     | application.routes:auth_user:132 - request completed: api/users/me/Max
+2026-03-12 09:21:10 | INFO     | application.routes:get_current_user:113 - User Max identified.
+2026-03-12 09:21:10 | INFO     | application.routes:get_tweets:271 - User Max. The tweet feed is loaded
+2026-03-12 09:24:53 | INFO     | application.routes:run_upgrade:57 - Migrations applied successfully
+2026-03-12 09:25:15 | INFO     | application.routes:run_upgrade:57 - Migrations applied successfully
+2026-03-12 09:30:06 | INFO     | application.routes:run_upgrade:57 - Migrations applied successfully
+2026-03-12 09:32:15 | INFO     | application.routes:run_upgrade:57 - Migrations applied successfully
+2026-03-12 09:34:41 | INFO     | application.routes:run_upgrade:57 - Migrations applied successfully
+2026-03-12 09:35:11 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:12 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:12 | INFO     | application.routes:delete_follow:421 - User: test_user. The user's id = 4 subscription has been canceled
+2026-03-12 09:35:12 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:12 | WARNING  | application.routes:delete_follow:415 - Entry does not exist. Send request user test_user
+2026-03-12 09:35:12 | INFO     | application.routes:get_current_user:113 - User second_user identified.
+2026-03-12 09:35:12 | INFO     | application.routes:delete_like:366 - User: second_user Unlike tweet 1
+2026-03-12 09:35:12 | INFO     | application.routes:get_current_user:113 - User second_user identified.
+2026-03-12 09:35:12 | WARNING  | application.routes:delete_like:360 - User: second_user  Entry does not exist.
+2026-03-12 09:35:12 | INFO     | application.routes:get_current_user:113 - User second_user identified.
+2026-03-12 09:35:12 | WARNING  | application.routes:delete_like:369 - User: second_user  Unable to delete object.
+2026-03-12 09:35:13 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:13 | INFO     | application.routes:delete_tweet:227 - File test_image.jpg deleted from disk
+2026-03-12 09:35:13 | INFO     | application.routes:delete_tweet:233 - User test_user delete tweet: id = 4
+2026-03-12 09:35:13 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:13 | WARNING  | application.routes:delete_tweet:221 - attempted unauthorized deletion! User:test_user
+2026-03-12 09:35:13 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:13 | INFO     | application.routes:delete_tweet:227 - File test_image.jpg deleted from disk
+2026-03-12 09:35:13 | WARNING  | application.routes:delete_tweet:236 - User: test_user  Entry does not exist.
+2026-03-12 09:35:13 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:13 | INFO     | application.routes:following:387 - User: test_user. New entry added.
+2026-03-12 09:35:13 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:13 | INFO     | application.routes:get_current_user:113 - User second_user identified.
+2026-03-12 09:35:13 | WARNING  | application.routes:following:391 - Duplicate follow attempt by second_user
+2026-03-12 09:35:13 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:14 | INFO     | application.routes:get_profile_with_id:298 - Completed request user test_user on profile user second_user successfully.
+2026-03-12 09:35:14 | INFO     | application.routes:get_current_user:113 - User second_user identified.
+2026-03-12 09:35:14 | INFO     | application.routes:get_tweets:270 - User second_user. The tweet feed is loaded
+2026-03-12 09:35:14 | INFO     | application.routes:upload_media:186 - Image: 8 saved successful.
+2026-03-12 09:35:14 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:14 | WARNING  | application.routes:post_like:336 - User test_user. Like created!
+2026-03-12 09:35:15 | INFO     | application.routes:get_current_user:113 - User second_user identified.
+2026-03-12 09:35:15 | WARNING  | application.routes:post_like:339 - User second_user. Like already exists!
+2026-03-12 09:35:15 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:15 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:15 | INFO     | application.routes:add_tweet:143 - Request completed: api/post/tweet
+2026-03-12 09:35:15 | INFO     | application.routes:add_tweet:162 - Tweet successfully saved. User: test_user
+2026-03-12 09:35:15 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:35:15 | INFO     | application.routes:add_tweet:143 - Request completed: api/post/tweet
+2026-03-12 09:35:15 | INFO     | application.routes:add_tweet:159 - Added media. User: test_user
+2026-03-12 09:35:15 | INFO     | application.routes:add_tweet:162 - Tweet successfully saved. User: test_user
+2026-03-12 09:35:15 | INFO     | application.routes:get_current_user:113 - User test_user identified.
+2026-03-12 09:36:42 | INFO     | application.routes:run_upgrade:57 - Migrations applied successfully
+2026-03-12 09:37:27 | INFO     | application.routes:run_upgrade:57 - Migrations applied successfully
+2026-03-12 09:37:38 | INFO     | application.routes:run_upgrade:57 - Migrations applied successfully
+2026-03-12 09:41:08 | INFO     | application.routes:run_upgrade:57 - Migrations applied successfully

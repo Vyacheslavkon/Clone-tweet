@@ -42,7 +42,6 @@ class UserDetail(UserBase):
 
 class UserInfo(BaseModel):
 
-
     result: bool = True
 
     user: UserDetail
@@ -94,7 +93,6 @@ class Tweet(BaseModel):
     tweet_data: str = Field(
         serialization_alias="content", validation_alias="tweet_data"
     )
-
 
     attachments: list[str] = Field(validation_alias="tweet_media_ids")
 

@@ -1,10 +1,10 @@
 import os
+from unittest.mock import patch
 
 from httpx import AsyncClient
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from unittest.mock import patch
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from application import models
 
@@ -38,8 +38,10 @@ async def test_delete_tweet(
     assert os.path.exists(file_path) is False
     assert not media
 
-async def test_tweet_not_exist(client: AsyncClient, test_session: AsyncSession,
-                               first_user, test_tweet_with_media):
+
+async def test_tweet_not_exist(
+    client: AsyncClient, test_session: AsyncSession, first_user, test_tweet_with_media
+):
 
     headers = {"api-key": first_user.api_key}
     no_ext_tweet = 345
@@ -50,11 +52,18 @@ async def test_tweet_not_exist(client: AsyncClient, test_session: AsyncSession,
     assert response.json()["detail"] == "Cannot be deleted"
 
 
-async def test_delete_tweet_integrity_error(client: AsyncClient, first_user, test_tweet_with_media):
+async def test_delete_tweet_integrity_error(
+    client: AsyncClient, first_user, test_tweet_with_media
+):
 
-    with patch("sqlalchemy.ext.asyncio.AsyncSession.commit", side_effect=IntegrityError(None, None, None)):
+    with patch(
+        "sqlalchemy.ext.asyncio.AsyncSession.commit",
+        side_effect=IntegrityError(None, None, Exception("Database error")),
+    ):
         headers = {"api-key": first_user.api_key}
-        response = await client.delete(f"/api/tweets/{test_tweet_with_media.id}", headers=headers)
+        response = await client.delete(
+            f"/api/tweets/{test_tweet_with_media.id}", headers=headers
+        )
 
         assert response.status_code == 400
         assert response.json()["detail"] == "Entry does not exist."

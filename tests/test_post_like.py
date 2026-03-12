@@ -27,21 +27,28 @@ async def test_post_like(
     assert like
 
 
-async def test_like_exist(test_session: AsyncSession, client: AsyncClient,
-                    test_tweet_with_media, second_user, create_like):
+async def test_like_exist(
+    test_session: AsyncSession,
+    client: AsyncClient,
+    test_tweet_with_media,
+    second_user,
+    create_like,
+):
 
     test_session.expunge_all()
 
     headers = {"api-key": second_user.api_key}
 
-    response = await client.post(f"/api/tweets/{test_tweet_with_media.id}/likes",
-                                 headers=headers)
+    response = await client.post(
+        f"/api/tweets/{test_tweet_with_media.id}/likes", headers=headers
+    )
 
     assert response.status_code == 400
 
 
 async def no_valid_data(
-    client: AsyncClient, test_session: AsyncSession, first_user, test_tweet_with_media):
+    client: AsyncClient, test_session: AsyncSession, first_user, test_tweet_with_media
+):
 
     id_no_valid = "test"
     headers = {"api-key": first_user.api_key}
@@ -51,14 +58,14 @@ async def no_valid_data(
     assert response.status_code == 422
 
 
-async def test_like_non_existent_tweet(
-    client: AsyncClient, first_user
-):
+async def test_like_non_existent_tweet(client: AsyncClient, first_user):
 
     non_existent_id = 999999
     headers = {"api-key": first_user.api_key}
 
-    response = await client.post(f"/api/tweets/{non_existent_id}/likes", headers=headers)
+    response = await client.post(
+        f"/api/tweets/{non_existent_id}/likes", headers=headers
+    )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Tweet not found"
