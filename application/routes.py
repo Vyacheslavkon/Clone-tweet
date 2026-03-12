@@ -20,7 +20,7 @@ from fastapi import (
 from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
 from sqlalchemy import select, update
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError, MissingGreenlet
+from sqlalchemy.exc import IntegrityError, MissingGreenlet, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.staticfiles import StaticFiles
@@ -31,7 +31,6 @@ from alembic.config import Config
 from application.database import engine, get_db
 from application.models import FollowLink, Likes, Media, Tweet, User
 from logger_config import setup_logging
-
 
 ROOT_PATH = os.getcwd()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -68,6 +67,7 @@ async def lifespan(_: FastAPI):
     yield
 
     await engine.dispose()
+
 
 setup_logging()
 
@@ -116,7 +116,8 @@ async def get_current_user(
 
 @app.get("/api/users/me", response_model=schemas.UserInfo)
 async def auth_user(
-   current_user: User = Depends(get_current_user), session: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
 ):
 
     query_user = (
@@ -127,10 +128,6 @@ async def auth_user(
 
     result = await session.execute(query_user)
     user = result.scalars().first()
-
-
-    logger.info("request completed: api/users/me/{}", user.name)
-
 
     return {"result": True, "user": user}
 
@@ -167,8 +164,8 @@ async def add_tweet(
 
 @app.post("/api/medias", response_model=schemas.UploadMedia)
 async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)):
-    # if not file.filename:
-    #     raise HTTPException(status_code=400, detail="Filename is missing")
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Filename is missing")
 
     ext = os.path.splitext(file.filename)[1]
     unique_name = f"{uuid.uuid4()}{ext}"
@@ -180,7 +177,7 @@ async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)
     media_data = dict()
     media_data["path"] = file_path
     new_media = Media(**media_data)
-    #async with session.begin():
+    # async with session.begin():
     async with session.begin_nested() if session.in_transaction() else session.begin():
         session.add(new_media)
     response = {"media_id": new_media.id}
@@ -329,7 +326,6 @@ async def post_like(
     if not tweet:
         raise HTTPException(status_code=404, detail="Tweet not found")
 
-
     new_like = Likes(user_id=current_user.id, tweet_id=id)
     session.add(new_like)
     user_name = current_user.name
@@ -340,7 +336,6 @@ async def post_like(
         await session.rollback()
         logger.warning("User {}. Like already exists!", user_name)
         raise HTTPException(status_code=400, detail="Like already exists")
-
 
     return {"result": True}
 
@@ -387,7 +382,7 @@ async def following(
     session.add(new_subscription)
     try:
         await session.commit()
-        logger.info("User: {}. New entry added.",user_name)
+        logger.info("User: {}. New entry added.", user_name)
     except IntegrityError as e:
         await session.rollback()
         if "unique" in str(e).lower():
@@ -420,13 +415,11 @@ async def delete_follow(
 
     await session.delete(follow)
 
-
     await session.commit()
     logger.info(
         "User: {}. The user's id = {} subscription has been canceled",
         current_user.name,
         id,
     )
-
 
     return {"result": True}

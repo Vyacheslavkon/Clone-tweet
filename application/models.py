@@ -56,9 +56,7 @@ class Likes(Base):
     tweet_id: Mapped[int] = mapped_column(ForeignKey("tweet.id"), primary_key=True)
 
     user: Mapped["User"] = relationship(back_populates="likes")  # hoo liked
-    tweet: Mapped["Tweet"] = relationship(
-        back_populates="liked_by_users"
-    )
+    tweet: Mapped["Tweet"] = relationship(back_populates="liked_by_users")
 
 
 class User(Base):

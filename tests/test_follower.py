@@ -9,7 +9,6 @@ async def test_post_follower(
     client: AsyncClient, test_session: AsyncSession, first_user, second_user
 ):
 
-
     headers = {"api-key": first_user.api_key}
 
     response = await client.post(f"/api/users/{second_user.id}/follow", headers=headers)
@@ -26,13 +25,16 @@ async def test_post_follower(
     assert response.json() == answer
 
 
-async def test_no_followed(client: AsyncClient, test_session: AsyncSession,
-                           first_user, second_user):
+async def test_no_followed(
+    client: AsyncClient, test_session: AsyncSession, first_user, second_user
+):
 
     headers = {"api-key": first_user.api_key}
     non_existent_id = 138
 
-    response = await client.post(f"/api/users/{non_existent_id}/follow", headers=headers)
+    response = await client.post(
+        f"/api/users/{non_existent_id}/follow", headers=headers
+    )
 
     answer = "Target user not found."
 
@@ -40,7 +42,9 @@ async def test_no_followed(client: AsyncClient, test_session: AsyncSession,
     assert response.json()["detail"] == answer
 
 
-async def test_not_unique(client: AsyncClient, test_session: AsyncSession, first_user, second_user):
+async def test_not_unique(
+    client: AsyncClient, test_session: AsyncSession, first_user, second_user
+):
 
     headers = {"api-key": second_user.api_key}
 

@@ -31,15 +31,10 @@ async def test_upload_media(
 
 async def test_not_file(client: AsyncClient, test_session: AsyncSession, first_user):
 
-    files = {}
-
+    files: dict[str, str] = {}
 
     headers = {"api-key": first_user.api_key}
 
     response = await client.post("/api/medias", files=files, headers=headers)
 
     assert response.status_code == 422
-
-
-
-
