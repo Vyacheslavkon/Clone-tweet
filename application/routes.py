@@ -4,7 +4,7 @@ import traceback
 import uuid
 from contextlib import asynccontextmanager
 from typing import Annotated
-
+import pathlib
 import aiofiles
 from anyio import to_thread
 from fastapi import (
@@ -16,6 +16,7 @@ from fastapi import (
     Request,
     UploadFile,
     status,
+    APIRouter,
 )
 from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
@@ -31,71 +32,73 @@ from alembic.config import Config
 from application.database import engine, get_db
 from application.models import FollowLink, Likes, Media, Tweet, User
 from logger_config import setup_logging
+from config import MEDIA_DIR, STATIC_DIR
 
-ROOT_PATH = os.getcwd()
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BASE_DIR_FOR_MEDIA = os.path.abspath(os.path.dirname(__file__))
-STATIC_DIR = os.path.join(BASE_DIR, "static")
-MEDIA_DIR = os.path.join(BASE_DIR, "media")
-ROOT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
-alembic_ini = os.path.join(BASE_DIR, "alembic.ini")
-ALEMBIC_SCRIPTS = os.path.join(BASE_DIR, "alembic")
-INDEX = os.path.join(STATIC_DIR, "index.html")
+# ROOT_PATH = os.getcwd()
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# BASE_DIR_FOR_MEDIA = os.path.abspath(os.path.dirname(__file__))
+# STATIC_DIR = os.path.join(BASE_DIR, "static")
+# #MEDIA_DIR = os.path.join(BASE_DIR, "media")
+# ROOT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
+# alembic_ini = os.path.join(BASE_DIR, "alembic.ini")
+# ALEMBIC_SCRIPTS = os.path.join(BASE_DIR, "alembic")
+# INDEX = os.path.join(STATIC_DIR, "index.html")
 
 schemas = application.schemas
 
 
-def run_upgrade():
-    sync_url = os.getenv("DATABASE_URL_DOCKER").replace(
-        "postgresql+asyncpg://", "postgresql://"
-    )  # new
-    alembic_cfg = Config(alembic_ini)
-    alembic_cfg.set_main_option("sqlalchemy.url", sync_url)  # new
-    alembic_cfg.set_main_option("script_location", ALEMBIC_SCRIPTS)
-    try:
-        command.upgrade(alembic_cfg, "head")
-        logger.info("Migrations applied successfully")
-    except SQLAlchemyError as e:
-        logger.error("Error running migrations: {}", e)
+# def run_upgrade():
+#     sync_url = os.getenv("DATABASE_URL_DOCKER").replace(
+#         "postgresql+asyncpg://", "postgresql://"
+#     )  # new
+#     alembic_cfg = Config(alembic_ini)
+#     alembic_cfg.set_main_option("sqlalchemy.url", sync_url)  # new
+#     alembic_cfg.set_main_option("script_location", ALEMBIC_SCRIPTS)
+#     try:
+#         command.upgrade(alembic_cfg, "head")
+#         logger.info("Migrations applied successfully")
+#     except SQLAlchemyError as e:
+#         logger.error("Error running migrations: {}", e)
 
 
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-
-    await to_thread.run_sync(run_upgrade)  # new
-
-    yield
-
-    await engine.dispose()
-
-
-setup_logging()
-
-app = FastAPI(lifespan=lifespan)
-
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-app.mount("/js", StaticFiles(directory=os.path.join(STATIC_DIR, "js")), name="js")
-app.mount("/css", StaticFiles(directory=os.path.join(STATIC_DIR, "css")), name="css")
-app.mount("/application/media", StaticFiles(directory=MEDIA_DIR), name="media")
+# @asynccontextmanager
+# async def lifespan(_: FastAPI):
+#
+#     await to_thread.run_sync(run_upgrade)  # new
+#
+#     yield
+#
+#     await engine.dispose()
 
 
-@app.middleware("http")
-async def db_error_middleware(request: Request, call_next):
-    start_time = time.time()
-    try:
-        response = await call_next(request)
-        process_time = time.time() - start_time
-        logger.debug(
-            "Request {} {} completed in {:.4f} s",
-            request.method,
-            request.url.path,
-            process_time,
-        )
-        return response
-    except Exception as e:  # noqa
-        logger.exception("Internal Server Error: {}", e)
-        traceback.print_exc()
-        raise e
+#setup_logging()
+
+#app = FastAPI(lifespan=lifespan)
+
+# app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# app.mount("/js", StaticFiles(directory=os.path.join(STATIC_DIR, "js")), name="js")
+# app.mount("/css", StaticFiles(directory=os.path.join(STATIC_DIR, "css")), name="css")
+# app.mount("/application/media", StaticFiles(directory=MEDIA_DIR), name="media")
+
+router = APIRouter(prefix="/api", tags=["All"])
+
+# @app.middleware("http")
+# async def db_error_middleware(request: Request, call_next):
+#     start_time = time.time()
+#     try:
+#         response = await call_next(request)
+#         process_time = time.time() - start_time
+#         logger.debug(
+#             "Request {} {} completed in {:.4f} s",
+#             request.method,
+#             request.url.path,
+#             process_time,
+#         )
+#         return response
+#     except Exception as e:  # noqa
+#         logger.exception("Internal Server Error: {}", e)
+#         traceback.print_exc()
+#         raise e
 
 
 async def get_current_user(
@@ -114,7 +117,7 @@ async def get_current_user(
     return user
 
 
-@app.get("/api/users/me", response_model=schemas.UserInfo)
+@router.get("/users/me", response_model=schemas.UserInfo)
 async def auth_user(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
@@ -132,7 +135,7 @@ async def auth_user(
     return {"result": True, "user": user}
 
 
-@app.post("/api/tweets", response_model=schemas.AddTweet)
+@router.post("/tweets", response_model=schemas.AddTweet)
 async def add_tweet(
     tweet: schemas.AddTweet,
     session: AsyncSession = Depends(get_db),
@@ -162,22 +165,24 @@ async def add_tweet(
     return JSONResponse(content=response, status_code=201)
 
 
-@app.post("/api/medias", response_model=schemas.UploadMedia)
+@router.post("/medias", response_model=schemas.UploadMedia)
 async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename is missing")
 
-    ext = os.path.splitext(file.filename)[1]
-    unique_name = f"{uuid.uuid4()}{ext}"
-    file_path = os.path.join(MEDIA_DIR, unique_name)
+    path = pathlib.Path
+    # ext = os.path.splitext(file.filename)[1]
+    # unique_name = f"{uuid.uuid4()}{ext}"
+    unique_name = f"{uuid.uuid4()}{path(file.filename).suffix}"
+    #file_path = os.path.join(MEDIA_DIR, unique_name)
+    file_path = MEDIA_DIR / unique_name
 
-    async with aiofiles.open(file_path, "wb") as out_file:
+    async with aiofiles.open(str(file_path), "wb") as out_file:
         content = await file.read()
         await out_file.write(content)
     media_data = dict()
     media_data["path"] = file_path
     new_media = Media(**media_data)
-    # async with session.begin():
     async with session.begin_nested() if session.in_transaction() else session.begin():
         session.add(new_media)
     response = {"media_id": new_media.id}
@@ -186,7 +191,7 @@ async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)
     return response
 
 
-@app.post("/api/user", response_model=schemas.AddUser)
+@router.post("/user", response_model=schemas.AddUser)
 async def add_user(user: schemas.AddUser, session: AsyncSession = Depends(get_db)):
 
     new_user = User(**user.model_dump())
@@ -198,7 +203,7 @@ async def add_user(user: schemas.AddUser, session: AsyncSession = Depends(get_db
     )
 
 
-@app.delete("/api/tweets/{tweet_id}", response_model=schemas.ResultTrue)
+@router.delete("/tweets/{tweet_id}", response_model=schemas.ResultTrue)
 async def delete_tweet(
     tweet_id: int,
     session: AsyncSession = Depends(get_db),
@@ -237,7 +242,7 @@ async def delete_tweet(
     return {"result": True}
 
 
-@app.get("/api/tweets", response_model=schemas.GetTweets)
+@router.get("/tweets", response_model=schemas.GetTweets)
 async def get_tweets(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
@@ -270,7 +275,7 @@ async def get_tweets(
     return schemas.GetTweets.model_validate({"tweets": tweets})
 
 
-@app.get("/api/users/{id}", response_model=schemas.UserInfo)
+@router.get("/users/{id}", response_model=schemas.UserInfo)
 async def get_profile_with_id(
     id: Annotated[int, Path()],
     current_user: User = Depends(get_current_user),
@@ -302,7 +307,7 @@ async def get_profile_with_id(
     return {"result": True, "user": user}
 
 
-@app.get("/{catchall:path}")
+@router.get("/{catchall:path}")
 async def serve_frontend(_: Request, catchall: str):
     if catchall.startswith("api/"):
         return JSONResponse(
@@ -316,7 +321,7 @@ async def serve_frontend(_: Request, catchall: str):
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
-@app.post("/api/tweets/{id}/likes", response_model=schemas.ResultTrue)
+@router.post("/tweets/{id}/likes", response_model=schemas.ResultTrue)
 async def post_like(
     id: Annotated[int, Path()],
     session: AsyncSession = Depends(get_db),
@@ -340,7 +345,7 @@ async def post_like(
     return {"result": True}
 
 
-@app.delete("/api/tweets/{id}/likes", response_model=schemas.ResultTrue)
+@router.delete("/tweets/{id}/likes", response_model=schemas.ResultTrue)
 async def delete_like(
     id: Annotated[int, Path()],
     current_user: User = Depends(get_current_user),
@@ -370,7 +375,7 @@ async def delete_like(
     return {"result": True}
 
 
-@app.post("/api/users/{id}/follow", response_model=schemas.ResultTrue)
+@router.post("/users/{id}/follow", response_model=schemas.ResultTrue)
 async def following(
     id: Annotated[int, Path()],
     session: AsyncSession = Depends(get_db),
@@ -394,7 +399,7 @@ async def following(
     return {"result": True}
 
 
-@app.delete("/api/users/{id}/follow", response_model=schemas.ResultTrue)
+@router.delete("/users/{id}/follow", response_model=schemas.ResultTrue)
 async def delete_follow(
     id: Annotated[int, Path()],
     session: AsyncSession = Depends(get_db),
