@@ -9,7 +9,8 @@ from logger_config import setup_logging
 from starlette.staticfiles import StaticFiles
 from loguru import logger
 import time
-
+import os
+from fastapi.responses import FileResponse, JSONResponse
 from config import STATIC_DIR, MEDIA_DIR, CSS_DIR, JS_DIR
 from application.routes import router
 
@@ -51,6 +52,18 @@ async def db_error_middleware(request: Request, call_next):
         traceback.print_exc()
         raise e
 
+@app.get("/{catchall:path}")
+async def serve_frontend(_: Request, catchall: str):
+    if catchall.startswith("api/"):
+        return JSONResponse(
+            status_code=404, content={"result": False, "error": "API route not found"}
+        )
+
+    file_path = os.path.join(STATIC_DIR, catchall)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
 if __name__ == "__main__":

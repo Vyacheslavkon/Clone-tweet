@@ -1,104 +1,33 @@
 import os
-import time
-import traceback
 import uuid
-from contextlib import asynccontextmanager
 from typing import Annotated
 import pathlib
 import aiofiles
-from anyio import to_thread
 from fastapi import (
     Depends,
-    FastAPI,
     Header,
     HTTPException,
     Path,
-    Request,
     UploadFile,
     status,
     APIRouter,
 )
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from loguru import logger
 from sqlalchemy import select, update
-from sqlalchemy.exc import IntegrityError, MissingGreenlet, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, MissingGreenlet
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from starlette.staticfiles import StaticFiles
+
 
 import application.schemas
-from alembic import command
-from alembic.config import Config
-from application.database import engine, get_db
+from application.database import  get_db
 from application.models import FollowLink, Likes, Media, Tweet, User
-from logger_config import setup_logging
-from config import MEDIA_DIR, STATIC_DIR
-
-# ROOT_PATH = os.getcwd()
-# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# BASE_DIR_FOR_MEDIA = os.path.abspath(os.path.dirname(__file__))
-# STATIC_DIR = os.path.join(BASE_DIR, "static")
-# #MEDIA_DIR = os.path.join(BASE_DIR, "media")
-# ROOT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
-# alembic_ini = os.path.join(BASE_DIR, "alembic.ini")
-# ALEMBIC_SCRIPTS = os.path.join(BASE_DIR, "alembic")
-# INDEX = os.path.join(STATIC_DIR, "index.html")
+from config import MEDIA_DIR
 
 schemas = application.schemas
 
-
-# def run_upgrade():
-#     sync_url = os.getenv("DATABASE_URL_DOCKER").replace(
-#         "postgresql+asyncpg://", "postgresql://"
-#     )  # new
-#     alembic_cfg = Config(alembic_ini)
-#     alembic_cfg.set_main_option("sqlalchemy.url", sync_url)  # new
-#     alembic_cfg.set_main_option("script_location", ALEMBIC_SCRIPTS)
-#     try:
-#         command.upgrade(alembic_cfg, "head")
-#         logger.info("Migrations applied successfully")
-#     except SQLAlchemyError as e:
-#         logger.error("Error running migrations: {}", e)
-
-
-# @asynccontextmanager
-# async def lifespan(_: FastAPI):
-#
-#     await to_thread.run_sync(run_upgrade)  # new
-#
-#     yield
-#
-#     await engine.dispose()
-
-
-#setup_logging()
-
-#app = FastAPI(lifespan=lifespan)
-
-# app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-# app.mount("/js", StaticFiles(directory=os.path.join(STATIC_DIR, "js")), name="js")
-# app.mount("/css", StaticFiles(directory=os.path.join(STATIC_DIR, "css")), name="css")
-# app.mount("/application/media", StaticFiles(directory=MEDIA_DIR), name="media")
-
 router = APIRouter(prefix="/api", tags=["All"])
-
-# @app.middleware("http")
-# async def db_error_middleware(request: Request, call_next):
-#     start_time = time.time()
-#     try:
-#         response = await call_next(request)
-#         process_time = time.time() - start_time
-#         logger.debug(
-#             "Request {} {} completed in {:.4f} s",
-#             request.method,
-#             request.url.path,
-#             process_time,
-#         )
-#         return response
-#     except Exception as e:  # noqa
-#         logger.exception("Internal Server Error: {}", e)
-#         traceback.print_exc()
-#         raise e
 
 
 async def get_current_user(
@@ -170,18 +99,14 @@ async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename is missing")
 
-    path = pathlib.Path
-    # ext = os.path.splitext(file.filename)[1]
-    # unique_name = f"{uuid.uuid4()}{ext}"
-    unique_name = f"{uuid.uuid4()}{path(file.filename).suffix}"
-    #file_path = os.path.join(MEDIA_DIR, unique_name)
-    file_path = MEDIA_DIR / unique_name
+
+    file_path = pathlib.Path(MEDIA_DIR) / f"{uuid.uuid4()}{pathlib.Path(file.filename).suffix}"
 
     async with aiofiles.open(str(file_path), "wb") as out_file:
         content = await file.read()
         await out_file.write(content)
     media_data = dict()
-    media_data["path"] = file_path
+    media_data["path"] = str(file_path)
     new_media = Media(**media_data)
     async with session.begin_nested() if session.in_transaction() else session.begin():
         session.add(new_media)
@@ -307,18 +232,7 @@ async def get_profile_with_id(
     return {"result": True, "user": user}
 
 
-@router.get("/{catchall:path}")
-async def serve_frontend(_: Request, catchall: str):
-    if catchall.startswith("api/"):
-        return JSONResponse(
-            status_code=404, content={"result": False, "error": "API route not found"}
-        )
 
-    file_path = os.path.join(STATIC_DIR, catchall)
-    if os.path.exists(file_path) and os.path.isfile(file_path):
-        return FileResponse(file_path)
-
-    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
 @router.post("/tweets/{id}/likes", response_model=schemas.ResultTrue)
@@ -428,3 +342,5 @@ async def delete_follow(
     )
 
     return {"result": True}
+
+
