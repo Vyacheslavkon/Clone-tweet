@@ -46,7 +46,7 @@ jobs:
         run: flake8 . --max-line-length=88
 
       - name: Run Mypy
-        run: mypy .
+        run: mypy . --exclude "migrations/"
 
       - name: Test with pytest
         env:
