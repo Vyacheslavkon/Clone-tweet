@@ -38,7 +38,7 @@ jobs:
       - name: Run Black
         run: black . --check --extend-exclude "alembic/"
 
-      - name: Run Isort --extend-exclude "alembic/"
+      - name: Run Isort --extend-exclude "migrations/"
 
         run: isort --check-only --diff --profile black .
 
