@@ -1,8 +1,10 @@
 from alembic.config import Config
-from alembic import command
-from sqlalchemy.exc import SQLAlchemyError
 from loguru import logger
-from config import ALEMBIC_INI, SYNC_URL_FOR_ALEMBIC, ALEMBIC_SCRIPTS
+from sqlalchemy.exc import SQLAlchemyError
+
+from alembic import command
+from config import ALEMBIC_INI, ALEMBIC_SCRIPTS, SYNC_URL_FOR_ALEMBIC
+
 
 def run_upgrade():
     alembic_cfg = Config(str(ALEMBIC_INI))
@@ -13,4 +15,3 @@ def run_upgrade():
         logger.info("Migrations applied successfully")
     except SQLAlchemyError as e:
         logger.error("Error running migrations: {}", e)
-

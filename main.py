@@ -1,18 +1,20 @@
-import uvicorn
+import os
+import time
 import traceback
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
-from application.database import engine
+
+import uvicorn
 from anyio import to_thread
-from migrations import utils
-from logger_config import setup_logging
-from starlette.staticfiles import StaticFiles
-from loguru import logger
-import time
-import os
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
-from config import STATIC_DIR, MEDIA_DIR, CSS_DIR, JS_DIR
+from loguru import logger
+from starlette.staticfiles import StaticFiles
+
+from application.database import engine
 from application.routes import router
+from config import CSS_DIR, JS_DIR, MEDIA_DIR, STATIC_DIR
+from logger_config import setup_logging
+from migrations import utils
 
 
 @asynccontextmanager
@@ -24,6 +26,7 @@ async def lifespan(_: FastAPI):
 
     await engine.dispose()
 
+
 setup_logging()
 
 app = FastAPI(lifespan=lifespan)
@@ -33,6 +36,7 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 app.mount("/js", StaticFiles(directory=str(JS_DIR)), name="js")
 app.mount("/css", StaticFiles(directory=str(CSS_DIR)), name="css")
 app.mount("/application/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
+
 
 @app.middleware("http")
 async def db_error_middleware(request: Request, call_next):
@@ -51,6 +55,7 @@ async def db_error_middleware(request: Request, call_next):
         logger.exception("Internal Server Error: {}", e)
         traceback.print_exc()
         raise e
+
 
 @app.get("/{catchall:path}")
 async def serve_frontend(_: Request, catchall: str):

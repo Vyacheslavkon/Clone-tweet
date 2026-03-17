@@ -12,8 +12,12 @@ CSS_DIR = STATIC_DIR / "css"
 
 
 ALEMBIC_INI = BASE_DIR / "alembic.ini"
-SYNC_URL_FOR_ALEMBIC = os.getenv("DATABASE_URL_DOCKER").replace(
+db_url = os.getenv("DATABASE_URL_DOCKER")
+if db_url:
+    SYNC_URL_FOR_ALEMBIC = db_url.replace(
         "postgresql+asyncpg://", "postgresql://"
     )  # new
+else:
+    "".replace("postgresql+asyncpg://", "postgresql://")  # new
 
 ALEMBIC_SCRIPTS = BASE_DIR / "migrations"

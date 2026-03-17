@@ -14,3 +14,4 @@ exclude =
     __pycache__,
     .venv,
     alembic/versions
+    migrations/versions

@@ -1,16 +1,17 @@
 import os
+import pathlib
 import uuid
 from typing import Annotated
-import pathlib
+
 import aiofiles
 from fastapi import (
+    APIRouter,
     Depends,
     Header,
     HTTPException,
     Path,
     UploadFile,
     status,
-    APIRouter,
 )
 from fastapi.responses import JSONResponse
 from loguru import logger
@@ -19,9 +20,8 @@ from sqlalchemy.exc import IntegrityError, MissingGreenlet
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-
 import application.schemas
-from application.database import  get_db
+from application.database import get_db
 from application.models import FollowLink, Likes, Media, Tweet, User
 from config import MEDIA_DIR
 
@@ -99,8 +99,9 @@ async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename is missing")
 
-
-    file_path = pathlib.Path(MEDIA_DIR) / f"{uuid.uuid4()}{pathlib.Path(file.filename).suffix}"
+    file_path = (
+        pathlib.Path(MEDIA_DIR) / f"{uuid.uuid4()}{pathlib.Path(file.filename).suffix}"
+    )
 
     async with aiofiles.open(str(file_path), "wb") as out_file:
         content = await file.read()
@@ -232,9 +233,6 @@ async def get_profile_with_id(
     return {"result": True, "user": user}
 
 
-
-
-
 @router.post("/tweets/{id}/likes", response_model=schemas.ResultTrue)
 async def post_like(
     id: Annotated[int, Path()],
@@ -342,5 +340,3 @@ async def delete_follow(
     )
 
     return {"result": True}
-
-
