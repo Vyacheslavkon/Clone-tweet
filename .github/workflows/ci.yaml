@@ -36,20 +36,22 @@ jobs:
 
 
       - name: Run Black
-        run: black . --check --extend-exclude "alembic/"
+        run: black . --check --extend-exclude "migrations/"
 
-      - name: Run Isort --extend-exclude "alembic/"
+      - name: Run Isort --extend-exclude "migrations/"
 
-        run: isort --check-only --diff --profile black .
+        run: isort . --check-only --diff --profile black --extend-skip "migrations/"
 
       - name: Run Flake8
         run: flake8 . --max-line-length=88
 
       - name: Run Mypy
-        run: mypy .
+        run: mypy . --exclude "migrations/"
 
       - name: Test with pytest
         env:
           DATABASE_URL_DOCKER: postgresql+asyncpg://slava_t:1989_slava_t@db_test:5432/test_db
           TEST_DATABASE_URL: postgresql+asyncpg://postgres:password@localhost:5432/test_db
-        run: pytest
+        run: |
+          mkdir -p media
+          pytest
