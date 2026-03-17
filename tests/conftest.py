@@ -1,5 +1,5 @@
 import os
-
+import tempfile
 import pytest
 from fastapi.responses import JSONResponse
 from httpx import ASGITransport, AsyncClient
@@ -106,9 +106,12 @@ async def second_user(test_session: AsyncSession, first_user):
 async def test_tweet_with_media(
     test_session: AsyncSession, client: AsyncClient, first_user
 ):
-    temp_path = "test_image.jpg"
-    with open(temp_path, "w") as f:
-        f.write("test data")
+    # temp_path = "test_image.jpg"
+    # with open(temp_path, "w") as f:
+    #     f.write("test data")
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+        tmp.write(b"test data")
+        temp_path = tmp.name
 
     media = models.Media(path=temp_path)
     tweet = models.Tweet(

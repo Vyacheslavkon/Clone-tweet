@@ -7,4 +7,4 @@ Dockerfile
 docker-compose.yaml
 .gitignore
 .dockerignore
-
+.pytest_cache

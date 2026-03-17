@@ -1,9 +1,16 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+
+    user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+
     volumes:
       - ./application:/application/application
-      - ./alembic:/application/alembic
+      - ./migrations:/application/migrations
       - ./static:/application/static
       - ./alembic.ini:/application/alembic.ini
       - ./main.py:/application/main.py
@@ -66,7 +73,7 @@ services:
       - app-network
 
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U admin" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 5s
       timeout: 5s
       retries: 5
