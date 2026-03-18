@@ -10,9 +10,9 @@ from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
 from starlette.staticfiles import StaticFiles
 
-from application.database import engine
+from core.database import engine
 from application.routes import router
-from config import CSS_DIR, JS_DIR, MEDIA_DIR, STATIC_DIR
+from core.config import CSS_DIR, JS_DIR, MEDIA_DIR, STATIC_DIR
 from logger_config import setup_logging
 from migrations import utils
 

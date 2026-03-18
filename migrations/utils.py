@@ -3,7 +3,7 @@ from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
 
 from alembic import command
-from config import ALEMBIC_INI, ALEMBIC_SCRIPTS, SYNC_URL_FOR_ALEMBIC
+from core.config import ALEMBIC_INI, ALEMBIC_SCRIPTS, SYNC_URL_FOR_ALEMBIC
 
 
 def run_upgrade():

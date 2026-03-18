@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, pool
 
 from alembic import context
-from application.database import Base
-from application.models import FollowLink, Likes, Media, Tweet, User  # noqa: F401
+from core.database import Base
+from core.models import FollowLink, Likes, Media, Tweet, User  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

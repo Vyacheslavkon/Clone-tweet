@@ -21,9 +21,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 import application.schemas
-from application.database import get_db
-from application.models import FollowLink, Likes, Media, Tweet, User
-from config import MEDIA_DIR
+from core.database import get_db
+from core.models import FollowLink, Likes, Media, Tweet, User
+from core.config import MEDIA_DIR
+from application.crud.users import get_user_by_api_key, get_user
+from application.crud.tweets import created_tweet, save_media
 
 schemas = application.schemas
 
@@ -34,9 +36,8 @@ async def get_current_user(
     api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
 ) -> User:
 
-    query = select(User).where(User.api_key == api_key)
-    result = await session.execute(query)
-    user = result.scalars().one_or_none()
+
+    user = await get_user_by_api_key(session, api_key)
 
     if not user:
         raise HTTPException(
@@ -52,14 +53,7 @@ async def auth_user(
     session: AsyncSession = Depends(get_db),
 ):
 
-    query_user = (
-        select(User)
-        .where(User.id == current_user.id)
-        .options(selectinload(User.followers), selectinload(User.following))
-    )
-
-    result = await session.execute(query_user)
-    user = result.scalars().first()
+    user = await get_user(session, current_user)
 
     return {"result": True, "user": user}
 
@@ -72,24 +66,10 @@ async def add_tweet(
 ) -> JSONResponse:
     logger.info("Request completed: api/post/tweet")
     tweet_data = tweet.model_dump(exclude={"tweet_media_ids"})
-    async with session.begin_nested() if session.in_transaction() else session.begin():
 
-        tweet_data["user_id"] = current_user.id
-        new_tweet = Tweet(**tweet_data)
-        session.add(new_tweet)
-        await session.flush()
+    new_tweet = await created_tweet(session, current_user, tweet, tweet_data)
 
-        if tweet.tweet_media_ids:
-            update_query = (
-                update(Media)
-                .where(Media.id.in_(tweet.tweet_media_ids))
-                .values(tweet_id=new_tweet.id)
-            )
-            await session.execute(update_query)
-            logger.info("Added media. User: {}", current_user.name)
-
-        await session.commit()
-        logger.info("Tweet successfully saved. User: {}", current_user.name)
+    logger.info("Tweet successfully saved. User: {}", current_user.name)
     response = {"result": True, "tweet_id": new_tweet.id}
     return JSONResponse(content=response, status_code=201)
 
@@ -109,8 +89,8 @@ async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)
     media_data = dict()
     media_data["path"] = str(file_path)
     new_media = Media(**media_data)
-    async with session.begin_nested() if session.in_transaction() else session.begin():
-        session.add(new_media)
+
+    await save_media(session,new_media)
     response = {"media_id": new_media.id}
     logger.info("Image: {} saved successful.", new_media.id)
 

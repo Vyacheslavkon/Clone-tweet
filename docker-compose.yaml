@@ -19,6 +19,8 @@ services:
       - ./tests:/application/tests
       - ./media:/application/media
       - ./${LOG_PATH:-./logs}:/application/logs
+      - ./core:/application/core
+
 
     logging:
       driver: "json-file"
