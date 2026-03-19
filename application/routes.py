@@ -265,22 +265,15 @@ async def delete_follow(
     current_user: User = Depends(get_current_user),
 ):
 
-    # query_follow = select(FollowLink).where(
-    #     FollowLink.followed_id == id, FollowLink.follower_id == current_user.id
-    # )
-    #
-    # result = await session.execute(query_follow)
-    #
-    # follow = result.scalars().one_or_none()
+
     follow = await get_follow(session, current_user, id)
 
     if not follow:
         logger.warning("Entry does not exist. Send request user {}", current_user.name)
         raise HTTPException(status_code=400, detail="Entry does not exist.")
 
-    #await session.delete(follow)
 
-    #await session.commit()
+
     await del_follow(session, follow)
     logger.info(
         "User: {}. The user's id = {} subscription has been canceled",
