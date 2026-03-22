@@ -2,7 +2,7 @@ from sqlalchemy.exc import IntegrityError, MissingGreenlet
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from core.models import User, Likes
+from application.models import User, Likes
 
 
 

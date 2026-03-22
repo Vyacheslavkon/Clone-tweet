@@ -4,7 +4,7 @@ from sqlalchemy import update, select
 from loguru import logger
 from sqlalchemy.orm import selectinload
 
-from core.models import User, Tweet, Media, FollowLink
+from application.models import User, Tweet, Media, FollowLink
 from application.schemas import AddTweet
 
 

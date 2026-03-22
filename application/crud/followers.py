@@ -1,11 +1,8 @@
-from sqlalchemy.exc import IntegrityError, MissingGreenlet
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import update, select
-from loguru import logger
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select
 
-from core.models import User,FollowLink, Likes
-
+from application.models import User,FollowLink
 
 
 async def create_follow(session: AsyncSession, user: User, user_id: int):

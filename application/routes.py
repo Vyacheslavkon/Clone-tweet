@@ -15,14 +15,12 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 from loguru import logger
-from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError, MissingGreenlet
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 import application.schemas
 from core.database import get_db
-from core.models import FollowLink, Likes, Media, Tweet, User
+from application.models import Media, User
 from core.config import MEDIA_DIR
 from application.crud.users import get_user_by_api_key, get_user, create_user, get_profile
 from application.crud.tweets import (created_tweet,
