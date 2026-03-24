@@ -100,6 +100,22 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:7.4.2-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+
+  worker:
+    build: .
+    command: celery -A tasks worker --loglevel=info
+    depends_on:
+      - redis
+      - db
+    environment:
+      REDIS_URL: ${CELERY_BROKER_URL}
+      DATABASE_URL: ${DATABASE_URL_DOCKER}
+
 
 networks:
   app-network:
