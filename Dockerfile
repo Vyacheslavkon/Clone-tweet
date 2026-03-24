@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM python:3.12-slim
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
