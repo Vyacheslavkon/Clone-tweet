@@ -21,3 +21,5 @@ else:
     "".replace("postgresql+asyncpg://", "postgresql://")  # new
 
 ALEMBIC_SCRIPTS = BASE_DIR / "migrations"
+
+TOKEN_BOT = os.getenv("BOT_TOKEN")
