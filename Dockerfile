@@ -18,4 +18,4 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["python", "main.py", "--reload", "--log-level", "debug"]
+CMD ["python", "main.py"]

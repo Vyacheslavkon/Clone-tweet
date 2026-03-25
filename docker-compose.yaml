@@ -1,12 +1,30 @@
+x-common-setup: &common-setup
+  build:
+    context: .
+    args:
+      USER_ID: ${USER_ID:-1000}
+      GROUP_ID: ${GROUP_ID:-1000}
+  user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "50m"
+      max-file: "3"
+  restart: on-failure
+  environment:
+    - PYTHONPATH=/application
+    - PYTHONUNBUFFERED=1
+  networks:
+    - app-network
+  dns:
+    - 8.8.8.8
+    - 1.1.1.1
+
+
 services:
   app:
-    build:
-      context: .
-      args:
-        USER_ID: ${USER_ID:-1000}
-        GROUP_ID: ${GROUP_ID:-1000}
 
-    user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+    <<: *common-setup
 
     volumes:
       - ./application:/application/application
@@ -23,13 +41,6 @@ services:
 
     command: ["python", "main.py", "--reload", "--log-level", "debug"]
 
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
-
-
     ports:
       - "8000:8000"
 
@@ -37,26 +48,17 @@ services:
       - .env
       - .env.test
 
-    environment:
-      - PYTHONUNBUFFERED=1
-
     depends_on:
       db:
         condition: service_healthy
 
-    restart: on-failure
 
-    networks:
-      - app-network
+
+
 
   fin_bot:
-    build:
-      context: .
-      args:
-        USER_ID: ${USER_ID:-1000}
-        GROUP_ID: ${GROUP_ID:-1000}
 
-    user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+    <<: *common-setup
 
     volumes:
       - ./financial_bot:/application/financial_bot
@@ -68,30 +70,17 @@ services:
       - ./${LOG_PATH:-./logs}:/application/logs
       - ./core:/application/core
 
-    command: python financial_bot/main.py
-
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
-
+    command: python -m financial_bot.main
 
     env_file:
       - .env
       - .env.test
 
-    environment:
-      - PYTHONUNBUFFERED=1
-
     depends_on:
       db:
         condition: service_healthy
 
-    restart: on-failure
 
-    networks:
-      - app-network
 
   db:
     image: postgres
@@ -145,6 +134,7 @@ services:
     networks:
       - app-network
 
+
   redis:
     image: redis:7.4.2-alpine
     restart: always
@@ -156,8 +146,16 @@ services:
 
 
   worker:
-    build: .
-    command: celery -A tasks worker --loglevel=info
+    <<: *common-setup
+
+    volumes:
+      - ./financial_bot:/application/financial_bot
+      - ./migrations:/application/migrations
+      - ./alembic.ini:/application/alembic.ini
+      - ./core:/application/core
+      - ./${LOG_PATH:-./logs}:/application/logs
+
+    command: celery -A core.celery_app:app worker --loglevel=info
     depends_on:
       - redis
       - db
@@ -167,13 +165,12 @@ services:
     env_file:
       - .env
 
-    networks:
-      - app-network
-
 
 networks:
   app-network:
     driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: "1400"
 
 
 volumes:
