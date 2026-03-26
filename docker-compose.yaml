@@ -28,6 +28,7 @@ services:
 
     volumes:
       - ./application:/application/application
+      - ./financial_bot:/application/financial_bot
       - ./migrations:/application/migrations
       - ./static:/application/static
       - ./alembic.ini:/application/alembic.ini
