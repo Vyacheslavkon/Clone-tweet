@@ -5,7 +5,9 @@ from redis.asyncio import Redis
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram import Bot, Dispatcher
 
+from financial_bot.handlers.start import router_st
 from core.config import TOKEN_BOT
+from financial_bot.middlewares import DbSessionMiddleware
 
 redis_fsm = Redis(host='redis', port=6379, db=2)
 storage = RedisStorage(redis=redis_fsm)
@@ -18,11 +20,17 @@ storage = RedisStorage(redis=redis_fsm)
 
 
 # 3. Передаем хранилище в диспетчер
-dp = Dispatcher(storage=storage)
+#dp = Dispatcher(storage=storage)
 
 async def main():
     bot = Bot(token=TOKEN_BOT)
+    dp = Dispatcher(storage=storage)
+    dp.message.middleware(DbSessionMiddleware())
+    dp.callback_query.middleware(DbSessionMiddleware())
+    dp.include_router(router_st)
+
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
