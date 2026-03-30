@@ -11,9 +11,6 @@ x-common-setup: &common-setup
       max-size: "50m"
       max-file: "3"
   restart: on-failure
-  environment:
-    - PYTHONPATH=/application
-    - PYTHONUNBUFFERED=1
   networks:
     - app-network
   dns:
@@ -39,11 +36,17 @@ services:
       - ./media:/application/media
       - ./${LOG_PATH:-./logs}:/application/logs
       - ./core:/application/core
+      - ./logger_config.py:/application/logger_config.py
 
     command: ["python", "main.py", "--reload", "--log-level", "debug"]
 
     ports:
       - "8000:8000"
+
+    environment:
+      - PYTHONPATH=/application
+      - PYTHONUNBUFFERED=1
+      - LOG_FILENAME=fastapi.log
 
     env_file:
       - .env
@@ -70,8 +73,14 @@ services:
       - ./tests:/application/tests
       - ./${LOG_PATH:-./logs}:/application/logs
       - ./core:/application/core
+      - ./logger_config.py:/application/logger_config.py
 
     command: python -m financial_bot.main
+
+    environment:
+      - PYTHONPATH=/application
+      - PYTHONUNBUFFERED=1
+      - LOG_FILENAME=bot.log
 
     env_file:
       - .env
@@ -155,14 +164,19 @@ services:
       - ./alembic.ini:/application/alembic.ini
       - ./core:/application/core
       - ./${LOG_PATH:-./logs}:/application/logs
+      - ./logger_config.py:/application/logger_config.py
 
     command: celery -A core.celery_app:app worker --loglevel=info
     depends_on:
       - redis
       - db
     environment:
-      REDIS_URL: ${CELERY_BROKER_URL}
-      DATABASE_URL: ${DATABASE_URL_DOCKER}
+      - PYTHONPATH=/application
+      - PYTHONUNBUFFERED=1
+      - LOG_FILENAME=worker.log
+      - REDIS_URL=${CELERY_BROKER_URL}
+      - DATABASE_URL=${DATABASE_URL_DOCKER}
+
     env_file:
       - .env
 

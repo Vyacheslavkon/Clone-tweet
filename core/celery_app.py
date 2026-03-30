@@ -1,5 +1,10 @@
 import os
+import logging
+
 from celery import Celery
+from celery.signals import after_setup_logger
+
+from logger_config import setup_logging
 
 # Получаем URL брокера из переменных окружения (те, что в docker-compose)
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
@@ -21,3 +26,7 @@ app.conf.update(
     timezone="UTC",
     enable_utc=True,
 )
+
+@after_setup_logger.connect
+def setup_celery_logger(logger, *args, **kwargs):
+    setup_logging()
