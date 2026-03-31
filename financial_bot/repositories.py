@@ -5,7 +5,7 @@ from loguru import logger
 from financial_bot.schemas import CreateUser
 from financial_bot.models import UserBot, Transactions
 
-async def creating_user(session: AsyncSession, data: CreateUser):
+async def create_user(session: AsyncSession, data: CreateUser):
 
     new_user = UserBot(
         tg_id=data.tg_id,

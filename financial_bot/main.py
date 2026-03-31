@@ -7,8 +7,9 @@ from aiogram import Bot, Dispatcher
 
 from financial_bot.handlers.start import router_st
 from core.config import TOKEN_BOT
-from financial_bot.middlewares import DbSessionMiddleware
+from financial_bot.middlewares import  LangSessionMiddleware
 from logger_config import setup_logging
+from core.database import async_session, engine
 
 redis_fsm = Redis(host='redis', port=6379, db=2)
 storage = RedisStorage(redis=redis_fsm)
@@ -18,17 +19,13 @@ storage = RedisStorage(redis=redis_fsm)
 
 
 
-
-
-# 3. Передаем хранилище в диспетчер
-#dp = Dispatcher(storage=storage)
-
 async def main():
     setup_logging()
     bot = Bot(token=TOKEN_BOT)
     dp = Dispatcher(storage=storage)
-    dp.message.middleware(DbSessionMiddleware())
-    dp.callback_query.middleware(DbSessionMiddleware())
+    session_pool = async_session
+    dp.message.outer_middleware(LangSessionMiddleware(session_pool))
+    dp.callback_query.outer_middleware(LangSessionMiddleware(session_pool))
     dp.include_router(router_st)
 
     await dp.start_polling(bot)
