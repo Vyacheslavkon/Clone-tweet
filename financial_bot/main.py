@@ -28,7 +28,11 @@ async def main():
     dp.callback_query.outer_middleware(LangSessionMiddleware(session_pool))
     dp.include_router(router_st)
 
-    await dp.start_polling(bot)
+    try:
+        await dp.start_polling(bot)
+
+    finally:
+        await redis_fsm.close()
 
 
 if __name__ == "__main__":
