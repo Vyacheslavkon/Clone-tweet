@@ -5,7 +5,7 @@ from aiogram.types import Update
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from financial_bot.repositories import get_user_by_id
 from financial_bot.language import LANGUAGE
-
+from aiogram.utils.i18n import gettext as _
 
 # class DbSessionMiddleware(BaseMiddleware):
 #     async def __call__(
@@ -32,7 +32,7 @@ class LangSessionMiddleware(BaseMiddleware):
     ) -> Any:
 
 
-        # 2. Достаем язык из вашей БД (или берем системный, если юзера нет)
+        # 2. Достаем язык из БД (или берем системный, если юзера нет)
         async with self.session_pool() as session:
 
             data["session"] = session

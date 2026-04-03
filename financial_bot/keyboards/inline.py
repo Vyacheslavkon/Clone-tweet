@@ -19,3 +19,6 @@ def get_type():
     return builder.as_markup()
 
 
+def get_category():
+    builder = InlineKeyboardBuilder()
+    builder.add(InlineKeyboardButton(text=""))

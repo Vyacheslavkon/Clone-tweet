@@ -22,9 +22,16 @@ async def go_back(callback: CallbackQuery, state: FSMContext, lp: dict):
         await callback.message.edit_text(lp["main_menu"], reply_markup=get_main_menu())
 
     elif current_state == AmountState.waiting_for_type.state:
-        # Если были на городе — возвращаемся к возрасту
         await state.set_state(AmountState.waiting_for_amount)
-        await callback.message.edit_text("Введите ваш возраст:", reply_markup=get_main_menu())
+        await callback.message.edit_text(lp["entering_amount"], reply_markup=get_main_menu())
+
+    elif current_state == AmountState.waiting_for_cat.state:
+        await state.set_state(AmountState.waiting_for_type)
+        await callback.message.edit_text(lp["type_amt"], reply_markup=get_type())
+
+    elif current_state == AmountState.waiting_for_description.state:
+        await state.set_state(AmountState.waiting_for_cat)
+        await callback.message.edit_text(lp["cat_amt"], reply_markup=get_main_menu())
 
     await callback.answer()
     # finalize
