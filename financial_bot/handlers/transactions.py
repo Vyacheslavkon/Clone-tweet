@@ -4,6 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram import F
 from aiogram import Router
+from aiogram_i18n.lazy.filter import LazyFilter
 from aiogram.filters import Command
 from aiogram.utils.i18n import gettext as _
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,11 +30,24 @@ async def go_back(callback: CallbackQuery, state: FSMContext):
 
     if current_state == AmountState.waiting_for_amount.state:
         await state.clear()
-        await callback.message.edit_text(_("Main menu"), reply_markup=get_main_menu())
+        # 1. Удаляем сообщение, в котором была кнопка "Назад"
+        await callback.message.delete()
+
+        await callback.message.answer(
+            _("Please enter the amount!"),
+            reply_markup=get_main_menu()
+        )
+
 
     elif current_state == AmountState.waiting_for_type.state:
         await state.set_state(AmountState.waiting_for_amount)
-        await callback.message.edit_text(_("Please enter the amount!"), reply_markup=get_main_menu())
+
+        await callback.message.delete()
+
+        await callback.message.answer(
+            _("Please enter the amount!"),
+            reply_markup=get_main_menu()
+        )
 
     elif current_state == AmountState.waiting_for_cat.state:
         await state.set_state(AmountState.waiting_for_type)
@@ -41,13 +55,15 @@ async def go_back(callback: CallbackQuery, state: FSMContext):
 
     elif current_state == AmountState.waiting_for_description.state:
         await state.set_state(AmountState.waiting_for_cat)
-        await callback.message.edit_text(_("Select category"), reply_markup=get_main_menu())
+        await callback.message.edit_text(_("Select category"), reply_markup=get_category())
 
     await callback.answer()
 
 
 
-@router_tr.message(F.text == _("Enter amount"))
+#@router_tr.message(F.text == "Enter amount")
+@router_tr.message(F.text.in_({"Enter amount", "Введите сумму"}))
+#@router_tr.message(LazyFilter("Enter amount"))
 async def new_amount(message: Message, state: FSMContext):
 
     await message.answer( _("Please enter the amount!"))
@@ -65,7 +81,7 @@ async def process_amount_input(message: Message, state: FSMContext):
     await state.set_state(AmountState.waiting_for_type)
 
 
-@router_tr.callback_query(F.data.startswith(_("type")), AmountState.waiting_for_type)
+@router_tr.callback_query(F.data.startswith("type"), AmountState.waiting_for_type)
 async def type_amount(callback: CallbackQuery, state: FSMContext):
 
     selected_type = callback.data.split("_")[1]
@@ -75,7 +91,7 @@ async def type_amount(callback: CallbackQuery, state: FSMContext):
     await state.set_state(AmountState.waiting_for_cat)
 
 
-@router_tr.callback_query(F.data.startwith(_("cat")), AmountState.waiting_for_cat)
+@router_tr.callback_query(F.data.startwith("cat"), AmountState.waiting_for_cat)
 async def category_amount(callback: CallbackQuery, state: FSMContext):
 
     selected_cat = callback.data.split("_")[1]

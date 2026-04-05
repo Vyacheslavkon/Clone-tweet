@@ -5,13 +5,13 @@ from aiogram.utils.i18n import gettext as _
 def cancel():
     builder  = InlineKeyboardBuilder()
     builder.button(text=_("Cancel"), callback_data="cancel")
-    return builder.as_markup()
+    return builder
 
 
 def get_back_kb():
     builder = InlineKeyboardBuilder()
     builder.button(text=_("⬅️ Back"), callback_data="back")
-    return builder.as_markup()
+    return builder
 
 
 def get_type():

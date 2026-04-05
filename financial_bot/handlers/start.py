@@ -31,7 +31,7 @@ async def cmd_start(message: Message, session: AsyncSession):
 
     else:
 
-        await message.answer(_("Glad to see you {name}! Your balance: {balance}")
+        await message.answer(_("Glad to see you {name}! Your balance: 0")
                              .format(name=message.from_user.first_name),
                              reply_markup=get_main_menu())
 
