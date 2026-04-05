@@ -10,5 +10,6 @@ def get_main_menu():
                 )
 
     builder.row(KeyboardButton(text=_("Settings")), KeyboardButton(text="AI"))
-    # as_markup() превращает строителя в объект клавиатуры
+    builder.row(KeyboardButton(text=_("cancel")))
+
     return builder.as_markup(resize_keyboard=True)

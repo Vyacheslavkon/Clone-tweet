@@ -13,7 +13,7 @@ router_st = Router()
 
 
 @router_st.message(Command("start"))
-async def cmd_start(message: Message, session: AsyncSession, lp: dict):
+async def cmd_start(message: Message, session: AsyncSession):
 
     user = await get_user_by_id(session, message.from_user.id)
 

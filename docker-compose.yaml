@@ -64,6 +64,7 @@ services:
 
     <<: *common-setup
 
+    entrypoint: ./entrypoint.sh
     volumes:
       - ./financial_bot:/application/financial_bot
       - ./migrations:/application/migrations
