@@ -1,0 +1,136 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-04-05 19:40+1000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: financial_bot/handlers/start.py:28
+#, python-brace-format
+msgid "Hello, {name}! Glad to meet you!"
+msgstr ""
+
+#: financial_bot/handlers/start.py:34
+#, python-brace-format
+msgid "Glad to see you {name}! Your balance: {balance}"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:23
+#: financial_bot/handlers/transactions.py:32
+msgid "Main menu"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:36
+#: financial_bot/handlers/transactions.py:53
+msgid "Please enter the amount!"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:40
+msgid "Select type"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:44
+#: financial_bot/handlers/transactions.py:73
+msgid "Select category"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:50 financial_bot/keyboards/reply.py:7
+msgid "Enter amount"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:63
+msgid "Select type:"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:68
+msgid "type"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:78
+msgid "cat"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:84
+msgid "Write a comment"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:120
+msgid "Data saved successfully!"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:7
+msgid "Cancel"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:13
+msgid "⬅️ Back"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:19
+msgid "Income"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:20
+msgid "Expense"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:33
+msgid "Food"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:34
+msgid "Home"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:35
+msgid "Entertainment"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:36
+msgid "Transport"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:37
+msgid "Health"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:38
+msgid "Other"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:51
+msgid "Description"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:52
+msgid "Skip description"
+msgstr ""
+
+#: financial_bot/keyboards/reply.py:8
+msgid "Add data"
+msgstr ""
+
+#: financial_bot/keyboards/reply.py:9
+msgid "Generate report"
+msgstr ""
+
+#: financial_bot/keyboards/reply.py:12
+msgid "Settings"
+msgstr ""
+
+#: financial_bot/keyboards/reply.py:13
+msgid "cancel"
+msgstr ""
+
