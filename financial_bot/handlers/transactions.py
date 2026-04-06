@@ -9,8 +9,10 @@ from aiogram.filters import Command
 from aiogram.utils.i18n import gettext as _
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
+from aiogram.filters import BaseFilter
+from aiogram_i18n import I18nContext
 
-from financial_bot.repositories import add_transaction
+from financial_bot.repositories import add_transaction, get_user_by_id
 from financial_bot.schemas import AddTransaction
 from financial_bot.states.amount_states import AmountState
 from financial_bot.keyboards.inline import get_type, get_category, get_description
@@ -60,10 +62,17 @@ async def go_back(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
+class I18nTextFilter(BaseFilter):
+    def __init__(self, key: str):
+        self.key = key
 
-#@router_tr.message(F.text == "Enter amount")
-@router_tr.message(F.text.in_({"Enter amount", "Введите сумму"}))
-#@router_tr.message(LazyFilter("Enter amount"))
+    async def __call__(self, message: Message, i18n: I18nContext) -> bool:
+
+        return message.text == i18n.gettext(self.key)
+
+
+
+@router_tr.message(I18nTextFilter("Enter amount"))
 async def new_amount(message: Message, state: FSMContext):
 
     await message.answer( _("Please enter the amount!"))
@@ -72,13 +81,23 @@ async def new_amount(message: Message, state: FSMContext):
 
 @router_tr.message(AmountState.waiting_for_amount)
 async def process_amount_input(message: Message, state: FSMContext):
+    try:
+        amount = float(message.text.replace(',', '.'))
+        await state.update_data(amount=amount)
 
-    await state.update_data(amount=message.text)
+        kb = get_type()
+        await message.answer(_("Select type:"), reply_markup=kb)
 
-    kb = get_type()
-    await message.answer(_("Select type:"), reply_markup=kb)
+        await state.set_state(AmountState.waiting_for_type)
+    except ValueError:
+        return await message.answer("Enter a numeric value!")
 
-    await state.set_state(AmountState.waiting_for_type)
+    # await state.update_data(amount=message.text)
+    #
+    # kb = get_type()
+    # await message.answer(_("Select type:"), reply_markup=kb)
+    #
+    # await state.set_state(AmountState.waiting_for_type)
 
 
 @router_tr.callback_query(F.data.startswith("type"), AmountState.waiting_for_type)
@@ -86,12 +105,12 @@ async def type_amount(callback: CallbackQuery, state: FSMContext):
 
     selected_type = callback.data.split("_")[1]
     await state.update_data(type=selected_type)
-    await callback.message.edit_text(_("Select category"), reply_markup=get_category())
+    await callback.message.edit_text(_("Select category"), reply_markup=get_category(selected_type))
     await callback.answer()
     await state.set_state(AmountState.waiting_for_cat)
 
 
-@router_tr.callback_query(F.data.startwith("cat"), AmountState.waiting_for_cat)
+@router_tr.callback_query(F.data.startswith("cat"), AmountState.waiting_for_cat)
 async def category_amount(callback: CallbackQuery, state: FSMContext):
 
     selected_cat = callback.data.split("_")[1]
@@ -109,29 +128,32 @@ async def end_with_callback(callback: CallbackQuery,
                             session: AsyncSession):
 
     await state.update_data(description=None)
-    await save_to_db_and_finish(callback, state, session)
+    await save_to_db_and_finish(callback, state, session, callback.from_user.id)
 
 
 # 2. Хендлер для ТЕКСТОВОГО ввода описания
 @router_tr.message(AmountState.waiting_for_description)
 async def end_with_message(message: Message, state: FSMContext, session: AsyncSession):
-    # Сохраняем реальный текст от пользователя
+
     await state.update_data(description=message.text)
-    await save_to_db_and_finish(message, state, session)
+    await save_to_db_and_finish(message, state, session, message.from_user.id)
 
 
 
 async def save_to_db_and_finish(event: Union[Message, CallbackQuery],
                                 state: FSMContext,
-                                session: AsyncSession):
+                                session: AsyncSession,
+                                tg_id: int):
 
     data = await state.get_data()
-
+    user = await get_user_by_id(session, tg_id)
+    #await state.update_data(user_id=user.id)
+    data["user_id"] = user.id
 
     try:
         transaction = AddTransaction(**data)
 
-        await add_transaction(session, **transaction.model_dump())
+        await add_transaction(session, transaction.model_dump())
 
         text = _("Data saved successfully!")
         if isinstance(event, CallbackQuery):
@@ -149,17 +171,4 @@ async def save_to_db_and_finish(event: Union[Message, CallbackQuery],
 
 
 
-# @router_tr.callback_query(F.data == "description", AmountState.waiting_for_description)
-# async def end(callback: CallbackQuery, state: FSMContext):
-#
-#     selected_cat = callback.data
-#
-#     await state.update_data(description=selected_cat)
-#
-#     data = await state.get_data()
-#
-#     transaction = AddTransaction(**data)
-#
-#     res = add_transaction(**transaction.model_dump())
-#     await callback.answer(_("Data saved successfully!"))
-#     await state.clear()
+

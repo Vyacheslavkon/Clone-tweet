@@ -28,14 +28,17 @@ def get_type():
     return builder.as_markup()
 
 
-def get_category():
+
+def get_category(type_transaction: str):
+
+    if type_transaction == "income":
+        categories = ["Salary", "Bonus", "Gift", "Deal", "Other"]
+    else:
+        categories = ["Food", "Home", "Entertainment", "Transport", "Health", "Other"]
     builder = InlineKeyboardBuilder()
-    builder.add(InlineKeyboardButton(text=_("Food"), callback_data="cat_food"))
-    builder.add(InlineKeyboardButton(text=_("Home"), callback_data="cat_home"))
-    builder.add(InlineKeyboardButton(text=_("Entertainment"), callback_data="cat_entertainment"))
-    builder.add(InlineKeyboardButton(text=_("Transport"), callback_data="cat_transport"))
-    builder.add(InlineKeyboardButton(text=_("Health"), callback_data="cat_health"))
-    builder.add(InlineKeyboardButton(text=_("Other"), callback_data="cat_other"))
+
+    for cat in categories:
+        builder.add(InlineKeyboardButton(text=_(cat), callback_data= f"cat_{cat.lower()}"))
     builder.adjust(2)
 
     back_builder = get_back_kb()
@@ -46,9 +49,9 @@ def get_category():
     return builder.as_markup()
 
 
+
 def get_description():
     builder = InlineKeyboardBuilder()
-    builder.add(InlineKeyboardButton(text=_("Description"), callback_data="description"))
     builder.add(InlineKeyboardButton(text=_("Skip description"), callback_data="skip_description"))
     builder.adjust(2)
 

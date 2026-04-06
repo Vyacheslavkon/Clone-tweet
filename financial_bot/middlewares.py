@@ -36,24 +36,10 @@ class SessionMiddleware(BaseMiddleware):
     ) -> Any:
 
 
-        # 2. Достаем язык из БД (или берем системный, если юзера нет)
         async with self.session_pool() as session:
 
             data["session"] = session
 
-            # user = await get_user_by_id(session, event.from_user.id)
-            #
-            # if user and user.language_code:
-            #     active_lang = user.language_code
-            #
-            # else:
-            #     active_lang = event.from_user.language_code or "en"
-            #
-            # if active_lang not in LANGUAGE:
-            #     active_lang = "en"
-            #
-            #
-            # data['lp'] = LANGUAGE.get(active_lang, LANGUAGE['en'])
 
             return await handler(event, data)
 
@@ -75,3 +61,18 @@ class MyI18nMiddleware(I18nMiddleware):
             return event.from_user.language_code
 
         return self.i18n.default_locale
+
+
+# user = await get_user_by_id(session, event.from_user.id)
+            #
+            # if user and user.language_code:
+            #     active_lang = user.language_code
+            #
+            # else:
+            #     active_lang = event.from_user.language_code or "en"
+            #
+            # if active_lang not in LANGUAGE:
+            #     active_lang = "en"
+            #
+            #
+            # data['lp'] = LANGUAGE.get(active_lang, LANGUAGE['en'])

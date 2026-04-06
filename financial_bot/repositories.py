@@ -25,8 +25,10 @@ async def get_user_by_id(session: AsyncSession, tg_id: int) -> UserBot | None:
     return result.scalars().one_or_none()
 
 
+
 async def add_transaction(session: AsyncSession, data: dict):
 
-    async with session.begin():
-        transaction = Transactions(**data)
-        session.add(transaction)
+
+    transaction = Transactions(**data)
+    session.add(transaction)
+    await session.commit()

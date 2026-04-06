@@ -6,7 +6,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 from aiogram import Bot, Dispatcher
 from aiogram.utils.i18n import I18n, SimpleI18nMiddleware
 
-from financial_bot.handlers.start import router_st
+from financial_bot.handlers.common import router
 from financial_bot.handlers.transactions import router_tr
 from core.config import TOKEN_BOT
 from financial_bot.middlewares import  SessionMiddleware, MyI18nMiddleware
@@ -30,8 +30,9 @@ async def main():
     dp.callback_query.outer_middleware(SessionMiddleware(session_pool))
     dp.message.middleware(MyI18nMiddleware(i18n=i18n))
     dp.update.outer_middleware(SimpleI18nMiddleware(i18n))
+    dp.include_router(router)
     dp.include_router(router_tr)
-    dp.include_router(router_st)
+
 
 
     try:
