@@ -7,6 +7,8 @@ from aiogram.utils.i18n import gettext as _
 from typing import Any, Optional, Dict
 
 from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio.session import AsyncSession
+
 from financial_bot.repositories import get_user_by_id
 from financial_bot.language import LANGUAGE
 
@@ -25,7 +27,7 @@ from financial_bot.language import LANGUAGE
 
 class SessionMiddleware(BaseMiddleware):
 
-    def __init__(self, session_pool: async_sessionmaker):
+    def __init__(self, session_pool: async_sessionmaker | AsyncSession):
         self.session_pool = session_pool
 
     async def __call__(
@@ -35,6 +37,10 @@ class SessionMiddleware(BaseMiddleware):
             data: Dict[str, Any]
     ) -> Any:
 
+        if isinstance(self.session_pool, AsyncSession):
+            data["session"] = self.session_pool
+
+            return await handler(event, data)
 
         async with self.session_pool() as session:
 
