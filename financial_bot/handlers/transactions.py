@@ -1,5 +1,4 @@
 from typing import Union
-
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram import F
@@ -9,14 +8,13 @@ from aiogram.filters import Command
 from aiogram.utils.i18n import gettext as _
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
-from aiogram.filters import BaseFilter
-from aiogram_i18n import I18nContext
 
 from financial_bot.repositories import add_transaction, get_user_by_id
 from financial_bot.schemas import AddTransaction
 from financial_bot.states.amount_states import AmountState
 from financial_bot.keyboards.inline import get_type, get_category, get_description
 from financial_bot.keyboards.reply import get_main_menu
+from financial_bot.filters import I18nTextFilter
 
 router_tr = Router()
 
@@ -57,18 +55,11 @@ async def go_back(callback: CallbackQuery, state: FSMContext):
 
     elif current_state == AmountState.waiting_for_description.state:
         await state.set_state(AmountState.waiting_for_cat)
-        await callback.message.edit_text(_("Select category"), reply_markup=get_category())
+        dict_data = await state.get_data()
+        type_transaction = dict_data.get("type")
+        await callback.message.edit_text(_("Select category"), reply_markup=get_category(type_transaction))
 
     await callback.answer()
-
-
-class I18nTextFilter(BaseFilter):
-    def __init__(self, key: str):
-        self.key = key
-
-    async def __call__(self, message: Message, i18n: I18nContext) -> bool:
-
-        return message.text == i18n.gettext(self.key)
 
 
 
@@ -90,7 +81,7 @@ async def process_amount_input(message: Message, state: FSMContext):
 
         await state.set_state(AmountState.waiting_for_type)
     except ValueError:
-        return await message.answer("Enter a numeric value!")
+        return await message.answer(_("Enter a numeric value!"))
 
     # await state.update_data(amount=message.text)
     #

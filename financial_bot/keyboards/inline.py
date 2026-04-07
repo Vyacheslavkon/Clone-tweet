@@ -32,9 +32,9 @@ def get_type():
 def get_category(type_transaction: str):
 
     if type_transaction == "income":
-        categories = ["Salary", "Bonus", "Gift", "Deal", "Other"]
+        categories = [_("Salary"), _("Bonus"), _("Gift"), _("Deal"), _("Other")]
     else:
-        categories = ["Food", "Home", "Entertainment", "Transport", "Health", "Other"]
+        categories = [_("Food"), _("Home"), _("Entertainment"), _("Transport"), _("Health"), _("Other")]
     builder = InlineKeyboardBuilder()
 
     for cat in categories:

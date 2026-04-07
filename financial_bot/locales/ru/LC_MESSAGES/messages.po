@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-04-05 19:40+1000\n"
+"POT-Creation-Date: 2026-04-07 20:46+1000\n"
 "PO-Revision-Date: 2026-04-05 19:51+1000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -19,56 +19,52 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: financial_bot/handlers/start.py:28
+#: financial_bot/handlers/common.py:30
 #, python-brace-format
 msgid "Hello, {name}! Glad to meet you!"
 msgstr "Здравствуйте, {name}! Рад с вами познакомиться!"
 
-#: financial_bot/handlers/start.py:34
+#: financial_bot/handlers/common.py:36
 #, python-brace-format
 msgid "Glad to see you {name}! Your balance: 0"
 msgstr "Рад вас видеть {name}! Ваш баланс: 0"
 
-#: financial_bot/handlers/transactions.py:23
-#: financial_bot/handlers/transactions.py:32
+#: financial_bot/handlers/common.py:47
+msgid "Action canceled. Returning to main menu..."
+msgstr "Действие отменено. Возврат в главное меню..."
+
+#: financial_bot/handlers/transactions.py:24
 msgid "Main menu"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:36
-#: financial_bot/handlers/transactions.py:53
+#: financial_bot/handlers/transactions.py:37
+#: financial_bot/handlers/transactions.py:48
+#: financial_bot/handlers/transactions.py:69
 msgid "Please enter the amount!"
 msgstr "Введите, пожалуйста, сумму!"
 
-#: financial_bot/handlers/transactions.py:40
+#: financial_bot/handlers/transactions.py:54
 msgid "Select type"
 msgstr "Выберите тип"
 
-#: financial_bot/handlers/transactions.py:44
-#: financial_bot/handlers/transactions.py:73
+#: financial_bot/handlers/transactions.py:60
+#: financial_bot/handlers/transactions.py:99
 msgid "Select category"
 msgstr "Выберите категорию"
 
-#: financial_bot/handlers/transactions.py:50 financial_bot/keyboards/reply.py:7
-msgid "Enter amount"
-msgstr "Введите сумму"
-
-#: financial_bot/handlers/transactions.py:63
+#: financial_bot/handlers/transactions.py:80
 msgid "Select type:"
 msgstr "Выберите тип"
 
-#: financial_bot/handlers/transactions.py:68
-msgid "type"
-msgstr "Тип"
-
-#: financial_bot/handlers/transactions.py:78
-msgid "cat"
-msgstr ""
-
 #: financial_bot/handlers/transactions.py:84
+msgid "Enter a numeric value!"
+msgstr "Введите числовое значение!"
+
+#: financial_bot/handlers/transactions.py:110
 msgid "Write a comment"
 msgstr "Напишите комментарий"
 
-#: financial_bot/handlers/transactions.py:120
+#: financial_bot/handlers/transactions.py:149
 msgid "Data saved successfully!"
 msgstr "Данные успешно сохранены!"
 
@@ -88,19 +84,39 @@ msgstr "Доход"
 msgid "Expense"
 msgstr "Расход"
 
-#: financial_bot/keyboards/inline.py:33
+#: financial_bot/keyboards/inline.py:35
+msgid "Salary"
+msgstr "Зарплата"
+
+#: financial_bot/keyboards/inline.py:35
+msgid "Bonus"
+msgstr "Бонус"
+
+#: financial_bot/keyboards/inline.py:35
+msgid "Gift"
+msgstr "Подарок"
+
+#: financial_bot/keyboards/inline.py:35
+msgid "Deal"
+msgstr "Сделка"
+
+#: financial_bot/keyboards/inline.py:35 financial_bot/keyboards/inline.py:37
+msgid "Other"
+msgstr "Другое"
+
+#: financial_bot/keyboards/inline.py:37
 msgid "Food"
 msgstr "Еда"
 
-#: financial_bot/keyboards/inline.py:34
+#: financial_bot/keyboards/inline.py:37
 msgid "Home"
 msgstr "Дом"
 
-#: financial_bot/keyboards/inline.py:35
+#: financial_bot/keyboards/inline.py:37
 msgid "Entertainment"
 msgstr "Развлечения"
 
-#: financial_bot/keyboards/inline.py:36
+#: financial_bot/keyboards/inline.py:37
 msgid "Transport"
 msgstr "Транспорт"
 
@@ -108,17 +124,13 @@ msgstr "Транспорт"
 msgid "Health"
 msgstr "Здоровье"
 
-#: financial_bot/keyboards/inline.py:38
-msgid "Other"
-msgstr "Другое"
-
-#: financial_bot/keyboards/inline.py:51
-msgid "Description"
-msgstr "Описание"
-
-#: financial_bot/keyboards/inline.py:52
+#: financial_bot/keyboards/inline.py:55
 msgid "Skip description"
 msgstr "Пропустить описание"
+
+#: financial_bot/keyboards/reply.py:7
+msgid "Enter amount"
+msgstr "Введите сумму"
 
 #: financial_bot/keyboards/reply.py:8
 msgid "Add data"
@@ -135,4 +147,31 @@ msgstr "Настройки"
 #: financial_bot/keyboards/reply.py:13
 msgid "cancel"
 msgstr "Отмена"
+
+#~ msgid "type"
+#~ msgstr "Тип"
+
+#~ msgid "cat"
+#~ msgstr ""
+
+#~ msgid "Food"
+#~ msgstr "Еда"
+
+#~ msgid "Home"
+#~ msgstr "Дом"
+
+#~ msgid "Entertainment"
+#~ msgstr "Развлечения"
+
+#~ msgid "Transport"
+#~ msgstr "Транспорт"
+
+#~ msgid "Health"
+#~ msgstr "Здоровье"
+
+#~ msgid "Other"
+#~ msgstr "Другое"
+
+#~ msgid "Description"
+#~ msgstr "Описание"
 

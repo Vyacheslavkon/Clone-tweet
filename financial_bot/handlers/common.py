@@ -9,7 +9,7 @@ from aiogram.fsm.context import FSMContext
 from financial_bot.repositories import get_user_by_id, create_user
 from financial_bot.keyboards.reply import get_main_menu
 from financial_bot.schemas import CreateUser
-
+from financial_bot.filters import I18nTextFilter
 
 router = Router()
 
@@ -38,7 +38,7 @@ async def cmd_start(message: Message, session: AsyncSession):
                              reply_markup=get_main_menu())
 
 
-@router.message(F.text.in_({"Отмена", "Cancel", "отмена"}))
+@router.message(I18nTextFilter("Cancel"))
 @router.callback_query(F.data == "cancel")
 async def cancel_handler(event: Union[Message, CallbackQuery], state: FSMContext):
 
