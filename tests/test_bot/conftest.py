@@ -8,14 +8,6 @@ from financial_bot.middlewares import SessionMiddleware
 from financial_bot.handlers.transactions import router_tr
 from financial_bot.handlers.common import router
 
-@pytest.fixture
-async def test_redis():
-    # Внутри Docker используем имя сервиса 'test_redis'
-    redis = Redis(host='test_redis', port=6379, db=3)
-    yield redis
-    await redis.flushdb()
-    await redis.close()
-
 
 @pytest.fixture
 def mock_bot():
