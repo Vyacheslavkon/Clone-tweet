@@ -23,12 +23,12 @@ if TEST_DATABASE_URL is None:
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=NullPool)
 
 
-@app.exception_handler(Exception)
-async def debug_exception_handler(request, exc):
-    import traceback
-
-    traceback.print_exc()
-    return JSONResponse(status_code=500, content={"detail": str(exc)})
+# @app.exception_handler(Exception)
+# async def debug_exception_handler(request, exc):
+#     import traceback
+#
+#     traceback.print_exc()
+#     return JSONResponse(status_code=500, content={"detail": str(exc)})
 
 
 @pytest.fixture(scope="session", autouse=True)

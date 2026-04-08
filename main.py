@@ -15,6 +15,7 @@ from application.routes import router
 from core.config import CSS_DIR, JS_DIR, MEDIA_DIR, STATIC_DIR
 from logger_config import setup_logging
 from migrations import utils
+from application.exceptions import setup_exception_handlers
 
 
 @asynccontextmanager
@@ -31,6 +32,8 @@ setup_logging()
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(router)
+setup_exception_handlers(app)
+
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 app.mount("/js", StaticFiles(directory=str(JS_DIR)), name="js")
