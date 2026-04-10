@@ -72,7 +72,7 @@ async def test_redis():
     redis = Redis(host='test_redis', port=6379, db=3)
     yield redis
     await redis.flushdb()
-    await redis.close()
+    await redis.aclose()
 
 
 # @pytest.fixture(scope="function")

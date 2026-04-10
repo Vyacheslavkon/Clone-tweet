@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram import F
 from aiogram import Router
-from aiogram_i18n.lazy.filter import LazyFilter
+#from aiogram_i18n.lazy.filter import LazyFilter
 from aiogram.filters import Command
 from aiogram.utils.i18n import gettext as _
 from sqlalchemy.ext.asyncio import AsyncSession
