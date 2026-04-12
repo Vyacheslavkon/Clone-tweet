@@ -11,11 +11,14 @@ from aiogram_i18n import I18nMiddleware
 #from aiogram_i18n.cores.base import  BaseCore
 #from aiogram_i18n.cores import  GNUTextCore
 from aiogram.utils.i18n import I18n, I18nMiddleware
-from aiogram.types import TelegramObject
+from aiogram.types import TelegramObject, Update
+from aiogram import Bot
 
 from financial_bot.middlewares import SessionMiddleware
 from financial_bot.handlers.transactions import router_tr
 from financial_bot.handlers.common import router
+from financial_bot.schemas import CreateUser
+from  financial_bot.repositories import create_user
 
 current_file_path = Path(__file__).resolve()
 base_dir = current_file_path.parent.parent.parent
@@ -23,9 +26,33 @@ locales_path = base_dir / "financial_bot" / "locales"
 
 @pytest.fixture
 def mock_bot():
-    bot = AsyncMock()
+    bot = AsyncMock(spec=Bot)
     bot.id = 12345678
+
+    bot.get_me = AsyncMock(return_value=User(
+        id=12345678,
+        is_bot=True,
+        first_name="TestBot",
+        username="test_bot"
+    ))
     return bot
+
+
+
+@pytest.fixture
+async def test_user(test_session):
+    data = {
+        "tg_id": 12345,
+        "language_code": "ru",
+        "first_name": "TestUser",
+
+    }
+
+    new_user = CreateUser(**data)
+
+    await create_user(test_session, new_user)
+
+
 
 
 # class FakeCore(BaseCore):
@@ -106,82 +133,76 @@ async def test_dp(test_session, test_redis, test_i18n):
     return dp
 
 
+
+
 # @pytest.fixture
-# def create_mock_message(mock_bot):
-#     def _create(text: str, user_id: int):
-#         # model_construct создает объект БЕЗ валидации Pydantic
-#         message = Message.model_construct(
-#             message_id=1,
-#             date=datetime.now(),
-#             chat=Chat.model_construct(id=user_id, type="private"),
-#             from_user=User.model_construct(id=user_id, is_bot=False, first_name="TestUser"),
-#             text=text,
-#             bot=mock_bot
-#         )
-#         # Методы, которые вызываются в хендлерах, заменяем на моки вручную
-#         message.answer = AsyncMock()
-#         message.edit_text = AsyncMock()
-#         return message
-#     return _create
+# def create_mock_update():
+#     def _create_message(text: str, user_id: int, update_id: int):
+#         # Возвращаем СЛОВАРЬ, имитирующий JSON от Telegram
+#         return {
+#             "update_id": update_id,
+#             "message": {
+#                 "message_id": 1,
+#                 "date": 12345678,
+#                 "chat": {"id": user_id, "type": "private"},
+#                 "from": {"id": user_id, "is_bot": False, "first_name": "TestUser"},
+#                 "text": text,
 #
-# @pytest.fixture
-# def create_mock_callback(mock_bot):
-#     def _create(data: str, user_id: int):
-#         user = User.model_construct(id=user_id, is_bot=False, first_name="TestUser")
+#             }
+#         }
 #
-#         # Сообщение, на котором была нажата кнопка
-#         message = Message.model_construct(
-#             message_id=2,
-#             date=datetime.now(),
-#             chat=Chat.model_construct(id=user_id, type="private"),
-#             from_user=user,
-#             text="Кнопки",
-#             bot=mock_bot
-#         )
-#         message.answer = AsyncMock()
+#     def _create_callback(data: str, user_id: int, update_id: int):
+#         return {
+#             "update_id": update_id,
+#             "callback_query": {
+#                 "id": "123",
+#                 "from": {"id": user_id, "is_bot": False, "first_name": "TestUser"},
+#                 "data": data,
+#                 "chat_instance": "abc",
 #
-#         callback = CallbackQuery.model_construct(
-#             id="123",
-#             from_user=user,
-#             message=message,
-#             data=data,
-#             chat_instance="abc",
-#         )
-#         callback.answer = AsyncMock()
-#         return callback
+#                 "message": {
+#                     "message_id": 2,
+#                     "date": 12345678,
+#                     "chat": {"id": user_id, "type": "private"},
+#                     "text": "Кнопки"
+#                 }
+#             }
+#         }
 #
-#     return _create
+#
+#     return _create_message, _create_callback
 
 
 @pytest.fixture
-def create_mock_update():
+def create_mock_update(mock_bot): # Передаем сюда фикстуру mock_bot
     def _create_message(text: str, user_id: int, update_id: int):
-        # Возвращаем СЛОВАРЬ, имитирующий JSON от Telegram
-        return {
-            "update_id": update_id,
-            "message": {
-                "message_id": 1,
-                "date": 12345678,
-                "chat": {"id": user_id, "type": "private"},
-                "from": {"id": user_id, "is_bot": False, "first_name": "TestUser"},
-                "text": text
-            }
-        }
+        # Сразу создаем объект Message, а не словарь
+        message = Message(
+            message_id=1,
+            date=12345678,
+            chat=Chat(id=user_id, type="private"),
+            from_user=User(id=user_id, is_bot=False, first_name="TestUser"),
+            text=text,
+            bot=mock_bot  # ПРИВЯЗЫВАЕМ МОК БОТА
+        )
+        return Update(update_id=update_id, message=message)
 
     def _create_callback(data: str, user_id: int, update_id: int):
-        return {
-            "update_id": update_id,
-            "callback_query": {
-                "id": "123",
-                "from": {"id": user_id, "is_bot": False, "first_name": "TestUser"},
-                "data": data,
-                "chat_instance": "abc",
-                "message": {
-                    "message_id": 2,
-                    "date": 12345678,
-                    "chat": {"id": user_id, "type": "private"},
-                    "text": "Кнопки"
-                }
-            }
-        }
+        message = Message(
+            message_id=2,
+            date=12345678,
+            chat=Chat(id=user_id, type="private"),
+            text="Кнопки",
+            bot=mock_bot
+        )
+        callback_query = CallbackQuery(
+            id="123",
+            from_user=User(id=user_id, is_bot=False, first_name="TestUser"),
+            data=data,
+            chat_instance="abc",
+            message=message,
+            bot=mock_bot # ПРИВЯЗЫВАЕМ МОК БОТА
+        )
+        return Update(update_id=update_id, callback_query=callback_query)
+
     return _create_message, _create_callback
