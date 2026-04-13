@@ -5,16 +5,12 @@ from financial_bot.models import Transactions
 
 
 def called_bot(mock_bot, text: str) -> bool:
-    # assert any(
-    #     "SendMessage" or "EditMessageText" in str(call) and text in str(call)
-    #     for call in mock_bot.mock_calls
-    # )
 
     assert any(
         any(m in str(call) for m in ["SendMessage", "EditMessageText"])
         and text in str(call)
         for call in mock_bot.mock_calls
-    ), f"Текст '{text}'not found in bot responses."
+    ), f"Text '{text}'not found in bot responses."
 
 @pytest.mark.asyncio
 async def test_full_transaction_flow(test_dp, mock_bot, create_mock_update, test_session, test_i18n, test_user):
@@ -60,5 +56,77 @@ async def test_full_transaction_flow(test_dp, mock_bot, create_mock_update, test
         assert record.type == "expense"
         assert record.category == "food"
         assert record.description == "Обед в кафе"
+
+
+
+@pytest.mark.asyncio
+async def test_cancel_transaction(test_dp, mock_bot, create_mock_update, test_session, test_i18n):
+    _, create_callback = create_mock_update
+    user_id = 12345
+
+    with test_i18n.context():
+
+        state = test_dp.fsm.get_context(bot=mock_bot, user_id=user_id, chat_id=user_id)
+        await state.set_state(AmountState.waiting_for_type)
+        await state.update_data(amount=500.0)
+
+
+        cb_cancel = create_callback(data="cancel", user_id=user_id, update_id=10)
+        await test_dp.feed_update(mock_bot, cb_cancel)
+
+        called_bot(mock_bot, "Действие отменено. Возврат в главное меню...")
+
+
+        current_state = await state.get_state()
+        assert current_state is None, "The condition did not reset after cancellation"
+
+
+        result = await test_session.execute(select(Transactions))
+        records = result.scalars().all()
+        assert len(records) == 0, ("The entry appeared in the database even though "
+                                   "the transaction was canceled")
+
+
+
+async def test_back(test_dp, mock_bot, create_mock_update, test_i18n):
+
+    _, create_callback = create_mock_update
+    user_id = 12345
+
+    with test_i18n.context():
+        state = test_dp.fsm.get_context(bot=mock_bot, user_id=user_id, chat_id=user_id)
+        await state.set_state(AmountState.waiting_for_type)
+        await state.update_data(amount=500.0)
+
+        cb_back = create_callback(data="back", user_id=user_id, update_id=10)
+        await test_dp.feed_update(mock_bot, cb_back)
+
+        called_bot(mock_bot, "Введите, пожалуйста, сумму!")
+
+        current_state_amount = await state.get_state()
+
+        await state.set_state(AmountState.waiting_for_cat)
+        await state.update_data(type="expense")
+
+        cb_back = create_callback(data="back", user_id=user_id, update_id=10)
+        await test_dp.feed_update(mock_bot, cb_back)
+
+        called_bot(mock_bot, "Выберите тип")
+
+        current_state_type = await state.get_state()
+
+        await state.set_state(AmountState.waiting_for_description)
+        await state.update_data(category="food")
+
+        cb_back = create_callback(data="back", user_id=user_id, update_id=10)
+        await test_dp.feed_update(mock_bot, cb_back)
+
+        called_bot(mock_bot, "Выберите категорию")
+
+        current_state_cat = await state.get_state()
+
+        assert current_state_amount == AmountState.waiting_for_amount
+        assert current_state_type == AmountState.waiting_for_type
+        assert current_state_cat == AmountState.waiting_for_cat
 
 

@@ -18,10 +18,10 @@ from financial_bot.filters import I18nTextFilter
 
 router_tr = Router()
 
-@router_tr.callback_query(F.data == "cancel")
-async def cancel(callback: CallbackQuery, state: FSMContext):
-    await state.clear()
-    await callback.message.edit_text(_("Main menu"), reply_markup=get_main_menu())
+# @router_tr.callback_query(F.data == "cancel")
+# async def cancel(callback: CallbackQuery, state: FSMContext):
+#     await state.clear()
+#     await callback.message.edit_text(_("Main menu"), reply_markup=get_main_menu())
 
 
 @router_tr.callback_query(F.data == "back")
@@ -112,7 +112,7 @@ async def category_amount(callback: CallbackQuery, state: FSMContext):
     await state.set_state(AmountState.waiting_for_description)
 
 
-# 1. Хендлер для кнопки "Пропустить/Без описания"
+
 @router_tr.callback_query(F.data == "skip_description", AmountState.waiting_for_description)
 async def end_with_callback(callback: CallbackQuery,
                             state: FSMContext,
@@ -122,7 +122,7 @@ async def end_with_callback(callback: CallbackQuery,
     await save_to_db_and_finish(callback, state, session, callback.from_user.id)
 
 
-# 2. Хендлер для ТЕКСТОВОГО ввода описания
+
 @router_tr.message(AmountState.waiting_for_description)
 async def end_with_message(message: Message, state: FSMContext, session: AsyncSession):
 
