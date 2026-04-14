@@ -2,17 +2,9 @@ import pytest
 from sqlalchemy import select
 from financial_bot.states.amount_states import AmountState
 from financial_bot.models import Transactions
+from tests.test_bot.utils import called_bot
 
 
-def called_bot(mock_bot, text: str) -> bool:
-
-    assert any(
-        any(m in str(call) for m in ["SendMessage", "EditMessageText"])
-        and text in str(call)
-        for call in mock_bot.mock_calls
-    ), f"Text '{text}'not found in bot responses."
-
-@pytest.mark.asyncio
 async def test_full_transaction_flow(test_dp, mock_bot, create_mock_update, test_session, test_i18n, test_user):
 
 
@@ -59,7 +51,7 @@ async def test_full_transaction_flow(test_dp, mock_bot, create_mock_update, test
 
 
 
-@pytest.mark.asyncio
+
 async def test_cancel_transaction(test_dp, mock_bot, create_mock_update, test_session, test_i18n):
     _, create_callback = create_mock_update
     user_id = 12345

@@ -48,6 +48,8 @@ async def test_user(test_session):
 
     await create_user(test_session, new_user)
 
+    return new_user
+
 
 
 class MyI18nMiddleware(I18nMiddleware):
@@ -97,7 +99,7 @@ def create_mock_update(mock_bot):
             message_id=1,
             date=12345678,
             chat=Chat(id=user_id, type="private"),
-            from_user=User(id=user_id, is_bot=False, first_name="TestUser"),
+            from_user=User(id=user_id, is_bot=False, first_name="TestUser", language_code="ru"),
             text=text,
             bot=mock_bot
         )
