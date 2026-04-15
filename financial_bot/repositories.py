@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from loguru import logger
 
-from financial_bot.schemas import CreateUser, AddTransaction
+from financial_bot.schemas import CreateUser, AddTransaction, AddData
 from financial_bot.models import UserBot, Transactions
 
 async def create_user(session: AsyncSession, data: CreateUser):
@@ -32,3 +32,16 @@ async def add_transaction(session: AsyncSession, data: dict):
     transaction = Transactions(**data)
     session.add(transaction)
     await session.commit()
+
+
+async def add_data_for_user(session: AsyncSession, obj_data: AddData, tg_id: int):
+
+    user = get_user_by_id(session, tg_id)
+
+    if user:
+        user. monthly_budget = obj_data.monthly_budget
+        user.budget_remind_percent = obj_data.budget_remind_percent
+        user.savings_goal = obj_data.savings_goal
+
+        await session.commit()
+

@@ -16,7 +16,7 @@ router = Router()
 
 @router.message(Command("start"))
 async def cmd_start(message: Message, session: AsyncSession):
-    print("Хэндлер запущен!")
+
     user = await get_user_by_id(session, message.from_user.id)
 
     if not user:

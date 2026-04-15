@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-04-07 20:46+1000\n"
+"POT-Creation-Date: 2026-04-15 20:01+1000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,10 +29,6 @@ msgstr ""
 
 #: financial_bot/handlers/common.py:47
 msgid "Action canceled. Returning to main menu..."
-msgstr ""
-
-#: financial_bot/handlers/transactions.py:24
-msgid "Main menu"
 msgstr ""
 
 #: financial_bot/handlers/transactions.py:37
@@ -131,7 +127,7 @@ msgid "Enter amount"
 msgstr ""
 
 #: financial_bot/keyboards/reply.py:8
-msgid "Add data"
+msgid "Add/change data"
 msgstr ""
 
 #: financial_bot/keyboards/reply.py:9

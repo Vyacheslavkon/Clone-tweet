@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-04-07 20:46+1000\n"
+"POT-Creation-Date: 2026-04-15 20:01+1000\n"
 "PO-Revision-Date: 2026-04-05 19:51+1000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -32,10 +32,6 @@ msgstr "Рад вас видеть {name}! Ваш баланс: 0"
 #: financial_bot/handlers/common.py:47
 msgid "Action canceled. Returning to main menu..."
 msgstr "Действие отменено. Возврат в главное меню..."
-
-#: financial_bot/handlers/transactions.py:24
-msgid "Main menu"
-msgstr ""
 
 #: financial_bot/handlers/transactions.py:37
 #: financial_bot/handlers/transactions.py:48
@@ -133,8 +129,8 @@ msgid "Enter amount"
 msgstr "Введите сумму"
 
 #: financial_bot/keyboards/reply.py:8
-msgid "Add data"
-msgstr "Добавить данные"
+msgid "Add/change data"
+msgstr "Добавить/изменить данные"
 
 #: financial_bot/keyboards/reply.py:9
 msgid "Generate report"
@@ -174,4 +170,7 @@ msgstr "Отмена"
 
 #~ msgid "Description"
 #~ msgstr "Описание"
+
+#~ msgid "Main menu"
+#~ msgstr ""
 

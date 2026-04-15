@@ -3,7 +3,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram import F
 from aiogram import Router
-#from aiogram_i18n.lazy.filter import LazyFilter
 from aiogram.filters import Command
 from aiogram.utils.i18n import gettext as _
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,10 +17,6 @@ from financial_bot.filters import I18nTextFilter
 
 router_tr = Router()
 
-# @router_tr.callback_query(F.data == "cancel")
-# async def cancel(callback: CallbackQuery, state: FSMContext):
-#     await state.clear()
-#     await callback.message.edit_text(_("Main menu"), reply_markup=get_main_menu())
 
 
 @router_tr.callback_query(F.data == "back")
