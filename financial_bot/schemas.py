@@ -47,3 +47,23 @@ class AddData(BaseModel):
                 raise ValueError("Цель накоплений должна быть меньше месячного бюджета")
         return self
 
+
+
+class MonthBudgetSchema(BaseModel):
+
+    monthly_budget: Decimal
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LimitExpenseSchema(BaseModel):
+
+    budget_remind_percent: int = Field(ge=1, le=99)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SavingGoalSchema(BaseModel):
+    savings_goal: Decimal
+
+    model_config = ConfigDict(from_attributes=True)

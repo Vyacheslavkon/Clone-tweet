@@ -55,3 +55,4 @@ async def cancel_handler(event: Union[Message, CallbackQuery], state: FSMContext
 
         await event.message.answer(text, reply_markup=kb)
         await event.answer()
+

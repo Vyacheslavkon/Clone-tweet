@@ -8,6 +8,8 @@ from aiogram.utils.i18n import I18n, SimpleI18nMiddleware
 
 from financial_bot.handlers.common import router
 from financial_bot.handlers.transactions import router_tr
+from financial_bot.handlers.adding_data import router_data
+from financial_bot.handlers.fallback import router_fallback
 from core.config import TOKEN_BOT
 from financial_bot.middlewares import  SessionMiddleware, MyI18nMiddleware
 from logger_config import setup_logging
@@ -32,6 +34,8 @@ async def main():
     dp.update.outer_middleware(SimpleI18nMiddleware(i18n))
     dp.include_router(router)
     dp.include_router(router_tr)
+    dp.include_router(router_data)
+    dp.include_router(router_fallback)
 
 
 
