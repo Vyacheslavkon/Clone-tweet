@@ -2,8 +2,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from loguru import logger
 
-from financial_bot.schemas import CreateUser, AddTransaction, AddData
+from financial_bot.schemas import (CreateUser,
+                                   AddTransaction,
+                                   AddData,
+                                   )
 from financial_bot.models import UserBot, Transactions
+from financial_bot.exceptions import UserNotFoundError
 
 async def create_user(session: AsyncSession, data: CreateUser):
 
@@ -39,24 +43,24 @@ async def add_data_for_user(session: AsyncSession, obj_data: AddData, tg_id: int
 
     user = await get_user_by_id(session, tg_id)
 
-    if user:
-        if obj_data.monthly_budget is not None:
-            user.monthly_budget = obj_data.monthly_budget
-        if obj_data.budget_remind_percent is not None:
-            user.budget_remind_percent = obj_data.budget_remind_percent
-        if obj_data.savings_goal is not None:
-            user.savings_goal = obj_data.savings_goal
 
-        await session.commit()
+    if not user:
+        error_message = f"The user with the id {tg_id} was not found in the system."
+        logger.error(error_message)
+        raise UserNotFoundError(error_message)
 
-async def add_monthly_budget(session: AsyncSession, tg_id: int):
-    pass
 
-async def add_limit_expense(session: AsyncSession, tg_id: int):
-    pass
+    update_data = obj_data.model_dump(exclude_unset=True)
 
-async def add_savings_goal(session: AsyncSession, tg_id: int):
-    pass
+    for key, value in update_data.items():
+
+        setattr(user, key, value)
+
+    await session.commit()
+
+
+
+
 
 async def get_monthly_budget(session: AsyncSession, tg_id: int) -> float | None:
 
@@ -66,6 +70,7 @@ async def get_monthly_budget(session: AsyncSession, tg_id: int) -> float | None:
 
 
 async def get_limit_expense(session: AsyncSession, tg_id: int) -> int | None:
+
     user = await get_user_by_id(session, tg_id)
 
     return user.budget_remind_percent
