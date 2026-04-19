@@ -1,4 +1,17 @@
 from decimal import Decimal, InvalidOperation
+from aiogram.utils.i18n import gettext as _
+
+def check_value_budget(amount: str) -> Decimal | str:
+    try:
+        val = Decimal(amount.replace(',', '.').strip())
+    except (InvalidOperation, ValueError):
+        return "invalid_format"
+
+    if val > 0:
+        return val
+
+    else:
+        return "too_small"
 
 
 def comparison(budget: Decimal, second_value: str) -> Decimal | None:
@@ -33,12 +46,12 @@ def transform(budget: Decimal, second_value: str) -> Decimal | None:
 
 def get_error_text(error_code: str) -> str:
     errors = {
-        "invalid_format": "🔢 **Пожалуйста, введите корректное число.**\nНапример: 500 или 100.50",
-        "no_budget": "📁 **У вас не установлен бюджет!**\nСначала задайте основной бюджет.",
-        "too_big": "⚠️ **Эта сумма превышает ваш общий бюджет.**",
-        "too_small": "❌ **Сумма должна быть больше нуля.**",
+        "invalid_format": _("**Please enter a valid number.**\nFor example: 500 or 100.50"),
+        "no_budget": _("**You don't have a budget set!**\nSet a basic budget first."),
+        "too_big": _("**This amount exceeds your total budget.**"),
+        "too_small": _("**The amount must be greater than zero.**"),
     }
-    return errors.get(error_code, "🚫 **Произошла непредвиденная ошибка.**")
+    return errors.get(error_code, _("**An unexpected error occurred.**"))
 
 
 

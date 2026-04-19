@@ -150,7 +150,7 @@ async def save_to_db_and_finish(event: Union[Message, CallbackQuery],
 
         await state.clear()
     except Exception as e:
-        # Логируем ошибку, если данные в data не соответствуют аргументам add_transaction
+
 
         logger.error(f"Error saving: {e}")
 

@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from loguru import logger
+from aiogram.utils.i18n import gettext as _
 
 from financial_bot.schemas import (CreateUser,
                                    AddTransaction,
@@ -45,7 +46,7 @@ async def add_data_for_user(session: AsyncSession, obj_data: AddData, tg_id: int
 
 
     if not user:
-        error_message = f"The user with the id {tg_id} was not found in the system."
+        error_message = _(f"The user with the id {tg_id} was not found in the system.")
         logger.error(error_message)
         raise UserNotFoundError(error_message)
 
@@ -57,6 +58,7 @@ async def add_data_for_user(session: AsyncSession, obj_data: AddData, tg_id: int
         setattr(user, key, value)
 
     await session.commit()
+
 
 
 

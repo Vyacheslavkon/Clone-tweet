@@ -39,12 +39,6 @@ class AddData(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    @model_validator(mode="after")
-    def check_goal_less_than_budget(self) -> "AddData":
-        # Проверяем, что оба значения установлены (не None)
-        if self.savings_goal is not None and self.monthly_budget is not None:
-            if self.savings_goal >= self.monthly_budget:
-                raise ValueError("Цель накоплений должна быть меньше месячного бюджета")
-        return self
+
 
 
