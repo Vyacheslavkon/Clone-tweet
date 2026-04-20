@@ -12,9 +12,10 @@ from aiogram import Bot
 
 from financial_bot.middlewares import SessionMiddleware
 from financial_bot.handlers.transactions import router_tr
+from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.common import router
-from financial_bot.schemas import CreateUser
-from  financial_bot.repositories import create_user
+from financial_bot.schemas import CreateUser, AddData
+from  financial_bot.repositories import create_user, add_data_for_user
 
 current_file_path = Path(__file__).resolve()
 base_dir = current_file_path.parent.parent.parent
@@ -78,7 +79,7 @@ async def test_dp(test_session, test_redis, test_i18n):
     dp.update.middleware(SessionMiddleware(session_pool=test_session))
     # dp.include_router(router)
     # dp.include_router(router_tr)
-    for r in [router, router_tr]:
+    for r in [router, router_tr, router_data]:
         if r is not None:
 
             new_router = copy.deepcopy(r)
@@ -124,3 +125,11 @@ def create_mock_update(mock_bot):
         return Update(update_id=update_id, callback_query=callback_query)
 
     return _create_message, _create_callback
+
+
+@pytest.fixture
+async def budget(test_session, test_user):
+
+    new_obg = AddData(monthly_budget="2000")
+
+    await add_data_for_user(test_session, new_obg, test_user.tg_id)

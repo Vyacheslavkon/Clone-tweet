@@ -12,7 +12,7 @@ from financial_bot.keyboards.reply import change_data, get_main_menu
 from financial_bot.repositories import add_data_for_user, get_monthly_budget
 from financial_bot.schemas import AddData
 from financial_bot.exceptions import UserNotFoundError
-from financial_bot.handlers.utils import transform, get_error_text, check_value_budget
+from financial_bot.handlers.utils import transform, get_error_text, check_value_budget, comparison
 
 
 router_data = Router()
@@ -51,7 +51,7 @@ async def add_data(message: Message, session: AsyncSession, state: FSMContext):
     else:
         await message.reply(_("Sorry, I didn't understand you, please use the suggested choice!"),
                             reply_markup=change_data())
-        #await state.set_state(AddDataState.waiting_for_type_data)
+
 
 @router_data.message(AddDataState.waiting_for_monthly_budget)
 async def saving_value_budget(message: Message, session: AsyncSession, state: FSMContext):
@@ -60,7 +60,7 @@ async def saving_value_budget(message: Message, session: AsyncSession, state: FS
          value_budget = check_value_budget(message.text)
          if isinstance(value_budget, str):
              await message.answer(get_error_text(value_budget), reply_markup=change_data())
-             #await state.set_state(AddDataState.waiting_for_type_data)
+
          else:
              data = AddData(monthly_budget=message.text)
              old_value_budget = await get_monthly_budget(session, message.from_user.id) #new
@@ -86,7 +86,7 @@ async def saving_limit_expense(message: Message, session: AsyncSession,  state: 
         if isinstance(limit_expense, str):
 
             await message.answer(get_error_text(limit_expense), reply_markup=change_data())
-            #await state.set_state(AddDataState.waiting_for_type_data)
+
             logger.error(limit_expense)
 
         else:
@@ -106,6 +106,28 @@ async def saving_limit_expense(message: Message, session: AsyncSession,  state: 
 
 
 @router_data.message(AddDataState.waiting_for_savings_goal)
-async def saving_value_budget(session: AsyncSession, message: Message, state: FSMContext):
-    # implement a value check that is not greater than month budget
-    pass
+async def saving_goal(message: Message, session: AsyncSession, state: FSMContext):
+
+    try:
+        budget = await get_monthly_budget(session, message.from_user.id)
+        goal = comparison(budget, message.text)
+
+        if isinstance(goal, str):
+
+            await message.answer(get_error_text(goal), reply_markup=change_data())
+            logger.error(goal)
+
+        else:
+
+
+
+            data = AddData(savings_goal=goal)
+            await add_data_for_user(session, data, message.from_user.id)
+            await message.answer(_("The data was saved successfully."),
+                                    reply_markup=get_main_menu())
+            await state.clear()
+
+    except UserNotFoundError as e:
+        logger.error(e)
+        await message.answer(_("Profile not found. Please type /start"))
+        await state.clear()

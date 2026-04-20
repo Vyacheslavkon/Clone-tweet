@@ -1,4 +1,3 @@
-import pytest
 from sqlalchemy import select
 from financial_bot.states.amount_states import AmountState
 from financial_bot.models import Transactions
