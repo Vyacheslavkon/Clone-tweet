@@ -133,3 +133,5 @@ async def budget(test_session, test_user):
     new_obg = AddData(monthly_budget="2000")
 
     await add_data_for_user(test_session, new_obg, test_user.tg_id)
+
+    return new_obg
