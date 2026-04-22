@@ -1,39 +1,11 @@
 from sqlalchemy import select
 from financial_bot.states.add_data_states import AddDataState
 from financial_bot.models import UserBot
-from tests.test_bot.utils import called_bot, dict_invalid_data, invalid_limit_expense
-from financial_bot.repositories import get_monthly_budget, get_limit_expense, add_data_for_user
+from tests.test_bot.utils import called_bot, dict_invalid_data, comparison_dict
+from financial_bot.repositories import (get_monthly_budget, get_saved_goal,
+                                        get_limit_expense, add_data_for_user)
 from financial_bot.schemas import AddData
 
-
-# async def test_add_data(test_dp, mock_bot, test_session, test_i18n, create_mock_update, test_user, budget):
-#
-#     create_message, _ = create_mock_update
-#     user_id = 12345
-#     list_state = [AddDataState.waiting_for_monthly_budget,
-#                   AddDataState.waiting_for_limit_expense,
-#                   AddDataState.waiting_for_savings_goal]
-#     update_id = 1
-#
-#     with test_i18n.context():
-#
-#         state = test_dp.fsm.get_context(bot=mock_bot, user_id=user_id, chat_id=user_id)
-#         await state.set_state(AddDataState.waiting_for_type_data)
-#         update_id = 1
-#         num_state = 0
-#         for text, answer in add_data.items():
-#             msg = create_message(text=text, user_id=user_id, update_id=update_id)
-#             await test_dp.feed_update(mock_bot, msg)
-#             update_id += 1
-#
-#             called_bot(mock_bot, answer)
-#             await state.set_state(list_state[num_state])
-#             msg_second = create_message(text="1000", user_id=user_id, update_id=update_id)
-#             await test_dp.feed_update(mock_bot, msg_second)
-#             called_bot(mock_bot, "Данные были успешно сохранены!")
-#             mock_bot.reset_mock()
-#             await state.set_state(AddDataState.waiting_for_type_data)
-#             num_state += 1
 
 
 async def test_adding_value_budget(test_dp, test_session, test_user,
@@ -42,26 +14,28 @@ async def test_adding_value_budget(test_dp, test_session, test_user,
     create_message, _ = create_mock_update
     user_id = 12345
 
-    with test_i18n.context():
+    state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
+    await state.set_state(AddDataState.waiting_for_type_data)
 
-        state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
-        await state.set_state(AddDataState.waiting_for_type_data)
+    text = test_i18n.gettext("monthly budget")
+    msg_first = create_message(text=text, user_id=user_id, update_id=1)
+    await test_dp.feed_update(mock_bot, msg_first)
 
-        msg_first = create_message(text="бюджет на месяц", user_id=user_id, update_id=1)
-        await test_dp.feed_update(mock_bot, msg_first)
+    expected_text = test_i18n.gettext("Enter your estimated monthly budget")
+    called_bot(mock_bot, expected_text)
 
-        called_bot(mock_bot, "Введите свой предполагаемый ежемесячный бюджет")
+    await state.set_state(AddDataState.waiting_for_monthly_budget)
+    msg_second = create_message(text="1000", user_id=user_id,update_id=1)
 
-        await state.set_state(AddDataState.waiting_for_monthly_budget)
-        msg_second = create_message(text="1000", user_id=user_id,update_id=1)
+    await test_dp.feed_update(mock_bot, msg_second)
 
-        await test_dp.feed_update(mock_bot, msg_second)
+    expected_text_end = test_i18n.gettext("The data was saved successfully.")
+    called_bot(mock_bot, expected_text_end)
 
-        called_bot(mock_bot, "Данные были успешно сохранены!")
+    budget = await get_monthly_budget(test_session, test_user.tg_id)
 
-        budget = await get_monthly_budget(test_session, test_user.tg_id)
+    assert budget == 1000
 
-        assert budget == 1000
 
 
 async def test_change_value_budget(test_dp, test_session, test_user, budget,
@@ -70,35 +44,39 @@ async def test_change_value_budget(test_dp, test_session, test_user, budget,
     create_message, _ = create_mock_update
     user_id = 12345
 
-    with test_i18n.context():
 
-        state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
-        await state.set_state(AddDataState.waiting_for_type_data)
 
-        msg_first = create_message(text="бюджет на месяц", user_id=user_id, update_id=1)
-        await test_dp.feed_update(mock_bot, msg_first)
+    state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
+    await state.set_state(AddDataState.waiting_for_type_data)
 
-        called_bot(mock_bot, "Введите свой предполагаемый ежемесячный бюджет")
+    text = test_i18n.gettext("monthly budget")
+    msg_first = create_message(text=text, user_id=user_id, update_id=1)
+    await test_dp.feed_update(mock_bot, msg_first)
 
-        await state.set_state(AddDataState.waiting_for_monthly_budget)
-        msg_second = create_message(text="1000", user_id=user_id,update_id=1)
+    expected_text = test_i18n.gettext("Enter your estimated monthly budget")
+    called_bot(mock_bot, expected_text)
 
-        await test_dp.feed_update(mock_bot, msg_second)
+    await state.set_state(AddDataState.waiting_for_monthly_budget)
+    msg_second = create_message(text="1000", user_id=user_id,update_id=1)
 
-        called_bot(mock_bot, "Введите сумму лимита расходов")
+    await test_dp.feed_update(mock_bot, msg_second)
 
-        await state.set_state(AddDataState.waiting_for_limit_expense)
+    expected_text_lim_exp = test_i18n.gettext("Enter the spending limit amount")
+    called_bot(mock_bot, expected_text_lim_exp)
 
-        msg_third = create_message(text="500", user_id=user_id, update_id=1)
-        await test_dp.feed_update(mock_bot, msg_third)
+    await state.set_state(AddDataState.waiting_for_limit_expense)
 
-        called_bot(mock_bot, "Данные были успешно сохранены!")
+    msg_third = create_message(text="500", user_id=user_id, update_id=1)
+    await test_dp.feed_update(mock_bot, msg_third)
 
-        budget = await get_monthly_budget(test_session, test_user.tg_id)
-        expected_limit = 500 / budget * 100
-        limit_expense = await get_limit_expense(test_session, test_user.tg_id)
-        assert budget == 1000
-        assert limit_expense == expected_limit
+    expected_text_end = test_i18n.gettext("The data was saved successfully.")
+    called_bot(mock_bot, expected_text_end)
+
+    budget = await get_monthly_budget(test_session, test_user.tg_id)
+    expected_limit = 500 / budget * 100
+    limit_expense = await get_limit_expense(test_session, test_user.tg_id)
+    assert budget == 1000
+    assert limit_expense == expected_limit
 
 
 
@@ -106,24 +84,28 @@ async def test_invalid_value_budget(test_dp, test_user, test_i18n, create_mock_u
     create_message, _ = create_mock_update
     user_id = 12345
 
-    with test_i18n.context():
-        state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
-        await state.set_state(AddDataState.waiting_for_type_data)
 
-        msg_first = create_message(text="бюджет на месяц", user_id=user_id, update_id=1)
-        await test_dp.feed_update(mock_bot, msg_first)
+    state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
+    await state.set_state(AddDataState.waiting_for_type_data)
 
-        called_bot(mock_bot, "Введите свой предполагаемый ежемесячный бюджет")
+    text = test_i18n.gettext("monthly budget")
+    msg_first = create_message(text=text, user_id=user_id, update_id=1)
+    await test_dp.feed_update(mock_bot, msg_first)
 
-        await state.set_state(AddDataState.waiting_for_monthly_budget)
+    expected_text = test_i18n.gettext("Enter your estimated monthly budget")
 
-        for text, answer in dict_invalid_data.items():
+    called_bot(mock_bot, expected_text)
 
-            msg = create_message(text=text, user_id=user_id, update_id=1)
+    await state.set_state(AddDataState.waiting_for_monthly_budget)
 
-            await test_dp.feed_update(mock_bot, msg)
+    for text, key in dict_invalid_data.items():
 
-            called_bot(mock_bot, answer)
+        msg = create_message(text=text, user_id=user_id, update_id=1)
+
+        await test_dp.feed_update(mock_bot, msg)
+
+        expected_data = test_i18n.gettext(key)
+        called_bot(mock_bot, expected_data)
 
 
 
@@ -132,26 +114,30 @@ async def test_adding_limit_expense(mock_bot, test_session, test_user, test_i18n
     create_message, _ = create_mock_update
     user_id = 12345
 
-    with test_i18n.context():
-        state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
-        await state.set_state(AddDataState.waiting_for_type_data)
 
-        msg_first = create_message(text="лимит расходов", user_id=user_id, update_id=1)
-        await test_dp.feed_update(mock_bot, msg_first)
+    state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
+    await state.set_state(AddDataState.waiting_for_type_data)
 
-        called_bot(mock_bot, "Введите сумму лимита расходов")
+    text = test_i18n.gettext("limit expense")
+    msg_first = create_message(text=text, user_id=user_id, update_id=1)
+    await test_dp.feed_update(mock_bot, msg_first)
 
-        await state.set_state(AddDataState.waiting_for_limit_expense)
-        msg_second = create_message(text="1000", user_id=user_id, update_id=1)
+    expected_text = test_i18n.gettext("Enter the spending limit amount")
+    called_bot(mock_bot, expected_text)
 
-        await test_dp.feed_update(mock_bot, msg_second)
+    await state.set_state(AddDataState.waiting_for_limit_expense)
+    msg_second = create_message(text="1000", user_id=user_id, update_id=1)
 
-        called_bot(mock_bot, "Данные были успешно сохранены!")
+    await test_dp.feed_update(mock_bot, msg_second)
 
-        expected_limit = 1000 / budget.monthly_budget * 100
-        limit_expense = await get_limit_expense(test_session, test_user.tg_id)
+    expected_data = test_i18n.gettext("The data was saved successfully.")
+    called_bot(mock_bot, expected_data)
 
-        assert limit_expense == expected_limit
+    expected_limit = 1000 / budget.monthly_budget * 100
+    limit_expense = await get_limit_expense(test_session, test_user.tg_id)
+
+    assert limit_expense == expected_limit
+
 
 
 async def test_add_limit_expense_no_budget(mock_bot, test_user, test_i18n,
@@ -160,14 +146,18 @@ async def test_add_limit_expense_no_budget(mock_bot, test_user, test_i18n,
     create_message, _ = create_mock_update
     user_id = 12345
 
-    with test_i18n.context():
-        state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
-        await state.set_state(AddDataState.waiting_for_type_data)
 
-        msg_first = create_message(text="лимит расходов", user_id=user_id, update_id=1)
-        await test_dp.feed_update(mock_bot, msg_first)
+    state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
+    await state.set_state(AddDataState.waiting_for_type_data)
 
-        called_bot(mock_bot, "Пожалуйста, сначала установите ежемесячный бюджет")
+    text = test_i18n.gettext("limit expense")
+    msg_first = create_message(text=text, user_id=user_id, update_id=1)
+    await test_dp.feed_update(mock_bot, msg_first)
+
+    expected_text = test_i18n.gettext("Please set a monthly budget first.")
+    called_bot(mock_bot, expected_text)
+
+
 
 
 async def test_invalid_value_limit_expense(mock_bot, test_dp, test_user, test_session,
@@ -176,24 +166,20 @@ async def test_invalid_value_limit_expense(mock_bot, test_dp, test_user, test_se
     create_message, _ = create_mock_update
     user_id = 12345
 
-    with test_i18n.context():
-        state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
-        # await state.set_state(AddDataState.waiting_for_type_data)
-        #
-        # msg_first = create_message(text="лимит расходов", user_id=user_id, update_id=1)
-        # await test_dp.feed_update(mock_bot, msg_first)
-        #
-        # called_bot(mock_bot, "Введите сумму лимита расходов")
 
-        await state.set_state(AddDataState.waiting_for_limit_expense)
+    state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
 
-        for text, answer in invalid_limit_expense.items():
+    await state.set_state(AddDataState.waiting_for_limit_expense)
 
-            msg = create_message(text=text, user_id=user_id, update_id=1)
+    for text, key in comparison_dict.items():
+        mock_bot.send_message.reset_mock()
+        msg = create_message(text=text, user_id=user_id, update_id=1)
 
-            await test_dp.feed_update(mock_bot, msg)
+        await test_dp.feed_update(mock_bot, msg)
 
-            called_bot(mock_bot, answer)
+        expected_text = test_i18n.gettext(key)
+        called_bot(mock_bot, expected_text)
+
 
 
 async def test_limit_expense_zero_or_no_budget(mock_bot, test_dp, test_user, test_session,
@@ -202,26 +188,129 @@ async def test_limit_expense_zero_or_no_budget(mock_bot, test_dp, test_user, tes
     create_message, _ = create_mock_update
     user_id = 12345
 
-    with test_i18n.context():
-        state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
-        await state.set_state(AddDataState.waiting_for_limit_expense)
 
-        msg = create_message(text="100", user_id=user_id, update_id=1)
+    state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
+    await state.set_state(AddDataState.waiting_for_limit_expense)
+
+    msg = create_message(text="100", user_id=user_id, update_id=1)
+
+    await test_dp.feed_update(mock_bot, msg)
+
+    expected_text = test_i18n.gettext("You don't have a budget set! Set a basic budget first.")
+    called_bot(mock_bot, expected_text)
+
+    budget = AddData(monthly_budget=0)
+
+    await add_data_for_user(test_session, budget, test_user.tg_id)
+
+    msg = create_message(text="100", user_id=user_id, update_id=1)
+
+    await test_dp.feed_update(mock_bot, msg)
+
+    called_bot(mock_bot, expected_text)
+
+    zero_budget = await get_monthly_budget(test_session, test_user.tg_id)
+
+    assert zero_budget == 0
+
+
+
+async def test_saved_goal(mock_bot, test_dp, test_i18n, budget,
+                          test_user, test_session, create_mock_update):
+
+    create_message, _ = create_mock_update
+    user_id = 12345
+
+
+    state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
+    await state.set_state(AddDataState.waiting_for_type_data)
+
+    text = test_i18n.gettext("savings goal")
+    msg_first = create_message(text=text, user_id=user_id, update_id=1)
+    await test_dp.feed_update(mock_bot, msg_first)
+
+    expected_text = test_i18n.gettext("Enter your desired savings amount")
+    called_bot(mock_bot, expected_text)
+
+    await state.set_state(AddDataState.waiting_for_savings_goal)
+
+    msg_second = create_message(text="300", user_id=user_id, update_id=1)
+    await test_dp.feed_update(mock_bot, msg_second)
+
+    expected_data = test_i18n.gettext("The data was saved successfully.")
+    called_bot(mock_bot, expected_data)
+
+    saved_goal = await get_saved_goal(test_session, test_user.tg_id)
+
+    assert saved_goal == 300
+
+
+
+async def test_saved_goal_no_budget(mock_bot, test_dp, test_i18n,
+                          test_user, test_session, create_mock_update):
+
+    create_message, _ = create_mock_update
+    user_id = 12345
+
+
+    state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
+    await state.set_state(AddDataState.waiting_for_type_data)
+
+    text = test_i18n.gettext("savings goal")
+    msg_first = create_message(text=text, user_id=user_id, update_id=1)
+    await test_dp.feed_update(mock_bot, msg_first)
+
+    expected_text = test_i18n.gettext("Please set a monthly budget first.")
+    called_bot(mock_bot, expected_text)
+
+
+
+async def test_saving_goal_zero_or_no_budget(mock_bot, test_dp, test_user, test_session,
+                                           create_mock_update, test_i18n):
+
+    create_message, _ = create_mock_update
+    user_id = 12345
+
+    state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
+    await state.set_state(AddDataState.waiting_for_savings_goal)
+
+    text = "100"
+    msg = create_message(text=text, user_id=user_id, update_id=1)
+
+    await test_dp.feed_update(mock_bot, msg)
+
+    expected_text = test_i18n.gettext("You don't have a budget set! Set a basic budget first.")
+    called_bot(mock_bot, expected_text)
+
+
+    budget = AddData(monthly_budget=0)
+
+    await add_data_for_user(test_session, budget, test_user.tg_id)
+
+    await test_dp.feed_update(mock_bot, msg)
+
+    called_bot(mock_bot, expected_text)
+
+    zero_budget = await get_monthly_budget(test_session, test_user.tg_id)
+
+    assert zero_budget == 0
+
+
+
+async def test_invalid_value_saving_goal(mock_bot, test_dp, test_user, test_session,
+                                         create_mock_update, test_i18n, budget):
+    create_message, _ = create_mock_update
+    user_id = 12345
+
+    state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
+
+    await state.set_state(AddDataState.waiting_for_savings_goal)
+
+    for text, key in comparison_dict.items():
+        mock_bot.send_message.reset_mock()
+        msg = create_message(text=text, user_id=user_id, update_id=1)
 
         await test_dp.feed_update(mock_bot, msg)
 
-        called_bot(mock_bot,"**У вас нет установленного бюджета!**Сначала установите базовый бюджет.")
-
-        budget = AddData(monthly_budget=0)
-
-        await add_data_for_user(test_session, budget, test_user.tg_id)
-
-        msg = create_message(text="100", user_id=user_id, update_id=1)
-
-        await test_dp.feed_update(mock_bot, msg)
-
-        called_bot(mock_bot, "**У вас нет установленного бюджета!**Сначала установите базовый бюджет.")
-
-        zero_budget = await get_monthly_budget(test_session, test_user.tg_id)
-
-        assert zero_budget == 0
+        expected_text = test_i18n.gettext(key)
+        called_bot(mock_bot, expected_text)

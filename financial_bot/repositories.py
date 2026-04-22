@@ -76,3 +76,10 @@ async def get_limit_expense(session: AsyncSession, tg_id: int) -> int | None:
     user = await get_user_by_id(session, tg_id)
 
     return user.budget_remind_percent
+
+
+async def get_saved_goal(session: AsyncSession, tg_id: int) -> int | None:
+
+    user = await get_user_by_id(session, tg_id)
+
+    return user.savings_goal

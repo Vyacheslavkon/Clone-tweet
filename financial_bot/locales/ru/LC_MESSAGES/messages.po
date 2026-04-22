@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-04-19 21:32+1000\n"
+"POT-Creation-Date: 2026-04-22 22:16+1000\n"
 "PO-Revision-Date: 2026-04-05 19:51+1000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -36,7 +36,7 @@ msgid "limit expense"
 msgstr "лимит расходов"
 
 #: financial_bot/handlers/adding_data.py:38
-#: financial_bot/handlers/adding_data.py:60
+#: financial_bot/handlers/adding_data.py:69
 msgid "Enter the spending limit amount"
 msgstr "Введите сумму лимита расходов"
 
@@ -53,17 +53,26 @@ msgstr "цель сбережений"
 msgid "Enter your desired savings amount"
 msgstr "Введите желаемую сумму сбережений"
 
-#: financial_bot/handlers/adding_data.py:63
-#: financial_bot/handlers/adding_data.py:88
+#: financial_bot/handlers/adding_data.py:52
+#: financial_bot/handlers/fallback.py:11
+msgid "Sorry, I didn't understand you, please use the suggested choice!"
+msgstr ""
+"Извините, я вас не понял, пожалуйста, воспользуйтесь предложенным "
+"вариантом!"
+
+#: financial_bot/handlers/adding_data.py:72
+#: financial_bot/handlers/adding_data.py:98
+#: financial_bot/handlers/adding_data.py:126
 msgid "The data was saved successfully."
 msgstr "Данные были успешно сохранены!"
 
-#: financial_bot/handlers/adding_data.py:66
+#: financial_bot/handlers/adding_data.py:75
 msgid "Please, enter a number!"
 msgstr "Введите, пожалуйста, сумму!"
 
-#: financial_bot/handlers/adding_data.py:68
-#: financial_bot/handlers/adding_data.py:94
+#: financial_bot/handlers/adding_data.py:77
+#: financial_bot/handlers/adding_data.py:104
+#: financial_bot/handlers/adding_data.py:132
 msgid "Profile not found. Please type /start"
 msgstr "Профиль не найден. Пожалуйста, введите /start"
 
@@ -80,12 +89,6 @@ msgstr "Рад вас видеть {name}! Ваш баланс: 0"
 #: financial_bot/handlers/common.py:47
 msgid "Action canceled. Returning to main menu..."
 msgstr "Действие отменено. Возврат в главное меню..."
-
-#: financial_bot/handlers/fallback.py:9
-msgid "Sorry, I didn't understand you, please use the suggested choice!"
-msgstr ""
-"Извините, я вас не понял, пожалуйста, воспользуйтесь предложенным "
-"вариантом!"
 
 #: financial_bot/handlers/transactions.py:32
 #: financial_bot/handlers/transactions.py:43
@@ -118,31 +121,30 @@ msgstr "Напишите комментарий"
 msgid "Data saved successfully!"
 msgstr "Данные успешно сохранены!"
 
-#: financial_bot/handlers/utils.py:36
-msgid ""
-"**Please enter a valid number.**\n"
-"For example: 500 or 100.50"
-msgstr ""
-"**Пожалуйста, введите корректное число.**\n"
-"Например: 500 или 100.50"
+#: financial_bot/handlers/utils.py:49
 
-#: financial_bot/handlers/utils.py:37
-msgid ""
-"**You don't have a budget set!**\n"
-"Set a basic budget first."
-msgstr "**У вас нет установленного бюджета!**Сначала установите базовый бюджет."
+msgid "Please enter a valid number."
+msgstr "Введите, пожалуйста, корректную сумму!"
 
-#: financial_bot/handlers/utils.py:38
-msgid "**This amount exceeds your total budget.**"
-msgstr "**Эта сумма превышает ваш общий бюджет.**"
+#: financial_bot/handlers/utils.py:50
 
-#: financial_bot/handlers/utils.py:39
-msgid "**The amount must be greater than zero.**"
-msgstr "**Сумма должна быть больше нуля.**"
+msgid "You don't have a budget set! Set a basic budget first."
+msgstr "У вас нет установленного бюджета! Сначала установите базовый бюджет."
 
-#: financial_bot/handlers/utils.py:41
-msgid "**An unexpected error occurred.**"
-msgstr "**Произошла непредвиденная ошибка.**"
+#: financial_bot/handlers/utils.py:51
+
+msgid "This amount exceeds your total budget."
+msgstr "Эта сумма превышает ваш общий бюджет."
+
+#: financial_bot/handlers/utils.py:52
+
+msgid "The amount must be greater than zero."
+msgstr "Сумма должна быть больше нуля."
+
+#: financial_bot/handlers/utils.py:54
+
+msgid "An unexpected error occurred."
+msgstr "Произошла непредвиденная ошибка."
 
 #: financial_bot/keyboards/inline.py:7
 msgid "Cancel"
@@ -259,4 +261,11 @@ msgstr "Отмена"
 
 #~ msgid "The spending limit was successfully saved."
 #~ msgstr "Лимит расходов был успешно сохранён."
+
+#~ msgid ""
+#~ "**Please enter a valid number.**\n"
+#~ "For example: 500 or 100.50"
+#~ msgstr ""
+#~ "**Пожалуйста, введите корректное число.**\n"
+#~ "Например: 500 или 100.50"
 

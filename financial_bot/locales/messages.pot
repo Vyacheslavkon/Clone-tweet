@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-04-19 21:32+1000\n"
+"POT-Creation-Date: 2026-04-22 22:16+1000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,7 +34,7 @@ msgid "limit expense"
 msgstr ""
 
 #: financial_bot/handlers/adding_data.py:38
-#: financial_bot/handlers/adding_data.py:60
+#: financial_bot/handlers/adding_data.py:69
 msgid "Enter the spending limit amount"
 msgstr ""
 
@@ -51,17 +51,24 @@ msgstr ""
 msgid "Enter your desired savings amount"
 msgstr ""
 
-#: financial_bot/handlers/adding_data.py:63
-#: financial_bot/handlers/adding_data.py:88
+#: financial_bot/handlers/adding_data.py:52
+#: financial_bot/handlers/fallback.py:11
+msgid "Sorry, I didn't understand you, please use the suggested choice!"
+msgstr ""
+
+#: financial_bot/handlers/adding_data.py:72
+#: financial_bot/handlers/adding_data.py:98
+#: financial_bot/handlers/adding_data.py:126
 msgid "The data was saved successfully."
 msgstr ""
 
-#: financial_bot/handlers/adding_data.py:66
+#: financial_bot/handlers/adding_data.py:75
 msgid "Please, enter a number!"
 msgstr ""
 
-#: financial_bot/handlers/adding_data.py:68
-#: financial_bot/handlers/adding_data.py:94
+#: financial_bot/handlers/adding_data.py:77
+#: financial_bot/handlers/adding_data.py:104
+#: financial_bot/handlers/adding_data.py:132
 msgid "Profile not found. Please type /start"
 msgstr ""
 
@@ -77,10 +84,6 @@ msgstr ""
 
 #: financial_bot/handlers/common.py:47
 msgid "Action canceled. Returning to main menu..."
-msgstr ""
-
-#: financial_bot/handlers/fallback.py:9
-msgid "Sorry, I didn't understand you, please use the suggested choice!"
 msgstr ""
 
 #: financial_bot/handlers/transactions.py:32
@@ -114,28 +117,24 @@ msgstr ""
 msgid "Data saved successfully!"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:36
-msgid ""
-"**Please enter a valid number.**\n"
-"For example: 500 or 100.50"
+#: financial_bot/handlers/utils.py:49
+msgid "Please enter a valid number."
 msgstr ""
 
-#: financial_bot/handlers/utils.py:37
-msgid ""
-"**You don't have a budget set!**\n"
-"Set a basic budget first."
+#: financial_bot/handlers/utils.py:50
+msgid "You don't have a budget set! Set a basic budget first."
 msgstr ""
 
-#: financial_bot/handlers/utils.py:38
-msgid "**This amount exceeds your total budget.**"
+#: financial_bot/handlers/utils.py:51
+msgid "This amount exceeds your total budget."
 msgstr ""
 
-#: financial_bot/handlers/utils.py:39
-msgid "**The amount must be greater than zero.**"
+#: financial_bot/handlers/utils.py:52
+msgid "The amount must be greater than zero."
 msgstr ""
 
-#: financial_bot/handlers/utils.py:41
-msgid "**An unexpected error occurred.**"
+#: financial_bot/handlers/utils.py:54
+msgid "An unexpected error occurred."
 msgstr ""
 
 #: financial_bot/keyboards/inline.py:7
