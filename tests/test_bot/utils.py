@@ -1,5 +1,3 @@
-from financial_bot.states.add_data_states import AddDataState
-
 
 def called_bot(mock_bot, text: str) -> bool:
 
@@ -23,12 +21,7 @@ dict_invalid_data = {
     "-200": "The amount must be greater than zero."
 }
 
-# comparison_dict = {
-#     "hello": "**Пожалуйста, введите корректное число.**\\nНапример: 500 или 100.50",
-#     "5000": "**Эта сумма превышает ваш общий бюджет.**",
-#     "0": "**Сумма должна быть больше нуля.**",
-#     "-100": "**Сумма должна быть больше нуля.**",
-# }
+
 
 comparison_dict = {
     "hello": "Please enter a valid number.",

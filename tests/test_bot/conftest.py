@@ -62,7 +62,7 @@ class MyI18nMiddleware(I18nMiddleware):
 @pytest.fixture
 def test_i18n():
     """Отдельная фикстура для объекта I18n"""
-    return I18n(path="financial_bot/locales", default_locale="ru", domain="messages")
+    return I18n(path="financial_bot/locales", default_locale="en", domain="messages")
 
 
 
@@ -77,8 +77,7 @@ async def test_dp(test_session, test_redis, test_i18n):
     dp.update.outer_middleware(i18n_middleware)
 
     dp.update.middleware(SessionMiddleware(session_pool=test_session))
-    # dp.include_router(router)
-    # dp.include_router(router_tr)
+
     for r in [router, router_tr, router_data]:
         if r is not None:
 

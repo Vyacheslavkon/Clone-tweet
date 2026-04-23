@@ -3,7 +3,6 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
-from decimal import InvalidOperation
 from loguru import logger
 
 from financial_bot.filters import I18nTextFilter
