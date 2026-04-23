@@ -10,7 +10,7 @@ def cancel():
 
 def get_back_kb():
     builder = InlineKeyboardBuilder()
-    builder.button(text=_("⬅️ Back"), callback_data="back")
+    builder.button(text=_("Back"), callback_data="back")
     return builder
 
 

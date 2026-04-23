@@ -1,7 +1,5 @@
-from sqlalchemy import select
 from financial_bot.states.add_data_states import AddDataState
-from financial_bot.models import UserBot
-from tests.test_bot.utils import called_bot, dict_invalid_data, comparison_dict
+from tests.test_bot.utils import called_bot, dict_invalid_data, comparison_dict,called_kb
 from financial_bot.repositories import (get_monthly_budget, get_saved_goal,
                                         get_limit_expense, add_data_for_user)
 from financial_bot.schemas import AddData
@@ -24,13 +22,19 @@ async def test_adding_value_budget(test_dp, test_session, test_user,
     expected_text = test_i18n.gettext("Enter your estimated monthly budget")
     called_bot(mock_bot, expected_text)
 
+
     await state.set_state(AddDataState.waiting_for_monthly_budget)
     msg_second = create_message(text="1000", user_id=user_id,update_id=1)
 
     await test_dp.feed_update(mock_bot, msg_second)
 
+    #print(mock_bot.mock_calls)
+
     expected_text_end = test_i18n.gettext("The data was saved successfully.")
     called_bot(mock_bot, expected_text_end)
+    expected_buttons = test_i18n.gettext("Enter amount")
+    called_kb(mock_bot, expected_buttons)
+
 
     budget = await get_monthly_budget(test_session, test_user.tg_id)
 

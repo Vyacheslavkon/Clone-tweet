@@ -151,7 +151,7 @@ msgid "Cancel"
 msgstr "Отмена"
 
 #: financial_bot/keyboards/inline.py:13
-msgid "⬅️ Back"
+msgid "Back"
 msgstr "Назад"
 
 #: financial_bot/keyboards/inline.py:19
