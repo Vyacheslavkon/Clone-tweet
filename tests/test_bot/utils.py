@@ -12,8 +12,22 @@ def called_bot(mock_bot, text: str) -> bool:
 def called_kb(mock_bot, text: str) -> bool:
     assert any(
         text in str(call) for call in mock_bot.mock_calls
-    ), f"Кнопка с текстом '{text}' не найдена в ответах бота."
+    ), f"Button with text '{text}' not found in bot responses."
 
+
+def keyboard_check(kb, bot, i18n):
+
+    for name in kb:
+        expected_buttons = i18n.gettext(name)
+        called_kb(bot, expected_buttons)
+
+
+def keyboards() -> list:
+
+    main_menu = ["Add/change data", "Generate report", "Settings", "cancel", "Enter amount"]
+    buttons = ["monthly budget", "limit expense", "savings goal", "cancel"]
+
+    return main_menu, buttons
 
 dict_invalid_data = {
     "hello": "Please enter a valid number.",
@@ -29,3 +43,4 @@ comparison_dict = {
     "0": "The amount must be greater than zero.",
     "-100": "The amount must be greater than zero.",
 }
+
