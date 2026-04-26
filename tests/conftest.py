@@ -13,6 +13,7 @@ if TEST_DATABASE_URL is None:
     raise ValueError("TEST_DATABASE_URL is not set in environment variables")
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=NullPool)
 
+REDIS_HOST= os.getenv("REDIS_HOST", "localhost")
 
 @pytest.fixture(scope="session", autouse=True)
 async def setup_test_db():
@@ -51,7 +52,8 @@ async def test_session():
 @pytest.fixture
 async def test_redis():
 
-    redis = Redis(host="test_redis", port=6379, db=3)
+    #redis = Redis(host="test_redis", port=6379, db=3)
+    redis = Redis(host=REDIS_HOST, port=6379, db=3)
     yield redis
     await redis.flushdb()
     await redis.aclose()
