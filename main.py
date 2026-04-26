@@ -10,12 +10,12 @@ from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
 from starlette.staticfiles import StaticFiles
 
-from core.database import engine
+from application.exceptions import setup_exception_handlers
 from application.routes import router
 from core.config import CSS_DIR, JS_DIR, MEDIA_DIR, STATIC_DIR
+from core.database import engine
 from logger_config import setup_logging
 from migrations import utils
-from application.exceptions import setup_exception_handlers
 
 
 @asynccontextmanager

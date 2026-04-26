@@ -1,8 +1,8 @@
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
-from application.models import User,FollowLink
+from application.models import FollowLink, User
 
 
 async def create_follow(session: AsyncSession, user: User, user_id: int):
@@ -11,23 +11,22 @@ async def create_follow(session: AsyncSession, user: User, user_id: int):
     try:
         await session.commit()
 
-    except IntegrityError as e:
+    except IntegrityError:
         await session.rollback()
 
         raise
 
 
-async def get_follow(session: AsyncSession, user: User, user_id: int) -> FollowLink | None:
+async def get_follow(
+    session: AsyncSession, user: User, user_id: int
+) -> FollowLink | None:
     query = select(FollowLink).where(
         FollowLink.followed_id == user_id, FollowLink.follower_id == user.id
     )
 
     result = await session.execute(query)
 
-    follow = result.scalars().one_or_none()
-
-    return follow
-
+    return result.scalars().one_or_none()
 
 
 async def del_follow(session: AsyncSession, follow: FollowLink):
@@ -35,4 +34,3 @@ async def del_follow(session: AsyncSession, follow: FollowLink):
     await session.delete(follow)
 
     await session.commit()
-

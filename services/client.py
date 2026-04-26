@@ -1,3 +1,4 @@
+# flake8: noqa
 # import openai
 # from typing import List, Dict
 # from .schemas import AIResponse

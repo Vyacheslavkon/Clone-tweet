@@ -1,4 +1,5 @@
-from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.state import State, StatesGroup
+
 
 class AddDataState(StatesGroup):
 
@@ -6,4 +7,3 @@ class AddDataState(StatesGroup):
     waiting_for_monthly_budget = State()
     waiting_for_limit_expense = State()
     waiting_for_savings_goal = State()
-

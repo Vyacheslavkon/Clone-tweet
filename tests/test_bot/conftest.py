@@ -1,39 +1,38 @@
 import copy
-from typing import Any, Dict
-import pytest
+from datetime import datetime
 from pathlib import Path
-from aiogram import Dispatcher
+from typing import Any, Dict
 from unittest.mock import AsyncMock
-from aiogram.fsm.storage.redis import RedisStorage
-from aiogram.types import Message, User, Chat, CallbackQuery
-from aiogram.utils.i18n import I18n, I18nMiddleware
-from aiogram.types import TelegramObject, Update
-from aiogram import Bot
 
-from financial_bot.middlewares import SessionMiddleware
-from financial_bot.handlers.transactions import router_tr
+import pytest
+from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.types import CallbackQuery, Chat, Message, TelegramObject, Update, User
+from aiogram.utils.i18n import I18n, I18nMiddleware
+
 from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.common import router
-from financial_bot.schemas import CreateUser, AddData
-from  financial_bot.repositories import create_user, add_data_for_user
+from financial_bot.handlers.transactions import router_tr
+from financial_bot.middlewares import SessionMiddleware
+from financial_bot.repositories import add_data_for_user, create_user
+from financial_bot.schemas import AddData, CreateUser
 
 current_file_path = Path(__file__).resolve()
 base_dir = current_file_path.parent.parent.parent
 locales_path = base_dir / "financial_bot" / "locales"
+
 
 @pytest.fixture
 def mock_bot():
     bot = AsyncMock(spec=Bot)
     bot.id = 12345678
 
-    bot.get_me = AsyncMock(return_value=User(
-        id=12345678,
-        is_bot=True,
-        first_name="TestBot",
-        username="test_bot"
-    ))
+    bot.get_me = AsyncMock(
+        return_value=User(
+            id=12345678, is_bot=True, first_name="TestBot", username="test_bot"
+        )
+    )
     return bot
-
 
 
 @pytest.fixture
@@ -42,7 +41,6 @@ async def test_user(test_session):
         "tg_id": 12345,
         "language_code": "ru",
         "first_name": "TestUser",
-
     }
 
     new_user = CreateUser(**data)
@@ -52,12 +50,12 @@ async def test_user(test_session):
     return new_user
 
 
-
 class MyI18nMiddleware(I18nMiddleware):
     async def get_locale(self, event: TelegramObject, data: Dict[str, Any]) -> str:
         # В тестах проще всего возвращать дефолтную локаль
         # Или можно достать из event.from_user.language_code
         return self.i18n.default_locale
+
 
 @pytest.fixture
 def test_i18n():
@@ -65,13 +63,11 @@ def test_i18n():
     return I18n(path="financial_bot/locales", default_locale="en", domain="messages")
 
 
-
 @pytest.fixture
 async def test_dp(test_session, test_redis, test_i18n):
 
     storage = RedisStorage(redis=test_redis)
     dp = Dispatcher(storage=storage)
-
 
     i18n_middleware = MyI18nMiddleware(i18n=test_i18n)
     dp.update.outer_middleware(i18n_middleware)
@@ -84,11 +80,12 @@ async def test_dp(test_session, test_redis, test_i18n):
             new_router = copy.deepcopy(r)
             dp.include_router(new_router)
         else:
-            raise ValueError("One of the routers (router или router_tr) "
-                             "is not imported or is equal None")
+            raise ValueError(
+                "One of the routers (router или router_tr) "
+                "is not imported or is equal None"
+            )
 
     return dp
-
 
 
 @pytest.fixture
@@ -97,21 +94,23 @@ def create_mock_update(mock_bot):
 
         message = Message(
             message_id=1,
-            date=12345678,
+            date=datetime.now(),
             chat=Chat(id=user_id, type="private"),
-            from_user=User(id=user_id, is_bot=False, first_name="TestUser", language_code="ru"),
+            from_user=User(
+                id=user_id, is_bot=False, first_name="TestUser", language_code="ru"
+            ),
             text=text,
-            bot=mock_bot
+            bot=mock_bot,
         )
         return Update(update_id=update_id, message=message)
 
     def _create_callback(data: str, user_id: int, update_id: int):
         message = Message(
             message_id=2,
-            date=12345678,
+            date=datetime.now(),
             chat=Chat(id=user_id, type="private"),
             text="Кнопки",
-            bot=mock_bot
+            bot=mock_bot,
         )
         callback_query = CallbackQuery(
             id="123",
@@ -119,7 +118,7 @@ def create_mock_update(mock_bot):
             data=data,
             chat_instance="abc",
             message=message,
-            bot=mock_bot
+            bot=mock_bot,
         )
         return Update(update_id=update_id, callback_query=callback_query)
 

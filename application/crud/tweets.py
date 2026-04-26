@@ -1,15 +1,18 @@
+from typing import Optional
+
+from loguru import logger
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import update, select
-from loguru import logger
 from sqlalchemy.orm import selectinload
 
-from application.models import User, Tweet, Media, FollowLink
+from application.models import FollowLink, Media, Tweet, User
 from application.schemas import AddTweet
 
 
-async def created_tweet(session: AsyncSession, user: User,
-                        tweet: AddTweet, tweet_data) -> Tweet:
+async def created_tweet(
+    session: AsyncSession, user: User, tweet: AddTweet, tweet_data
+) -> Tweet:
     async with session.begin_nested() if session.in_transaction() else session.begin():
         tweet_data["user_id"] = user.id
         new_tweet = Tweet(**tweet_data)
@@ -35,23 +38,23 @@ async def save_media(session: AsyncSession, media: Media):
         session.add(media)
 
 
-async def get_tweet(session: AsyncSession, tweet_id: int, user: User) -> Tweet:
+async def get_tweet(
+    session: AsyncSession, tweet_id: int, user: User
+) -> Optional[Tweet]:
     query = (
-        select(Tweet).where(Tweet.user_id == user.id, Tweet.id == tweet_id)
+        select(Tweet)
+        .where(Tweet.user_id == user.id, Tweet.id == tweet_id)
         .options(selectinload(Tweet.tweet_media_ids))
     )
 
     result_tweet = await session.execute(query)
-    tweet = result_tweet.scalars().first()
 
-    return tweet
+    return result_tweet.scalars().first()
 
 
 async def get_tweet_by_id(session: AsyncSession, tweet_id: int) -> Tweet | None:
 
-    tweet = await session.get(Tweet, tweet_id)
-
-    return tweet
+    return await session.get(Tweet, tweet_id)
 
 
 async def del_tweet(session: AsyncSession, tweet: Tweet):
@@ -66,7 +69,7 @@ async def del_tweet(session: AsyncSession, tweet: Tweet):
         raise
 
 
-async def get_tweets_all(session: AsyncSession, user: User) :
+async def get_tweets_all(session: AsyncSession, user: User):
 
     stmt = (
         select(Tweet)
@@ -79,17 +82,12 @@ async def get_tweets_all(session: AsyncSession, user: User) :
             Tweet.user_id.in_(
                 select(FollowLink.followed_id).where(
                     FollowLink.follower_id
-                    == (
-                        select(User.id)
-                        .where(User.id == user.id)
-                        .scalar_subquery()
-                    )
+                    == (select(User.id).where(User.id == user.id).scalar_subquery())
                 )
             )
         )
     )
 
     result_query = await session.execute(stmt)
-    tweets = result_query.scalars().unique().all()
 
-    return tweets
+    return result_query.scalars().unique().all()

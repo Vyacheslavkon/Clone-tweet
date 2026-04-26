@@ -1,9 +1,10 @@
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton
 from aiogram.utils.i18n import gettext as _
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
 
 def cancel():
-    builder  = InlineKeyboardBuilder()
+    builder = InlineKeyboardBuilder()
     builder.button(text=_("Cancel"), callback_data="cancel")
     return builder
 
@@ -28,17 +29,25 @@ def get_type():
     return builder.as_markup()
 
 
-
 def get_category(type_transaction: str):
 
     if type_transaction == "income":
         categories = [_("Salary"), _("Bonus"), _("Gift"), _("Deal"), _("Other")]
     else:
-        categories = [_("Food"), _("Home"), _("Entertainment"), _("Transport"), _("Health"), _("Other")]
+        categories = [
+            _("Food"),
+            _("Home"),
+            _("Entertainment"),
+            _("Transport"),
+            _("Health"),
+            _("Other"),
+        ]
     builder = InlineKeyboardBuilder()
 
     for cat in categories:
-        builder.add(InlineKeyboardButton(text=_(cat), callback_data= f"cat_{cat.lower()}"))
+        builder.add(
+            InlineKeyboardButton(text=_(cat), callback_data=f"cat_{cat.lower()}")
+        )
     builder.adjust(2)
 
     back_builder = get_back_kb()
@@ -47,12 +56,15 @@ def get_category(type_transaction: str):
     builder.attach(cancel_builder)
 
     return builder.as_markup()
-
 
 
 def get_description():
     builder = InlineKeyboardBuilder()
-    builder.add(InlineKeyboardButton(text=_("Skip description"), callback_data="skip_description"))
+    builder.add(
+        InlineKeyboardButton(
+            text=_("Skip description"), callback_data="skip_description"
+        )
+    )
     builder.adjust(2)
 
     back_builder = get_back_kb()
@@ -61,5 +73,3 @@ def get_description():
     builder.attach(back_builder)
     builder.attach(cancel_builder)
     return builder.as_markup()
-
-

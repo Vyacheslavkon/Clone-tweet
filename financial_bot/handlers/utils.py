@@ -1,9 +1,11 @@
 from decimal import Decimal, InvalidOperation
+
 from aiogram.utils.i18n import gettext as _
+
 
 def check_value_budget(amount: str) -> Decimal | str:
     try:
-        val = Decimal(amount.replace(',', '.').strip())
+        val = Decimal(amount.replace(",", ".").strip())
     except (InvalidOperation, ValueError):
         return "invalid_format"
 
@@ -14,9 +16,9 @@ def check_value_budget(amount: str) -> Decimal | str:
         return "too_small"
 
 
-def comparison(budget: Decimal, second_value: str) -> Decimal | None:
+def comparison(budget: Decimal, second_value: str) -> Decimal | str:
     try:
-        val = Decimal(second_value.replace(',', '.').strip())
+        val = Decimal(second_value.replace(",", ".").strip())
     except (InvalidOperation, ValueError):
         return "invalid_format"
 
@@ -32,16 +34,13 @@ def comparison(budget: Decimal, second_value: str) -> Decimal | None:
     return val
 
 
-def transform(budget: Decimal, second_value: str) -> Decimal | None:
+def transform(budget: Decimal, second_value: str) -> int | str:
     limit_expense = comparison(budget, second_value)
 
     if isinstance(limit_expense, str):
         return limit_expense
 
-
-    lim_exp_pers = round(limit_expense / budget * 100)
-    return lim_exp_pers
-
+    return round(limit_expense / budget * 100)
 
 
 def get_error_text(error_code: str) -> str:
@@ -52,6 +51,3 @@ def get_error_text(error_code: str) -> str:
         "too_small": _("The amount must be greater than zero."),
     }
     return errors.get(error_code, _("An unexpected error occurred."))
-
-
-

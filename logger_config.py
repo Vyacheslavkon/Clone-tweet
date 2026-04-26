@@ -1,6 +1,6 @@
+import logging
 import os
 import sys
-import logging
 
 from dotenv import load_dotenv
 from loguru import logger
@@ -12,6 +12,7 @@ log_level = os.getenv("LOG_LEVEL", "DEBUG")
 rotation = os.getenv("LOG_ROTATION", "50 MB")
 retention = os.getenv("LOG_RETENTION", "7 days")
 log_filename = os.getenv("LOG_FILENAME", "app.log")
+
 
 def setup_logging():
 
@@ -56,7 +57,9 @@ def setup_logging():
             while frame and frame.f_code.co_filename == logging.__file__:
                 frame = frame.f_back
                 depth += 1
-            logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+            logger.opt(depth=depth, exception=record.exc_info).log(
+                level, record.getMessage()
+            )
 
     # Принудительно направляем всё в Loguru
     logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)

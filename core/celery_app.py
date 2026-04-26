@@ -1,5 +1,4 @@
 import os
-import logging
 
 from celery import Celery
 from celery.signals import after_setup_logger
@@ -15,7 +14,7 @@ app = Celery(
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
     # Указываем Celery, где искать задачи (автоматическое сканирование)
-    include=["financial_bot.tasks"]
+    include=["financial_bot.tasks"],
 )
 
 # Дополнительные настройки ( сериализация и т.д.)
@@ -26,6 +25,7 @@ app.conf.update(
     timezone="UTC",
     enable_utc=True,
 )
+
 
 @after_setup_logger.connect
 def setup_celery_logger(logger, *args, **kwargs):

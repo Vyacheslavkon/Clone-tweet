@@ -19,17 +19,25 @@ from sqlalchemy.exc import IntegrityError, MissingGreenlet
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import application.schemas
-from core.database import get_db
+from application.crud.followers import create_follow, del_follow, get_follow
+from application.crud.likes import create_like, del_like, get_like
+from application.crud.tweets import (
+    created_tweet,
+    del_tweet,
+    get_tweet,
+    get_tweet_by_id,
+    get_tweets_all,
+    save_media,
+)
+from application.crud.users import (
+    create_user,
+    get_profile,
+    get_user,
+    get_user_by_api_key,
+)
 from application.models import Media, User
 from core.config import MEDIA_DIR
-from application.crud.users import get_user_by_api_key, get_user, create_user, get_profile
-from application.crud.tweets import (created_tweet,
-                                     save_media, get_tweet,
-                                     del_tweet, get_tweets_all,
-                                     get_tweet_by_id,
-                                     )
-from application.crud.likes import create_like, del_like, get_like
-from application.crud.followers import create_follow, get_follow, del_follow
+from core.database import get_db
 
 schemas = application.schemas
 
@@ -39,7 +47,6 @@ router = APIRouter(prefix="/api", tags=["All"])
 async def get_current_user(
     api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
 ) -> User:
-
 
     user = await get_user_by_api_key(session, api_key)
 
@@ -94,7 +101,7 @@ async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)
     media_data["path"] = str(file_path)
     new_media = Media(**media_data)
 
-    await save_media(session,new_media)
+    await save_media(session, new_media)
     response = {"media_id": new_media.id}
     logger.info("Image: {} saved successful.", new_media.id)
 
@@ -102,7 +109,9 @@ async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)
 
 
 @router.post("/user", response_model=schemas.AddUser)
-async def add_user(user: schemas.AddUser, session: AsyncSession = Depends(get_db))-> User:
+async def add_user(
+    user: schemas.AddUser, session: AsyncSession = Depends(get_db)
+) -> User:
 
     new_user = User(**user.model_dump())
 
@@ -111,14 +120,12 @@ async def add_user(user: schemas.AddUser, session: AsyncSession = Depends(get_db
     return new_user
 
 
-
 @router.delete("/tweets/{tweet_id}", response_model=schemas.ResultTrue)
 async def delete_tweet(
     tweet_id: int,
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-
 
     tweet = await get_tweet(session, tweet_id, current_user)
 
@@ -131,7 +138,6 @@ async def delete_tweet(
         if os.path.exists(media.path):
             os.remove(media.path)
             logger.info("File {} deleted from disk", media.path)
-
 
     try:
         await del_tweet(session, tweet)
@@ -161,7 +167,6 @@ async def get_profile_with_id(
     session: AsyncSession = Depends(get_db),
 ):
 
-
     user = await get_profile(session, id)
     if not user:
 
@@ -189,7 +194,6 @@ async def post_like(
     if not tweet:
         raise HTTPException(status_code=404, detail="Tweet not found")
 
-
     user_name = current_user.name
     try:
         await create_like(session, current_user, id)
@@ -211,13 +215,11 @@ async def delete_like(
 ):
     user_name = current_user.name
 
-
     like = await get_like(session, current_user, id)
 
     if not like:
         logger.warning("User: {}  Entry does not exist.", user_name)
         raise HTTPException(status_code=404, detail="Entry does not exist.")
-
 
     try:
 
@@ -238,11 +240,10 @@ async def following(
     current_user: User = Depends(get_current_user),
 ):
 
-
     user_name = current_user.name
 
     try:
-        await create_follow(session,current_user, id)
+        await create_follow(session, current_user, id)
 
         logger.info("User: {}. New entry added.", user_name)
     except IntegrityError as e:
@@ -263,14 +264,11 @@ async def delete_follow(
     current_user: User = Depends(get_current_user),
 ):
 
-
     follow = await get_follow(session, current_user, id)
 
     if not follow:
         logger.warning("Entry does not exist. Send request user {}", current_user.name)
         raise HTTPException(status_code=400, detail="Entry does not exist.")
-
-
 
     await del_follow(session, follow)
     logger.info(

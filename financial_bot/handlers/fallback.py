@@ -6,7 +6,10 @@ from financial_bot.keyboards.reply import get_main_menu
 
 router_fallback = Router()
 
+
 @router_fallback.message()
 async def any_unhandled_event(message: Message):
-    await message.reply(_("Sorry, I didn't understand you, please use the suggested choice!"),
-                            reply_markup=get_main_menu())
+    await message.reply(
+        _("Sorry, I didn't understand you, please use the suggested choice!"),
+        reply_markup=get_main_menu(),
+    )

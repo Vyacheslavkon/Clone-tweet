@@ -1,6 +1,8 @@
-from pydantic import BaseModel, ConfigDict, Field, model_validator
 from decimal import Decimal
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 class CreateUser(BaseModel):
 
@@ -11,7 +13,6 @@ class CreateUser(BaseModel):
     first_name: str
 
     model_config = ConfigDict(from_attributes=True)
-
 
 
 class AddTransaction(BaseModel):
@@ -38,7 +39,3 @@ class AddData(BaseModel):
     budget_remind_percent: Optional[int] = Field(default=None, ge=1, le=99)
 
     model_config = ConfigDict(from_attributes=True)
-
-
-
-

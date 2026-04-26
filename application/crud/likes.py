@@ -1,9 +1,8 @@
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, MissingGreenlet
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
-from application.models import User, Likes
-
+from application.models import Likes, User
 
 
 async def create_like(session: AsyncSession, user: User, tweet_id: int):
@@ -19,16 +18,12 @@ async def create_like(session: AsyncSession, user: User, tweet_id: int):
         raise
 
 
-async  def get_like(session: AsyncSession, user: User, tweet_id: int) -> Likes | None:
+async def get_like(session: AsyncSession, user: User, tweet_id: int) -> Likes | None:
 
-    query = select(Likes).where(
-        Likes.user_id == user.id, Likes.tweet_id == tweet_id
-    )
+    query = select(Likes).where(Likes.user_id == user.id, Likes.tweet_id == tweet_id)
     result = await session.execute(query)
-    like = result.scalars().one_or_none()
 
-    return like
-
+    return result.scalars().one_or_none()
 
 
 async def del_like(session: AsyncSession, like: Likes):
@@ -42,4 +37,3 @@ async def del_like(session: AsyncSession, like: Likes):
         await session.rollback()
 
         raise
-

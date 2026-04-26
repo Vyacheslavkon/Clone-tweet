@@ -1,16 +1,16 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from application.models import User
 
 
-
-async  def create_user(session: AsyncSession, user: User):
+async def create_user(session: AsyncSession, user: User):
 
     async with session.begin():
         session.add(user)
-
 
 
 async def get_user_by_api_key(session: AsyncSession, api_key: str) -> User | None:
@@ -22,18 +22,20 @@ async def get_user_by_api_key(session: AsyncSession, api_key: str) -> User | Non
     return result.scalars().one_or_none()
 
 
-async def get_user(session: AsyncSession, user: User) -> User:
+async def get_user(session: AsyncSession, user: User) -> Optional[User]:
 
-    query = (select(User).where(User.id == user.id)
-             .options(selectinload(User.followers),
-                      selectinload(User.following)))
+    query = (
+        select(User)
+        .where(User.id == user.id)
+        .options(selectinload(User.followers), selectinload(User.following))
+    )
 
     result = await session.execute(query)
 
     return result.scalars().first()
 
 
-async def get_profile(session: AsyncSession, user_id: int) -> User:
+async def get_profile(session: AsyncSession, user_id: int) -> Optional[User]:
     query = (
         select(User)
         .where(User.id == user_id)
@@ -41,6 +43,5 @@ async def get_profile(session: AsyncSession, user_id: int) -> User:
     )
 
     result = await session.execute(query)
-    user = result.scalars().one_or_none()
 
-    return user
+    return result.scalars().one_or_none()
