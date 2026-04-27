@@ -20,6 +20,12 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
+      test_redis:
+        image: redis
+        ports:
+          - 6379:6379
+
     steps:
       - uses: actions/checkout@v4
 
@@ -47,6 +53,9 @@ jobs:
 
       - name: Run Mypy
         run: mypy . --exclude "migrations/"
+
+      - name: Compile translations
+        run: pybabel compile -d financial_bot/locales
 
       - name: Test with pytest
         env:

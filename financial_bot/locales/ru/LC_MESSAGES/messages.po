@@ -1,0 +1,271 @@
+# Russian translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-04-22 22:16+1000\n"
+"PO-Revision-Date: 2026-04-05 19:51+1000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ru\n"
+"Language-Team: ru <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: financial_bot/handlers/adding_data.py:24
+msgid "Please, select data type"
+msgstr "Выберите тип"
+
+#: financial_bot/handlers/adding_data.py:31 financial_bot/keyboards/reply.py:20
+msgid "monthly budget"
+msgstr "бюджет на месяц"
+
+#: financial_bot/handlers/adding_data.py:32
+msgid "Enter your estimated monthly budget"
+msgstr "Введите свой предполагаемый ежемесячный бюджет"
+
+#: financial_bot/handlers/adding_data.py:35 financial_bot/keyboards/reply.py:21
+msgid "limit expense"
+msgstr "лимит расходов"
+
+#: financial_bot/handlers/adding_data.py:38
+#: financial_bot/handlers/adding_data.py:69
+msgid "Enter the spending limit amount"
+msgstr "Введите сумму лимита расходов"
+
+#: financial_bot/handlers/adding_data.py:41
+#: financial_bot/handlers/adding_data.py:49
+msgid "Please set a monthly budget first."
+msgstr "Пожалуйста, сначала установите ежемесячный бюджет"
+
+#: financial_bot/handlers/adding_data.py:43 financial_bot/keyboards/reply.py:22
+msgid "savings goal"
+msgstr "цель сбережений"
+
+#: financial_bot/handlers/adding_data.py:46
+msgid "Enter your desired savings amount"
+msgstr "Введите желаемую сумму сбережений"
+
+#: financial_bot/handlers/adding_data.py:52
+#: financial_bot/handlers/fallback.py:11
+msgid "Sorry, I didn't understand you, please use the suggested choice!"
+msgstr ""
+"Извините, я вас не понял, пожалуйста, воспользуйтесь предложенным "
+"вариантом!"
+
+#: financial_bot/handlers/adding_data.py:72
+#: financial_bot/handlers/adding_data.py:98
+#: financial_bot/handlers/adding_data.py:126
+msgid "The data was saved successfully."
+msgstr "Данные были успешно сохранены!"
+
+#: financial_bot/handlers/adding_data.py:75
+msgid "Please, enter a number!"
+msgstr "Введите, пожалуйста, сумму!"
+
+#: financial_bot/handlers/adding_data.py:77
+#: financial_bot/handlers/adding_data.py:104
+#: financial_bot/handlers/adding_data.py:132
+msgid "Profile not found. Please type /start"
+msgstr "Профиль не найден. Пожалуйста, введите /start"
+
+#: financial_bot/handlers/common.py:30
+#, python-brace-format
+msgid "Hello, {name}! Glad to meet you!"
+msgstr "Здравствуйте, {name}! Рад с вами познакомиться!"
+
+#: financial_bot/handlers/common.py:36
+#, python-brace-format
+msgid "Glad to see you {name}! Your balance: 0"
+msgstr "Рад вас видеть {name}! Ваш баланс: 0"
+
+#: financial_bot/handlers/common.py:47
+msgid "Action canceled. Returning to main menu..."
+msgstr "Действие отменено. Возврат в главное меню..."
+
+#: financial_bot/handlers/transactions.py:32
+#: financial_bot/handlers/transactions.py:43
+#: financial_bot/handlers/transactions.py:64
+msgid "Please enter the amount!"
+msgstr "Введите, пожалуйста, сумму!"
+
+#: financial_bot/handlers/transactions.py:49
+msgid "Select type"
+msgstr "Выберите тип"
+
+#: financial_bot/handlers/transactions.py:55
+#: financial_bot/handlers/transactions.py:94
+msgid "Select category"
+msgstr "Выберите категорию"
+
+#: financial_bot/handlers/transactions.py:75
+msgid "Select type:"
+msgstr "Выберите тип"
+
+#: financial_bot/handlers/transactions.py:79
+msgid "Enter a numeric value!"
+msgstr "Введите числовое значение!"
+
+#: financial_bot/handlers/transactions.py:105
+msgid "Write a comment"
+msgstr "Напишите комментарий"
+
+#: financial_bot/handlers/transactions.py:144
+msgid "Data saved successfully!"
+msgstr "Данные успешно сохранены!"
+
+#: financial_bot/handlers/utils.py:49
+
+msgid "Please enter a valid number."
+msgstr "Введите, пожалуйста, корректную сумму!"
+
+#: financial_bot/handlers/utils.py:50
+
+msgid "You don't have a budget set! Set a basic budget first."
+msgstr "У вас нет установленного бюджета! Сначала установите базовый бюджет."
+
+#: financial_bot/handlers/utils.py:51
+
+msgid "This amount exceeds your total budget."
+msgstr "Эта сумма превышает ваш общий бюджет."
+
+#: financial_bot/handlers/utils.py:52
+
+msgid "The amount must be greater than zero."
+msgstr "Сумма должна быть больше нуля."
+
+#: financial_bot/handlers/utils.py:54
+
+msgid "An unexpected error occurred."
+msgstr "Произошла непредвиденная ошибка."
+
+#: financial_bot/keyboards/inline.py:7
+msgid "Cancel"
+msgstr "Отмена"
+
+#: financial_bot/keyboards/inline.py:13
+msgid "Back"
+msgstr "Назад"
+
+#: financial_bot/keyboards/inline.py:19
+msgid "Income"
+msgstr "Доход"
+
+#: financial_bot/keyboards/inline.py:20
+msgid "Expense"
+msgstr "Расход"
+
+#: financial_bot/keyboards/inline.py:35
+msgid "Salary"
+msgstr "Зарплата"
+
+#: financial_bot/keyboards/inline.py:35
+msgid "Bonus"
+msgstr "Бонус"
+
+#: financial_bot/keyboards/inline.py:35
+msgid "Gift"
+msgstr "Подарок"
+
+#: financial_bot/keyboards/inline.py:35
+msgid "Deal"
+msgstr "Сделка"
+
+#: financial_bot/keyboards/inline.py:35 financial_bot/keyboards/inline.py:37
+msgid "Other"
+msgstr "Другое"
+
+#: financial_bot/keyboards/inline.py:37
+msgid "Food"
+msgstr "Еда"
+
+#: financial_bot/keyboards/inline.py:37
+msgid "Home"
+msgstr "Дом"
+
+#: financial_bot/keyboards/inline.py:37
+msgid "Entertainment"
+msgstr "Развлечения"
+
+#: financial_bot/keyboards/inline.py:37
+msgid "Transport"
+msgstr "Транспорт"
+
+#: financial_bot/keyboards/inline.py:37
+msgid "Health"
+msgstr "Здоровье"
+
+#: financial_bot/keyboards/inline.py:55
+msgid "Skip description"
+msgstr "Пропустить описание"
+
+#: financial_bot/keyboards/reply.py:7
+msgid "Enter amount"
+msgstr "Введите сумму"
+
+#: financial_bot/keyboards/reply.py:8
+msgid "Add/change data"
+msgstr "Добавить/изменить данные"
+
+#: financial_bot/keyboards/reply.py:9
+msgid "Generate report"
+msgstr "Создать отчёт"
+
+#: financial_bot/keyboards/reply.py:12
+msgid "Settings"
+msgstr "Настройки"
+
+#: financial_bot/keyboards/reply.py:13 financial_bot/keyboards/reply.py:24
+msgid "cancel"
+msgstr "Отмена"
+
+#~ msgid "type"
+#~ msgstr "Тип"
+
+#~ msgid "cat"
+#~ msgstr ""
+
+#~ msgid "Food"
+#~ msgstr "Еда"
+
+#~ msgid "Home"
+#~ msgstr "Дом"
+
+#~ msgid "Entertainment"
+#~ msgstr "Развлечения"
+
+#~ msgid "Transport"
+#~ msgstr "Транспорт"
+
+#~ msgid "Health"
+#~ msgstr "Здоровье"
+
+#~ msgid "Other"
+#~ msgstr "Другое"
+
+#~ msgid "Description"
+#~ msgstr "Описание"
+
+#~ msgid "Main menu"
+#~ msgstr ""
+
+#~ msgid "The budget was successfully saved."
+#~ msgstr "Бюджет был успешно сохранён."
+
+#~ msgid "The spending limit was successfully saved."
+#~ msgstr "Лимит расходов был успешно сохранён."
+
+#~ msgid ""
+#~ "**Please enter a valid number.**\n"
+#~ "For example: 500 or 100.50"
+#~ msgstr ""
+#~ "**Пожалуйста, введите корректное число.**\n"
+#~ "Например: 500 или 100.50"
+

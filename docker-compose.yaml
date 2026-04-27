@@ -1,9 +1,32 @@
+x-common-setup: &common-setup
+  build:
+    context: .
+    args:
+      USER_ID: ${USER_ID:-1000}
+      GROUP_ID: ${GROUP_ID:-1000}
+  user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "50m"
+      max-file: "3"
+  restart: on-failure
+  networks:
+    - app-network
+  dns:
+    - 8.8.8.8
+    - 1.1.1.1
+
+
 services:
   app:
-    build: .
+
+    <<: *common-setup
+
     volumes:
       - ./application:/application/application
-      - ./alembic:/application/alembic
+      - ./financial_bot:/application/financial_bot
+      - ./migrations:/application/migrations
       - ./static:/application/static
       - ./alembic.ini:/application/alembic.ini
       - ./main.py:/application/main.py
@@ -12,32 +35,63 @@ services:
       - ./tests:/application/tests
       - ./media:/application/media
       - ./${LOG_PATH:-./logs}:/application/logs
+      - ./core:/application/core
+      - ./logger_config.py:/application/logger_config.py
 
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
-
+    command: ["python", "main.py", "--reload", "--log-level", "debug"]
 
     ports:
       - "8000:8000"
+
+    environment:
+      - PYTHONPATH=/application
+      - PYTHONUNBUFFERED=1
+      - LOG_FILENAME=fastapi.log
 
     env_file:
       - .env
       - .env.test
 
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+
+
+
+  fin_bot:
+
+    <<: *common-setup
+
+    entrypoint: ./entrypoint.sh
+    volumes:
+      - ./financial_bot:/application/financial_bot
+      - ./migrations:/application/migrations
+      - ./alembic.ini:/application/alembic.ini
+      - ./pytest.ini:/application/pytest.ini
+      - ./requirement.txt:/application/requirement.txt
+      - ./tests:/application/tests
+      - ./${LOG_PATH:-./logs}:/application/logs
+      - ./core:/application/core
+      - ./logger_config.py:/application/logger_config.py
+
+    command: python -m financial_bot.main
+
     environment:
+      - PYTHONPATH=/application
       - PYTHONUNBUFFERED=1
+      - LOG_FILENAME=bot.log
+
+    env_file:
+      - .env
+      - .env.test
 
     depends_on:
       db:
         condition: service_healthy
 
-    restart: on-failure
 
-    networks:
-      - app-network
 
   db:
     image: postgres
@@ -66,7 +120,7 @@ services:
       - app-network
 
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U admin" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -92,9 +146,55 @@ services:
       - app-network
 
 
+  redis:
+    image: redis:7.4.2-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+
+    networks:
+      - app-network
+
+  test_redis:
+    image: redis:7.4.2-alpine
+    # Порт 6380 снаружи, чтобы не конфликтовал с основным redis (6379)
+    ports:
+      - "6380:6379"
+
+    networks:
+      - app-network
+
+  worker:
+    <<: *common-setup
+
+    volumes:
+      - ./financial_bot:/application/financial_bot
+      - ./migrations:/application/migrations
+      - ./alembic.ini:/application/alembic.ini
+      - ./core:/application/core
+      - ./${LOG_PATH:-./logs}:/application/logs
+      - ./logger_config.py:/application/logger_config.py
+
+    command: celery -A core.celery_app:app worker --loglevel=info
+    depends_on:
+      - redis
+      - db
+    environment:
+      - PYTHONPATH=/application
+      - PYTHONUNBUFFERED=1
+      - LOG_FILENAME=worker.log
+      - REDIS_URL=${CELERY_BROKER_URL}
+      - DATABASE_URL=${DATABASE_URL_DOCKER}
+
+    env_file:
+      - .env
+
+
 networks:
   app-network:
     driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: "1400"
 
 
 volumes:

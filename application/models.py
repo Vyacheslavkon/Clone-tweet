@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from application.database import Base
+from core.database import Base
 
 
 class Tweet(Base):

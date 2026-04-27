@@ -10,9 +10,10 @@ from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
 from starlette.staticfiles import StaticFiles
 
-from application.database import engine
+from application.exceptions import setup_exception_handlers
 from application.routes import router
-from config import CSS_DIR, JS_DIR, MEDIA_DIR, STATIC_DIR
+from core.config import CSS_DIR, JS_DIR, MEDIA_DIR, STATIC_DIR
+from core.database import engine
 from logger_config import setup_logging
 from migrations import utils
 
@@ -31,6 +32,8 @@ setup_logging()
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(router)
+setup_exception_handlers(app)
+
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 app.mount("/js", StaticFiles(directory=str(JS_DIR)), name="js")

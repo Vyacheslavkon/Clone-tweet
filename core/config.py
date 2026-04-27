@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 CURRENT_FILE = Path(__file__).resolve()
-BASE_DIR = CURRENT_FILE.parent
+BASE_DIR = CURRENT_FILE.parent.parent
 ROOT_DIR = BASE_DIR.parent
 
 STATIC_DIR = BASE_DIR / "static"
@@ -21,3 +21,5 @@ else:
     "".replace("postgresql+asyncpg://", "postgresql://")  # new
 
 ALEMBIC_SCRIPTS = BASE_DIR / "migrations"
+
+TOKEN_BOT = os.getenv("BOT_TOKEN")

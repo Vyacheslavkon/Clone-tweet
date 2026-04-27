@@ -66,4 +66,4 @@ async def test_delete_tweet_integrity_error(
         )
 
         assert response.status_code == 400
-        assert response.json()["detail"] == "Entry does not exist."
+        assert "Entry does not exist." in response.json()["detail"]
