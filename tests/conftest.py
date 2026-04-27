@@ -53,7 +53,7 @@ async def test_session():
 async def test_redis():
 
     #redis = Redis(host="test_redis", port=6379, db=3)
-    redis = Redis(host=REDIS_HOST, port=6379, db=3)
+    redis = Redis(host=REDIS_HOST, port=6379, db=3)#new
     yield redis
     await redis.flushdb()
     await redis.aclose()
