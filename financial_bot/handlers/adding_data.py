@@ -79,9 +79,7 @@ async def saving_value_budget(
 
         else:
             data = AddData(monthly_budget=value_budget)
-            old_value_budget = await get_monthly_budget(
-                session, message.from_user.id
-            )  # new
+            old_value_budget = await get_monthly_budget(session, message.from_user.id)
             await add_data_for_user(session, data, message.from_user.id)
             if old_value_budget is not None:
                 await message.answer(_("Enter the spending limit amount"))
