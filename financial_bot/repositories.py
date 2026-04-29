@@ -1,8 +1,9 @@
 from decimal import Decimal
+from datetime import datetime, time, timezone
 
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.exceptions import UserNotFoundError
@@ -97,3 +98,34 @@ async def get_saved_goal(session: AsyncSession, tg_id: int) -> Decimal | None:
         saved_goal = None
 
     return saved_goal
+
+
+async def get_income_day(session: AsyncSession, tg_id: int) -> list:
+
+    user = await get_user_by_id(session, tg_id)
+
+    if user is not None:
+        today_start = datetime.combine(datetime.now(timezone.utc).date(), time.min,
+                                       tzinfo=timezone.utc)
+        today_end = datetime.combine(datetime.now(timezone.utc).date(), time.max,
+                                     tzinfo=timezone.utc)
+        query = (
+            select(
+                Transactions.type,
+                Transactions.category,
+                func.sum(Transactions.amount).label("total")
+            )
+            .where(Transactions.created_at.between(today_start, today_end))
+            .group_by(Transactions.type, Transactions.category)
+            )
+
+        results = await session.execute(query)
+
+        res =  results.all()
+
+    else:
+        logger.warning("User with id {} not found", tg_id)
+
+        res = []
+
+    return res

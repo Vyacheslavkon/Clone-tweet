@@ -36,11 +36,11 @@ async def test_adding_value_budget(
 
     keyboard_check(buttons, mock_bot, test_i18n)
 
-    text = test_i18n.gettext("monthly budget")
+    text = test_i18n.gettext("monthly planned budget")
     msg_first = create_message(text=text, user_id=user_id, update_id=2)
     await test_dp.feed_update(mock_bot, msg_first)
 
-    expected_text = test_i18n.gettext("Enter your estimated monthly budget")
+    expected_text = test_i18n.gettext("Enter your estimated monthly planned budget")
     called_bot(mock_bot, expected_text)
 
     await state.set_state(AddDataState.waiting_for_monthly_budget)
@@ -68,11 +68,11 @@ async def test_change_value_budget(
     state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
     await state.set_state(AddDataState.waiting_for_type_data)
 
-    text = test_i18n.gettext("monthly budget")
+    text = test_i18n.gettext("monthly planned budget")
     msg_first = create_message(text=text, user_id=user_id, update_id=1)
     await test_dp.feed_update(mock_bot, msg_first)
 
-    expected_text = test_i18n.gettext("Enter your estimated monthly budget")
+    expected_text = test_i18n.gettext("Enter your estimated monthly planned budget")
     called_bot(mock_bot, expected_text)
 
     await state.set_state(AddDataState.waiting_for_monthly_budget)
@@ -107,11 +107,11 @@ async def test_invalid_value_budget(
     state = test_dp.fsm.get_context(bot=mock_bot, chat_id=user_id, user_id=user_id)
     await state.set_state(AddDataState.waiting_for_type_data)
 
-    text = test_i18n.gettext("monthly budget")
+    text = test_i18n.gettext("monthly planned budget")
     msg_first = create_message(text=text, user_id=user_id, update_id=1)
     await test_dp.feed_update(mock_bot, msg_first)
 
-    expected_text = test_i18n.gettext("Enter your estimated monthly budget")
+    expected_text = test_i18n.gettext("Enter your estimated monthly planned budget")
 
     called_bot(mock_bot, expected_text)
 
@@ -176,7 +176,7 @@ async def test_add_limit_expense_no_budget(
     msg_first = create_message(text=text, user_id=user_id, update_id=1)
     await test_dp.feed_update(mock_bot, msg_first)
 
-    expected_text = test_i18n.gettext("Please set a monthly budget first.")
+    expected_text = test_i18n.gettext("Please set a monthly planned budget first.")
     called_bot(mock_bot, expected_text)
 
 
@@ -222,7 +222,7 @@ async def test_limit_expense_zero_or_no_budget(
     await test_dp.feed_update(mock_bot, msg)
 
     expected_text = test_i18n.gettext(
-        "You don't have a budget set! Set a basic budget first."
+        "You don't have a planned budget set! Set a basic planned budget first."
     )
     called_bot(mock_bot, expected_text)
 
@@ -287,7 +287,7 @@ async def test_saved_goal_no_budget(
     msg_first = create_message(text=text, user_id=user_id, update_id=1)
     await test_dp.feed_update(mock_bot, msg_first)
 
-    expected_text = test_i18n.gettext("Please set a monthly budget first.")
+    expected_text = test_i18n.gettext("Please set a monthly planned budget first.")
     called_bot(mock_bot, expected_text)
 
 
@@ -307,7 +307,7 @@ async def test_saving_goal_zero_or_no_budget(
     await test_dp.feed_update(mock_bot, msg)
 
     expected_text = test_i18n.gettext(
-        "You don't have a budget set! Set a basic budget first."
+        "You don't have a planned budget set! Set a basic planned budget first."
     )
     called_bot(mock_bot, expected_text)
 

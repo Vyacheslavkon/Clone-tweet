@@ -29,7 +29,7 @@ def keyboards() -> tuple:
         "cancel",
         "Enter amount",
     ]
-    buttons = ["monthly budget", "limit expense", "savings goal", "cancel"]
+    buttons = ["monthly planned budget", "limit expense", "savings goal", "cancel"]
 
     return main_menu, buttons
 
@@ -43,7 +43,7 @@ dict_invalid_data = {
 
 comparison_dict = {
     "hello": "Please enter a valid number.",
-    "5000": "This amount exceeds your total budget.",
+    "5000": "This amount exceeds your planned budget.",
     "0": "The amount must be greater than zero.",
     "-100": "The amount must be greater than zero.",
 }

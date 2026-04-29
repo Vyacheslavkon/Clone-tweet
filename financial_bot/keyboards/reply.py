@@ -20,7 +20,7 @@ def get_main_menu():
 def change_data():
     builder = ReplyKeyboardBuilder()
     builder.row(
-        KeyboardButton(text=_("monthly budget")),
+        KeyboardButton(text=_("monthly planned budget")),
         KeyboardButton(text=_("limit expense")),
         KeyboardButton(text=_("savings goal")),
     )

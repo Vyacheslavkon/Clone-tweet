@@ -73,3 +73,21 @@ def get_description():
     builder.attach(back_builder)
     builder.attach(cancel_builder)
     return builder.as_markup()
+
+
+def period_report():
+    builder = InlineKeyboardBuilder()
+
+    builder.add(
+        InlineKeyboardButton(text="day", callback_data="day")
+    )
+
+    builder.add(
+        InlineKeyboardButton(text="month", callback_data="month")
+    )
+
+    builder.adjust(2)
+    cancel_builder = cancel()
+    builder.attach(cancel_builder)
+
+    return builder.as_markup()

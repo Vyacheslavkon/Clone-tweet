@@ -46,8 +46,8 @@ def transform(budget: Decimal, second_value: str) -> int | str:
 def get_error_text(error_code: str) -> str:
     errors = {
         "invalid_format": _("Please enter a valid number."),
-        "no_budget": _("You don't have a budget set! Set a basic budget first."),
-        "too_big": _("This amount exceeds your total budget."),
+        "no_budget": _("You don't have a monthly planned budget set! Set a basic monthly planned budget first."),
+        "too_big": _("This amount exceeds your planned budget."),
         "too_small": _("The amount must be greater than zero."),
     }
     return errors.get(error_code, _("An unexpected error occurred."))
