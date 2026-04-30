@@ -79,11 +79,11 @@ def period_report():
     builder = InlineKeyboardBuilder()
 
     builder.add(
-        InlineKeyboardButton(text="day", callback_data="day")
+        InlineKeyboardButton(text=_("day"), callback_data="day")
     )
 
     builder.add(
-        InlineKeyboardButton(text="month", callback_data="month")
+        InlineKeyboardButton(text=_("month"), callback_data="month")
     )
 
     builder.adjust(2)

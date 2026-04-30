@@ -100,24 +100,24 @@ async def get_saved_goal(session: AsyncSession, tg_id: int) -> Decimal | None:
     return saved_goal
 
 
-async def get_income_day(session: AsyncSession, tg_id: int) -> list:
+async def get_report_period(session: AsyncSession, tg_id: int,
+                         date_start: datetime, date_end: datetime) -> list:
 
     user = await get_user_by_id(session, tg_id)
 
     if user is not None:
-        today_start = datetime.combine(datetime.now(timezone.utc).date(), time.min,
-                                       tzinfo=timezone.utc)
-        today_end = datetime.combine(datetime.now(timezone.utc).date(), time.max,
-                                     tzinfo=timezone.utc)
+
+
         query = (
             select(
                 Transactions.type,
                 Transactions.category,
                 func.sum(Transactions.amount).label("total")
             )
-            .where(Transactions.created_at.between(today_start, today_end))
+            .where(Transactions.user_id == user.id,
+                   Transactions.created_at.between(date_start, date_end))
             .group_by(Transactions.type, Transactions.category)
-            )
+        )
 
         results = await session.execute(query)
 

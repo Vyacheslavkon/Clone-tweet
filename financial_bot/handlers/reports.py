@@ -3,12 +3,15 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.utils.i18n import gettext as _
+from datetime import datetime, timezone, time
 from loguru import logger
 
 from financial_bot.keyboards.inline import period_report
-from financial_bot.repositories import get_income_day
+from financial_bot.repositories import get_report_period
 from financial_bot.filters import I18nTextFilter
 from financial_bot.states.generate_report import GenerateReport
+from financial_bot.handlers.utils import formatters, get_month_boundaries, get_month_name
+
 
 
 report_rout = Router()
@@ -21,42 +24,39 @@ async def reports_period(message: Message, state: FSMContext):
 
 
 @report_rout.callback_query(F.data == "day", GenerateReport.waiting_for_period)
-async def  report_day(callback: CallbackQuery, session: AsyncSession,  state: FSMContext):
+async def  report_day(callback: CallbackQuery, session: AsyncSession):
 
-    # if not callback.data or not isinstance(callback.message, Message):
-    #     await callback.answer()
-    #     return
+    if not callback.data or not isinstance(callback.message, Message):
+        await callback.answer()
+        return
 
-    # report = await get_income_day(session, callback.from_user.id)
-    #
-    # await callback.message.edit_text(report)
-    # await callback.answer()
+    today_start = datetime.combine(datetime.now(timezone.utc).date(), time.min,
+                                   tzinfo=timezone.utc)
+    today_end = datetime.combine(datetime.now(timezone.utc).date(), time.max,
+                                 tzinfo=timezone.utc)
 
-    data = await get_income_day(session, callback.from_user.id)
+    data = await get_report_period(session, callback.from_user.id, today_start, today_end)
 
-    if not data:
-        report_text = "Данных за сегодня нет 🤷‍♂️"
-    else:
-        income_total = 0
-        expense_total = 0
-        income_details = ""
-        expense_details = ""
+    period = _("day")
 
-        for row in data:
-            # row.type, row.category, row.total
-            if row.type == 'income':
-                income_total += row.total
-                income_details += f"  • {row.category}: {row.total}\n"
-            else:
-                expense_total += row.total
-                expense_details += f"  • {row.category}: {row.total}\n"
+    report_text = formatters(data, period)
 
-        report_text = (
-            f"<b>Отчет за сегодня:</b>\n\n"
-            f"💰 <b>Доходы: {income_total}</b>\n{income_details}"
-            f"\n"
-            f"💸 <b>Расходы: {expense_total}</b>\n{expense_details}"
-        )
+    await callback.message.edit_text(text=report_text, parse_mode="HTML")
 
-    # Теперь передаем сформированную СТРОКУ
+
+@report_rout.callback_query(F.data == "month", GenerateReport.waiting_for_period)
+async def  report_monthly(callback: CallbackQuery, session: AsyncSession):
+
+    if not callback.data or not isinstance(callback.message, Message):
+        await callback.answer()
+        return
+
+    start_day, end_day, current_month = get_month_boundaries()
+
+    data = await get_report_period(session, callback.from_user.id, start_day, end_day)
+
+    period = get_month_name(current_month)
+
+    report_text = formatters(data, period)
+
     await callback.message.edit_text(text=report_text, parse_mode="HTML")

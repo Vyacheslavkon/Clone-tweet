@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-04-29 20:40+1000\n"
+"POT-Creation-Date: 2026-04-30 22:39+1000\n"
 "PO-Revision-Date: 2026-04-05 19:51+1000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -77,18 +77,11 @@ msgid "Profile not found. Please type /start"
 msgstr "Профиль не найден. Пожалуйста, введите /start"
 
 #: financial_bot/handlers/adding_data.py:110
+#: financial_bot/handlers/adding_data.py:150
 msgid "You don't have a planned budget set! Set a basic planned budget first."
 msgstr ""
 "У вас нет установленного планируемого бюджета! Сначала установите базовый"
 " бюджет."
-
-#: financial_bot/handlers/adding_data.py:150
-msgid ""
-"You don't have a planned budget set! Set a basic planned budget budget "
-"first."
-msgstr ""
-"У вас нет установленного бюджета! Сначала установите базовый планируемый "
-"бюджет."
 
 #: financial_bot/handlers/common.py:35
 #, python-brace-format
@@ -103,6 +96,14 @@ msgstr "Рад вас видеть {name}! Ваш баланс: 0"
 #: financial_bot/handlers/common.py:57
 msgid "Action canceled. Returning to main menu..."
 msgstr "Действие отменено. Возврат в главное меню..."
+
+#: financial_bot/handlers/reports.py:22
+msgid "please, select period"
+msgstr "Пожалуйста, выберите период"
+
+#: financial_bot/handlers/reports.py:40 financial_bot/keyboards/inline.py:82
+msgid "day"
+msgstr "день"
 
 #: financial_bot/handlers/transactions.py:35
 #: financial_bot/handlers/transactions.py:44
@@ -140,29 +141,99 @@ msgstr "Напишите комментарий"
 msgid "Data saved successfully!"
 msgstr "Данные успешно сохранены!"
 
-#: financial_bot/handlers/utils.py:48
+#: financial_bot/handlers/utils.py:50
 msgid "Please enter a valid number."
 msgstr "Введите, пожалуйста, корректную сумму!"
 
-#: financial_bot/handlers/utils.py:49
+#: financial_bot/handlers/utils.py:51
 msgid ""
 "You don't have a monthly planned budget set! Set a basic monthly planned "
 "budget first."
 msgstr ""
-"У вас нет установленного планируемого бюджета! Сначала установите базовый месячный планируемый"
-" бюджет."
+"У вас нет установленного планируемого бюджета! Сначала установите базовый"
+" месячный планируемый бюджет."
 
-#: financial_bot/handlers/utils.py:50
+#: financial_bot/handlers/utils.py:52
 msgid "This amount exceeds your planned budget."
 msgstr "Эта сумма превышает ваш планируемый бюджет."
 
-#: financial_bot/handlers/utils.py:51
+#: financial_bot/handlers/utils.py:53
 msgid "The amount must be greater than zero."
 msgstr "Сумма должна быть больше нуля."
 
-#: financial_bot/handlers/utils.py:53
+#: financial_bot/handlers/utils.py:55
 msgid "An unexpected error occurred."
 msgstr "Произошла непредвиденная ошибка."
+
+#: financial_bot/handlers/utils.py:61
+#, python-brace-format
+msgid "There is no data for {period} 🤷‍♂️"
+msgstr "Данные отсутствуют за {period}"
+
+#: financial_bot/handlers/utils.py:81
+#, python-brace-format
+msgid ""
+"<b>Report for {period}:</b>\n"
+"\n"
+"💰 <b>Incomes: {total_inc_str}</b>\n"
+"{income_details}\n"
+"💸 <b>Expense: {total_exp_str}</b>\n"
+"{expense_details}"
+msgstr ""
+"<b>Отчёт за {period}:</b>\n"
+"\n"
+"💰 <b>Доходы: {total_inc_str}</b>\n"
+"{income_details}\n"
+"💸 <b>Расходы: {total_exp_str}</b>\n"
+"{expense_details}"
+
+#: financial_bot/handlers/utils.py:113
+msgid "January"
+msgstr "Январь"
+
+#: financial_bot/handlers/utils.py:113
+msgid "February"
+msgstr "Февраль"
+
+#: financial_bot/handlers/utils.py:113
+msgid "March"
+msgstr "Март"
+
+#: financial_bot/handlers/utils.py:114
+msgid "April"
+msgstr "Апрель"
+
+#: financial_bot/handlers/utils.py:114
+msgid "May"
+msgstr "Май"
+
+#: financial_bot/handlers/utils.py:114
+msgid "June"
+msgstr "Июнь"
+
+#: financial_bot/handlers/utils.py:115
+msgid "July"
+msgstr "Июль"
+
+#: financial_bot/handlers/utils.py:115
+msgid "August"
+msgstr "Август"
+
+#: financial_bot/handlers/utils.py:115
+msgid "September"
+msgstr "Сентябрь"
+
+#: financial_bot/handlers/utils.py:116
+msgid "October"
+msgstr "Октябрь"
+
+#: financial_bot/handlers/utils.py:116
+msgid "November"
+msgstr "Ноябрь"
+
+#: financial_bot/handlers/utils.py:116
+msgid "December"
+msgstr "Декабрь"
 
 #: financial_bot/keyboards/inline.py:8
 msgid "Cancel"
@@ -223,6 +294,10 @@ msgstr "Здоровье"
 #: financial_bot/keyboards/inline.py:65
 msgid "Skip description"
 msgstr "Пропустить описание"
+
+#: financial_bot/keyboards/inline.py:86
+msgid "month"
+msgstr "месяц"
 
 #: financial_bot/keyboards/reply.py:9
 msgid "Enter amount"
@@ -289,4 +364,15 @@ msgstr "Отмена"
 
 #~ msgid "You don't have a budget set! Set a basic budget first."
 #~ msgstr "У вас нет установленного бюджета! Сначала установите базовый бюджет."
+
+#~ msgid ""
+#~ "You don't have a planned budget "
+#~ "set! Set a basic planned budget "
+#~ "budget first."
+#~ msgstr ""
+#~ "У вас нет установленного бюджета! "
+#~ "Сначала установите базовый планируемый бюджет."
+
+#~ msgid "There is no data for {} 🤷‍♂️"
+#~ msgstr ""
 
