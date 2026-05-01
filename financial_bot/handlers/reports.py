@@ -7,7 +7,7 @@ from datetime import datetime, timezone, time
 from loguru import logger
 
 from financial_bot.keyboards.inline import period_report
-from financial_bot.repositories import get_report_period
+from financial_bot.repositories import get_report_period, get_planned_goals
 from financial_bot.filters import I18nTextFilter
 from financial_bot.states.generate_report import GenerateReport
 from financial_bot.handlers.utils import formatters, get_month_boundaries, get_month_name
@@ -54,9 +54,10 @@ async def  report_monthly(callback: CallbackQuery, session: AsyncSession):
     start_day, end_day, current_month = get_month_boundaries()
 
     data = await get_report_period(session, callback.from_user.id, start_day, end_day)
+    planned_data = await get_planned_goals(session, callback.from_user.id)
 
     period = get_month_name(current_month)
 
-    report_text = formatters(data, period)
+    report_text = formatters(data, period, planned_data)
 
     await callback.message.edit_text(text=report_text, parse_mode="HTML")

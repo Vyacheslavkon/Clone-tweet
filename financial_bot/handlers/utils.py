@@ -4,6 +4,7 @@ import calendar
 
 from aiogram.utils.i18n import gettext as _
 
+from financial_bot.schemas import Plan
 
 def check_value_budget(amount: str) -> Decimal | str:
     try:
@@ -55,7 +56,17 @@ def get_error_text(error_code: str) -> str:
     return errors.get(error_code, _("An unexpected error occurred."))
 
 
-def formatters(data: list, period_name: str) -> str:
+def fmt_limit_expense(expense: Decimal, plan: Plan):
+     limit_expense = plan.monthly_budget / 100 * plan.budget_remind_percent
+     balance_limit = limit_expense - expense
+     diff_limit = limit_expense - balance_limit
+     balance_limit_persent = round(diff_limit / limit_expense * 100)
+
+     return  limit_expense, balance_limit_persent
+
+
+
+def formatters(data: list, period_name: str, plan: Plan = None) -> str:
 
     if not data:
         report_text = _("There is no data for {period} 🤷‍♂️").format(period=period_name)
@@ -77,6 +88,7 @@ def formatters(data: list, period_name: str) -> str:
         total_inc_str = f"{income_total:,.2f}".replace(",", " ")
         total_exp_str = f"{expense_total:,.2f}".replace(",", " ")
 
+
         report_text = _(
             "<b>Report for {period}:</b>\n\n"
             "💰 <b>Incomes: {total_inc_str}</b>\n{income_details}"
@@ -90,7 +102,28 @@ def formatters(data: list, period_name: str) -> str:
             expense_details=expense_details
         )
 
+        if period_name != "day" and plan:
+            def fmt(val):return f"{val:,.2f}".replace(",", " ")
+
+            planning_lines = []
+
+
+            if plan.monthly_budget:
+                planning_lines.append(_(f"  • Planned budget: {fmt(plan.monthly_budget)} "))
+            if plan.budget_remind_percent:
+                lim_expense, balance = fmt_limit_expense(expense_total, plan)
+                planning_lines.append(_(f"  • Limit expense: {fmt(lim_expense)}"))
+                planning_lines.append(_(f"  • Limit spent: {balance}%"))
+            if plan.savings_goal:
+                planning_lines.append(_(f"  • Savings goal: {fmt(plan.savings_goal)} "))
+
+            if planning_lines:
+                report_text += "\n\n🎯 <b>Planning:</b>\n" + "\n".join(planning_lines)
+
+
+
     return report_text
+
 
 
 def get_month_boundaries():

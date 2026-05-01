@@ -11,6 +11,7 @@ from financial_bot.models import Transactions, UserBot
 from financial_bot.schemas import (
     AddData,
     CreateUser,
+    Plan
 )
 
 
@@ -98,6 +99,20 @@ async def get_saved_goal(session: AsyncSession, tg_id: int) -> Decimal | None:
         saved_goal = None
 
     return saved_goal
+
+
+async def get_planned_goals(session: AsyncSession, tg_id: int) -> Plan:
+    user = await get_user_by_id(session, tg_id)
+
+    if not user:
+        logger.warning("User with id {} not found", tg_id)
+        return Plan()
+
+    return Plan(
+        monthly_budget=user.monthly_budget,
+        budget_remind_percent=user.budget_remind_percent,
+        savings_goal=user.savings_goal
+    )
 
 
 async def get_report_period(session: AsyncSession, tg_id: int,
