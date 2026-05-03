@@ -83,7 +83,30 @@ def period_report():
     )
 
     builder.add(
+        InlineKeyboardButton(text=_("week"), callback_data="week")
+    )
+
+    builder.add(
         InlineKeyboardButton(text=_("month"), callback_data="month")
+    )
+
+    builder.adjust(1)
+    cancel_builder = cancel()
+    builder.attach(cancel_builder)
+
+    return builder.as_markup()
+
+
+def report_history():
+
+    builder = InlineKeyboardBuilder()
+
+    builder.add(
+        InlineKeyboardButton(text=_("last two weeks"), callback_data="two_week")
+    )
+
+    builder.add(
+        InlineKeyboardButton(text=_("arbitrary period"), callback_data="period")
     )
 
     builder.adjust(2)

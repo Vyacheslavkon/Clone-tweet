@@ -3,14 +3,19 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.utils.i18n import gettext as _
-from datetime import datetime, timezone, time
+from datetime import datetime, timezone, time, timedelta
 from loguru import logger
 
-from financial_bot.keyboards.inline import period_report
+from financial_bot.keyboards.inline import period_report, report_history
 from financial_bot.repositories import get_report_period, get_planned_goals
 from financial_bot.filters import I18nTextFilter
 from financial_bot.states.generate_report import GenerateReport
-from financial_bot.handlers.utils import formatters, get_month_boundaries, get_month_name
+from financial_bot.states.history_states import HistoryState
+from financial_bot.handlers.utils import (formatters,
+                                          get_month_boundaries,
+                                          get_month_name,
+                                          get_week_boundaries,
+                                          format_multi_report)
 
 
 
@@ -44,6 +49,24 @@ async def  report_day(callback: CallbackQuery, session: AsyncSession):
     await callback.message.edit_text(text=report_text, parse_mode="HTML")
 
 
+@report_rout.callback_query(F.data == "week", GenerateReport.waiting_for_period)
+async def report_week(callback: CallbackQuery, session: AsyncSession):
+
+    if not callback.data or not isinstance(callback.message, Message):
+        await callback.answer()
+        return
+
+    period = "week"
+
+    start_day, end_day = get_week_boundaries()
+
+    data = await get_report_period(session, callback.from_user.id, start_day, end_day)
+
+    report_text = formatters(data, period)
+
+    await callback.message.edit_text(text=report_text, parse_mode="HTML")
+
+
 @report_rout.callback_query(F.data == "month", GenerateReport.waiting_for_period)
 async def  report_monthly(callback: CallbackQuery, session: AsyncSession):
 
@@ -61,3 +84,6 @@ async def  report_monthly(callback: CallbackQuery, session: AsyncSession):
     report_text = formatters(data, period, planned_data)
 
     await callback.message.edit_text(text=report_text, parse_mode="HTML")
+
+
+

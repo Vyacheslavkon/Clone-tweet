@@ -12,6 +12,7 @@ from financial_bot.handlers.common import router
 from financial_bot.handlers.fallback import router_fallback
 from financial_bot.handlers.transactions import router_tr
 from financial_bot.handlers.reports import report_rout
+from financial_bot.handlers.history import history_rout
 from financial_bot.middlewares import MyI18nMiddleware, SessionMiddleware
 from logger_config import setup_logging
 
@@ -35,6 +36,7 @@ async def main():
     dp.include_router(router_tr)
     dp.include_router(router_data)
     dp.include_router(report_rout)
+    dp.include_router(history_rout)
     dp.include_router(router_fallback)
 
     try:

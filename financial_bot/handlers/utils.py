@@ -1,5 +1,5 @@
 from decimal import Decimal, InvalidOperation
-from datetime import datetime, time, timezone
+from datetime import datetime, time, timezone, timedelta
 import calendar
 
 from aiogram.utils.i18n import gettext as _
@@ -125,6 +125,51 @@ def formatters(data: list, period_name: str, plan: Plan = None) -> str:
     return report_text
 
 
+def format_multi_report(reports_data: list[dict]) -> str:
+    """
+    Принимает список словарей вида:
+    [{'data': data, 'period_name': '...', 'plan': plan}, ...]
+    """
+    parts = []
+    for el in reports_data:
+        # Вызываем ваш основной formatter для каждой части
+        part = formatters(el['data'], el['period_name'], el.get('plan'))
+        parts.append(part)
+
+    # Склеиваем всё через красивый разделитель
+    return "\n\n" + "───────────────────\n".join(parts)
+
+
+# def get_week_boundaries(target_date: datetime = None):
+#     if target_date is None:
+#         target_date = datetime.now(timezone.utc)
+#
+#
+#     start_of_week = target_date - timedelta(days=target_date.weekday())
+#     start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+#
+#     end_of_week = start_of_week + timedelta(days=6, hours=23, minutes=59, seconds=59)
+#
+#     return start_of_week, end_of_week
+
+
+def get_week_boundaries(name_week: str = None):
+    now = datetime.now(timezone.utc)
+    if name_week is None:
+        target_date = now
+    else:
+        target_date = now - timedelta(days=7)
+
+    start_of_week = target_date - timedelta(days=target_date.weekday())
+    start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    end_of_week = start_of_week + timedelta(days=6, hours=23, minutes=59, seconds=59)
+
+    return start_of_week, end_of_week
+
+
+
+
 
 def get_month_boundaries():
 
@@ -150,3 +195,5 @@ def get_month_name(number: int) -> str:
     ]
 
     return month_rus[number]
+
+
