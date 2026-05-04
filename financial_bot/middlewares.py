@@ -1,10 +1,12 @@
 from typing import Any, Awaitable, Callable, Dict, Optional
+import time
 
 from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message, TelegramObject
 from aiogram.utils.i18n import I18nMiddleware
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio.session import AsyncSession
+from loguru import logger
 
 from financial_bot.repositories import get_user_by_id
 
@@ -50,19 +52,32 @@ class MyI18nMiddleware(I18nMiddleware):
 
         return str(self.i18n.default_locale)
 
-        return self.i18n.default_locale
+
+class UserActivityMiddleware(BaseMiddleware):
+    async def __call__(self, handler, event: TelegramObject, data: dict):
+        user = data.get("event_from_user")
+        user_id = user.id if user else "unknown"
+        username = f"(@{user.username})" if user and user.username else ""
 
 
-# user = await get_user_by_id(session, event.from_user.id)
-#
-# if user and user.language_code:
-#     active_lang = user.language_code
-#
-# else:
-#     active_lang = event.from_user.language_code or "en"
-#
-# if active_lang not in LANGUAGE:
-#     active_lang = "en"
-#
-#
-# data['lp'] = LANGUAGE.get(active_lang, LANGUAGE['en'])
+        if isinstance(event, Message):
+            action = f"Msg: {event.text}"
+        elif isinstance(event, CallbackQuery):
+            action = f"CB: {event.data}"
+        else:
+            action = "Other update"
+
+
+        start_time = time.time()
+
+        logger.info(f"ID: {user_id} {username} | {action}")
+        result = await handler(event, data)
+        duration = time.time() - start_time
+        logger.debug(f"ID: {user_id} | Done in {duration:.3f}s")
+
+        return result
+
+
+
+
+
