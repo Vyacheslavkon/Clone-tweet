@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.utils.i18n import gettext as _
 from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback
 from datetime import datetime
-from loguru import logger
 
 from financial_bot.keyboards.inline import report_history
 from financial_bot.repositories import get_report_period

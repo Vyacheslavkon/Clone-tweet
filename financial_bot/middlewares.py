@@ -2,7 +2,7 @@ from typing import Any, Awaitable, Callable, Dict, Optional
 import time
 
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery, Message, TelegramObject
+from aiogram.types import CallbackQuery, Message, TelegramObject, Update
 from aiogram.utils.i18n import I18nMiddleware
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -54,28 +54,35 @@ class MyI18nMiddleware(I18nMiddleware):
 
 
 class UserActivityMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event: TelegramObject, data: dict):
+    async def __call__(self, handler, event: Update, data: dict):
         user = data.get("event_from_user")
         user_id = user.id if user else "unknown"
         username = f"(@{user.username})" if user and user.username else ""
 
-
-        if isinstance(event, Message):
-            action = f"Msg: {event.text}"
-        elif isinstance(event, CallbackQuery):
-            action = f"CB: {event.data}"
+        if event.message:
+            payload = event.message.text if event.message.text else f"[{event.message.content_type}]"
+            action = f"Msg: {payload}"
+        elif event.callback_query:
+            action = f"CB: {event.callback_query.data}"
+        elif event.inline_query:
+            action = f"Inline: {event.inline_query.query}"
         else:
-            action = "Other update"
+            action = f"Other update type"
 
 
         start_time = time.time()
-
-        logger.info(f"ID: {user_id} {username} | {action}")
-        result = await handler(event, data)
-        duration = time.time() - start_time
-        logger.debug(f"ID: {user_id} | Done in {duration:.3f}s")
+        try:
+            result = await handler(event, data)
+        finally:
+            duration = time.time() - start_time
+            logger.info(f"User: {user_id}| Username: {username} | Action: {action} | Time: {duration:.3f}s")
 
         return result
+
+
+
+
+
 
 
 

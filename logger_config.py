@@ -14,6 +14,11 @@ retention = os.getenv("LOG_RETENTION", "7 days")
 log_filename = os.getenv("LOG_FILENAME", "app.log")
 
 
+def info_only_filter(record):
+
+    return record["level"].no < 40
+
+
 def setup_logging():
 
     logger.remove()
@@ -31,6 +36,7 @@ def setup_logging():
         level=log_level,
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | "
         "{name}:{function}:{line} - {message}",
+        filter=info_only_filter,
         rotation=rotation,
         retention=retention,
         compression="zip",
