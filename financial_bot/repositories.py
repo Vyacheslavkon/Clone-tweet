@@ -26,6 +26,15 @@ async def create_user(session: AsyncSession, data: CreateUser):
     logger.info("User {} created successfully.", data.first_name)
 
 
+async def get_all_users_id(session: AsyncSession) -> list[int]:
+
+    query = select(UserBot.tg_id)
+    result = await session.execute(query)
+    list_users_id = result.scalars().all()
+
+    return list_users_id
+
+
 async def get_user_by_id(session: AsyncSession, tg_id: int) -> UserBot | None:
 
     query = select(UserBot).where(UserBot.tg_id == tg_id)
