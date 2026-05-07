@@ -30,7 +30,7 @@ async def send_weekly_stats(bot: Bot, session_pool: async_sessionmaker, i18n: I1
 
 async def send_monthly_stats(bot: Bot, session_pool: async_sessionmaker, i18n: I18n):
     async with session_pool() as session:
-        start_day, end_day = get_month_boundaries()
+        start_day, end_day, _ = get_month_boundaries()
         all_users_id = await get_all_users(session)
 
         for user in all_users_id:
@@ -49,18 +49,18 @@ async def send_monthly_stats(bot: Bot, session_pool: async_sessionmaker, i18n: I
 def setup_scheduler(bot: Bot, session_pool: async_sessionmaker, i18n: I18n) -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
 
-    scheduler.add_job(send_weekly_stats, "cron", day_of_week="thu", hour=21, kwargs={
+    scheduler.add_job(send_weekly_stats, "cron", day_of_week="thu", hour=14, minute=45, kwargs={
                                                                             "bot": bot,
                                                                             "session_pool": session_pool,
                                                                             "i18n": i18n
                                                                         })
 
-    # scheduler.add_job(send_weekly_stats,  "interval", seconds=10, kwargs={
+    # scheduler.add_job(send_monthly_stats,  "interval", seconds=10, kwargs={
     #                                                                         "bot": bot,
     #                                                                         "session_pool": session_pool,
     #                                                                         "i18n": i18n
     #                                                                     })
-    scheduler.add_job(send_monthly_stats, "cron", day=4, hour=21, kwargs={
+    scheduler.add_job(send_monthly_stats, "cron", day=7, hour=14, minute=45, kwargs={
                                                                             "bot": bot,
                                                                             "session_pool": session_pool,
                                                                             "i18n": i18n

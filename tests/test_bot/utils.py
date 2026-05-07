@@ -34,6 +34,13 @@ def keyboards() -> tuple:
     return main_menu, buttons
 
 
+def kb_reports():
+
+    buttons = ["day", "month", "week", "cancel"]
+
+    return buttons
+
+
 dict_invalid_data = {
     "hello": "Please enter a valid number.",
     "0": "The amount must be greater than zero.",

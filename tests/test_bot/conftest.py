@@ -13,6 +13,7 @@ from aiogram.utils.i18n import I18n, I18nMiddleware
 from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.common import router
 from financial_bot.handlers.transactions import router_tr
+from financial_bot.handlers.reports import report_rout
 from financial_bot.middlewares import SessionMiddleware
 from financial_bot.repositories import add_data_for_user, create_user
 from financial_bot.schemas import AddData, CreateUser
@@ -74,7 +75,7 @@ async def test_dp(test_session, test_redis, test_i18n):
 
     dp.update.middleware(SessionMiddleware(session_pool=test_session))
 
-    for r in [router, router_tr, router_data]:
+    for r in [router, router_tr, router_data, report_rout]:
         if r is not None:
 
             new_router = copy.deepcopy(r)
