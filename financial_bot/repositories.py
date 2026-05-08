@@ -25,6 +25,8 @@ async def create_user(session: AsyncSession, data: CreateUser):
     await session.commit()
     logger.info("User {} created successfully.", data.first_name)
 
+    return new_user
+
 
 async def get_all_users(session: AsyncSession) -> list[UserBot]:
 

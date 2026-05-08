@@ -15,7 +15,7 @@ from financial_bot.handlers.common import router
 from financial_bot.handlers.transactions import router_tr
 from financial_bot.handlers.reports import report_rout
 from financial_bot.middlewares import SessionMiddleware
-from financial_bot.repositories import add_data_for_user, create_user
+from financial_bot.repositories import add_data_for_user, create_user, add_transaction
 from financial_bot.schemas import AddData, CreateUser
 
 current_file_path = Path(__file__).resolve()
@@ -46,9 +46,25 @@ async def test_user(test_session):
 
     new_user = CreateUser(**data)
 
-    await create_user(test_session, new_user)
+    user_db_obj = await create_user(test_session, new_user)
+    await test_session.flush()
+    await test_session.refresh(user_db_obj)
 
-    return new_user
+    return user_db_obj
+
+
+@pytest.fixture
+async def test_transaction(test_session, test_user):
+
+    data = {
+        "user_id": test_user.id,
+        "amount": 300,
+        "type": "expense",
+        "category": "food",
+        "description": "coffee"
+    }
+
+    await add_transaction(test_session, data)
 
 
 class MyI18nMiddleware(I18nMiddleware):
