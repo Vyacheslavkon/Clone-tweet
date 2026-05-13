@@ -67,6 +67,8 @@ async def test_transaction(test_session, test_user):
     await add_transaction(test_session, data)
 
 
+
+
 class MyI18nMiddleware(I18nMiddleware):
     async def get_locale(self, event: TelegramObject, data: Dict[str, Any]) -> str:
         # В тестах проще всего возвращать дефолтную локаль
@@ -105,6 +107,9 @@ async def test_dp(test_session, test_redis, test_i18n):
     return dp
 
 
+
+
+
 @pytest.fixture
 def create_mock_update(mock_bot):
     def _create_message(text: str, user_id: int, update_id: int):
@@ -131,13 +136,18 @@ def create_mock_update(mock_bot):
         )
         callback_query = CallbackQuery(
             id="123",
-            from_user=User(id=user_id, is_bot=False, first_name="TestUser"),
+            from_user=User(id=user_id, is_bot=False, first_name="TestUser", language_code="ru"),
             data=data,
             chat_instance="abc",
             message=message,
             bot=mock_bot,
         )
         return Update(update_id=update_id, callback_query=callback_query)
+
+
+
+
+
 
     return _create_message, _create_callback
 

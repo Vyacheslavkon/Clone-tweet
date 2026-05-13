@@ -18,7 +18,6 @@ async def test_full_transaction_flow(
     msg_step1 = create_message(text="500", user_id=user_id, update_id=1)
     await test_dp.feed_update(mock_bot, msg_step1)
 
-    print(mock_bot.mock_calls)
 
     expected_text_step1 = test_i18n.gettext("Select type")
     called_bot(mock_bot, expected_text_step1)

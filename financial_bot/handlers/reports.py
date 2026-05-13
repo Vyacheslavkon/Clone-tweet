@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.utils.i18n import gettext as _
 from datetime import datetime, timezone, time
 from loguru import logger
-
+from aiogram import Bot
 from financial_bot.keyboards.inline import period_report
 from financial_bot.repositories import get_report_period, get_planned_goals
 from financial_bot.filters import I18nTextFilter
@@ -28,7 +28,7 @@ async def reports_period(message: Message, state: FSMContext):
 
 
 @report_rout.callback_query(F.data == "day", GenerateReport.waiting_for_period)
-async def  report_day(callback: CallbackQuery, session: AsyncSession):
+async def  report_day(callback: CallbackQuery, session: AsyncSession, bot: Bot):
 
     if not callback.data or not isinstance(callback.message, Message):
         await callback.answer()
@@ -45,7 +45,13 @@ async def  report_day(callback: CallbackQuery, session: AsyncSession):
 
     report_text = formatters(data, period)
 
-    await callback.message.edit_text(text=report_text, parse_mode="HTML")
+    #await callback.message.edit_text(text=report_text, parse_mode="HTML")
+    await bot.edit_message_text(
+        text=report_text,
+        chat_id=callback.message.chat.id,
+        message_id=callback.message.message_id,
+        parse_mode="HTML"
+    )
 
 
 @report_rout.callback_query(F.data == "week", GenerateReport.waiting_for_period)
@@ -64,6 +70,7 @@ async def report_week(callback: CallbackQuery, session: AsyncSession):
     report_text = formatters(data, period)
 
     await callback.message.edit_text(text=report_text, parse_mode="HTML")
+
 
 
 @report_rout.callback_query(F.data == "month", GenerateReport.waiting_for_period)
