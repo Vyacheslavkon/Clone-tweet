@@ -36,12 +36,33 @@ def mock_bot():
     return bot
 
 
+# @pytest.fixture
+# async def test_user(test_session):
+#     data = {
+#         "tg_id": 12345,
+#         "language_code": "ru",
+#         "first_name": "TestUser",
+#     }
+#
+#     new_user = CreateUser(**data)
+#
+#     user_db_obj = await create_user(test_session, new_user)
+#     await test_session.flush()
+#     await test_session.refresh(user_db_obj)
+#
+#     return user_db_obj
+
+
 @pytest.fixture
 async def test_user(test_session):
     data = {
         "tg_id": 12345,
         "language_code": "ru",
         "first_name": "TestUser",
+        "savings_goal": 10000,
+        "monthly_budget": 30000,
+        "budget_remind_percent": 20
+
     }
 
     new_user = CreateUser(**data)
@@ -51,6 +72,21 @@ async def test_user(test_session):
     await test_session.refresh(user_db_obj)
 
     return user_db_obj
+
+
+@pytest.fixture
+async def test_data(test_session, test_user):
+    add_data = {
+        "savings_goal": 10000,
+        "monthly_budget": 30000,
+        "budget_remind_percent": 20
+    }
+
+    new_obg = AddData(**add_data)
+
+    await add_data_for_user(test_session, new_obg, test_user.tg_id)
+    await test_session.flush()
+    return new_obg
 
 
 @pytest.fixture
