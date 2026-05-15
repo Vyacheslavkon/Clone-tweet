@@ -103,7 +103,7 @@ def formatters(data: list, period_name: str, plan: Plan = None) -> str:
             expense_details=expense_details
         )
 
-        if period_name != "day" and plan:
+        if period_name != "day"  and plan and period_name != "week":
             def fmt(val):return f"{val:,.2f}".replace(",", " ")
 
             planning_lines = []

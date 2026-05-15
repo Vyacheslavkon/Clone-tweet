@@ -32,9 +32,6 @@ def get_expected_timestamps(period: str):
     elif period == "week":
         start_day, end_day = get_week_boundaries()
         return start_day, end_day
-    elif period == "month":
-        start_day, end_day, _ = get_month_boundaries()
-        return start_day, end_day
     else:
         raise ValueError(f"Unknown period: {period}")
 
@@ -60,6 +57,12 @@ def kb_reports():
 
     return buttons
 
+
+def kb_history():
+
+    buttons = ["last two weeks", "arbitrary period"]
+
+    return buttons
 
 dict_invalid_data = {
     "hello": "Please enter a valid number.",

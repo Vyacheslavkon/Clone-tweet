@@ -45,7 +45,6 @@ async def  report_day(callback: CallbackQuery, session: AsyncSession, bot: Bot):
 
     report_text = formatters(data, period)
 
-    #await callback.message.edit_text(text=report_text, parse_mode="HTML")
     await bot.edit_message_text(
         text=report_text,
         chat_id=callback.message.chat.id,
@@ -69,7 +68,6 @@ async def report_week(callback: CallbackQuery, session: AsyncSession, bot: Bot):
 
     report_text = formatters(data, period)
 
-    #await callback.message.edit_text(text=report_text, parse_mode="HTML")
     await bot.edit_message_text(
         text=report_text,
         chat_id=callback.message.chat.id,

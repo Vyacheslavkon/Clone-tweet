@@ -14,6 +14,7 @@ from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.common import router
 from financial_bot.handlers.transactions import router_tr
 from financial_bot.handlers.reports import report_rout
+from financial_bot.handlers.history import history_rout
 from financial_bot.middlewares import SessionMiddleware
 from financial_bot.repositories import add_data_for_user, create_user, add_transaction
 from financial_bot.schemas import AddData, CreateUser
@@ -36,32 +37,12 @@ def mock_bot():
     return bot
 
 
-# @pytest.fixture
-# async def test_user(test_session):
-#     data = {
-#         "tg_id": 12345,
-#         "language_code": "ru",
-#         "first_name": "TestUser",
-#     }
-#
-#     new_user = CreateUser(**data)
-#
-#     user_db_obj = await create_user(test_session, new_user)
-#     await test_session.flush()
-#     await test_session.refresh(user_db_obj)
-#
-#     return user_db_obj
-
-
 @pytest.fixture
 async def test_user(test_session):
     data = {
         "tg_id": 12345,
         "language_code": "ru",
-        "first_name": "TestUser",
-        "savings_goal": 10000,
-        "monthly_budget": 30000,
-        "budget_remind_percent": 20
+        "first_name": "TestUser"
 
     }
 
@@ -129,7 +110,7 @@ async def test_dp(test_session, test_redis, test_i18n):
 
     dp.update.middleware(SessionMiddleware(session_pool=test_session))
 
-    for r in [router, router_tr, router_data, report_rout]:
+    for r in [router, router_tr, router_data, report_rout, history_rout]:
         if r is not None:
 
             new_router = copy.deepcopy(r)

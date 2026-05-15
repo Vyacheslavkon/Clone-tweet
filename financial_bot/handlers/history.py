@@ -1,4 +1,4 @@
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,7 +28,7 @@ async def reports_history(message: Message, state: FSMContext):
 
 
 @history_rout.callback_query(F.data == "two_week", HistoryState.waiting_for_period_history)
-async def report_two_weeks(callback: CallbackQuery, session: AsyncSession):
+async def report_two_weeks(callback: CallbackQuery, session: AsyncSession, bot: Bot):
 
     cur_week = _("current week")
     last_week = _("last week")
@@ -44,6 +44,8 @@ async def report_two_weeks(callback: CallbackQuery, session: AsyncSession):
     ])
 
     await callback.message.answer(report_text, parse_mode="HTML")
+    #await bot.send_message(report_text, parse_mode="HTML")
+    #await callback.message.edit_text(report_text, parse_mode="HTML")
 
 
 @history_rout.callback_query(F.data == "period", HistoryState.waiting_for_period_history)
