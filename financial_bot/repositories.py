@@ -52,6 +52,7 @@ async def add_transaction(session: AsyncSession, data: dict):
     await session.commit()
 
 
+
 async def add_data_for_user(session: AsyncSession, obj_data: AddData, tg_id: int):
 
     user = await get_user_by_id(session, tg_id)

@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 from unittest.mock import AsyncMock
+import random
 
 import pytest
 from aiogram import Bot, Dispatcher
@@ -18,6 +19,7 @@ from financial_bot.handlers.history import history_rout
 from financial_bot.middlewares import SessionMiddleware
 from financial_bot.repositories import add_data_for_user, create_user, add_transaction
 from financial_bot.schemas import AddData, CreateUser
+from financial_bot.models import Transactions
 
 current_file_path = Path(__file__).resolve()
 base_dir = current_file_path.parent.parent.parent
@@ -83,6 +85,21 @@ async def test_transaction(test_session, test_user):
 
     await add_transaction(test_session, data)
 
+# @pytest.fixture
+# async def test_transaction(test_session, test_user):
+#     types = random.choice(["expense", "income"])
+#     amount = random.randrange(100, 1000)
+#     description = random.choice(["coffe", "tea", "taxi"])
+#     cat = random.choice(["food", "bonus", "salary", "home"])
+#
+#     data = [Transactions(**{"type": types, "user_id": 1, "amount": amount,
+#                             "category": cat, "description": description})
+#                             for _ in range(10)
+#                                 ]
+#
+#
+#     test_session.add_all(data)
+#     await test_session.flush()
 
 
 

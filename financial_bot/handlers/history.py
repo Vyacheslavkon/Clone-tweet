@@ -43,16 +43,17 @@ async def report_two_weeks(callback: CallbackQuery, session: AsyncSession, bot: 
         {"data": last_data, "period_name": last_week}
     ])
 
-    await callback.message.answer(report_text, parse_mode="HTML")
-    #await bot.send_message(report_text, parse_mode="HTML")
-    #await callback.message.edit_text(report_text, parse_mode="HTML")
+    await bot.send_message(text=report_text, chat_id=callback.message.chat.id, parse_mode="HTML")
+
+
 
 
 @history_rout.callback_query(F.data == "period", HistoryState.waiting_for_period_history)
-async def report_arbitrary_period(callback: CallbackQuery, state: FSMContext):
+async def report_arbitrary_period(callback: CallbackQuery, state: FSMContext, bot: Bot):
 
-    await callback.message.answer(
+    await bot.send_message(text=
         _("📅 Select the <b>start date</b> of the period:"),
+        chat_id=callback.from_user.id,
         reply_markup=await SimpleCalendar().start_calendar(),
         parse_mode="HTML"
     )
@@ -63,7 +64,7 @@ async def report_arbitrary_period(callback: CallbackQuery, state: FSMContext):
 @history_rout.callback_query(SimpleCalendarCallback.filter(), HistoryState.waiting_for_data_start)
 async def process_start_date(callback: CallbackQuery,
                              callback_data: SimpleCalendarCallback,
-                             state: FSMContext):
+                             state: FSMContext, bot: Bot):
 
     selected, date = await SimpleCalendar().process_selection(callback, callback_data)
 
@@ -71,24 +72,30 @@ async def process_start_date(callback: CallbackQuery,
         await state.update_data(start_date=date.isoformat())
         await state.set_state(HistoryState.waiting_for_data_end)
 
-        await callback.message.edit_text(
+        await bot.edit_message_text(
             _("✅ Start date: {selected_date}\n"
             "📅 Now select the <b>end date</b>:\n"
             "(click the same date again if you need a report for one day)").
             format(selected_date=date.strftime('%d.%m.%Y')),
+            chat_id=callback.message.chat.id,
+            message_id=callback.message.message_id,
             parse_mode="HTML"
         )
 
-        await callback.message.edit_reply_markup(
+        await  bot.edit_message_reply_markup(
+            chat_id=callback.message.chat.id,
+            message_id=callback.message.message_id,
             reply_markup=await SimpleCalendar().start_calendar()
-        )
+                 )
+
 
 
 @history_rout.callback_query(SimpleCalendarCallback.filter(), HistoryState.waiting_for_data_end)
 async def process_end_date(callback: CallbackQuery,
                            callback_data: SimpleCalendarCallback,
                            state: FSMContext,
-                           session: AsyncSession):
+                           session: AsyncSession,
+                           bot: Bot):
 
     selected, date = await SimpleCalendar().process_selection(callback, callback_data)
 
@@ -102,5 +109,5 @@ async def process_end_date(callback: CallbackQuery,
         data = await get_report_period(session, callback.from_user.id, start_date, end_date)
         report_text = formatters(data, f"{start_date:%d.%m.%y} - {end_date:%d.%m.%y}")
 
-        await callback.message.answer(report_text, parse_mode="HTML")
+        await bot.send_message(text=report_text, chat_id=callback.message.chat.id, parse_mode="HTML")
         await state.clear()
