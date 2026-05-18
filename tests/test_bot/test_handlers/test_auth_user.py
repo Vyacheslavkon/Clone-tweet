@@ -1,8 +1,10 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from unittest.mock import MagicMock
 
 from financial_bot.models import UserBot
 from tests.test_bot.utils import called_bot, keyboard_check, keyboards
+from financial_bot.handlers.common import global_error_handler
 
 main_menu, _ = keyboards()
 
@@ -57,3 +59,40 @@ async def test_cmd_start_new_user(
     called_bot(mock_bot, expected_text)
 
     keyboard_check(main_menu, mock_bot, test_i18n)
+
+
+
+
+
+async def test_global_error_handler_with_message(mock_bot, create_mock_update, test_user):
+
+    update, _ = create_mock_update
+
+    mock_update = update(text="some text",update_id=test_user.tg_id, user_id=1)
+
+
+    # 3. Имитируем событие ошибки (ErrorEvent)
+    mock_exception = ValueError("Тестовая ошибка <with_html_unsafe_tags>")
+
+    # Мокаем сам ErrorEvent
+    mock_event = MagicMock()
+    mock_event.exception = mock_exception
+    mock_event.update = mock_update
+
+    # 4. Вызываем обработчик
+    # Передаем заглушку для gettext (_), если используется интернационализация логов
+    await global_error_handler(mock_event)
+
+    # 5. Проверяем, что админу ушло сообщение
+    mock_bot.send_message.assert_called_once()
+    call_kwargs = mock_bot.send_message.call_args.kwargs
+
+    #assert call_kwargs["chat_id"] == admin_id  # Убедитесь, что admin_id доступен в тесте
+    assert "Критическая ошибка!" in call_kwargs["text"]
+    assert "Ivan Ivanov" in call_kwargs["text"]
+    assert "12345" in call_kwargs["text"]
+
+    # 6. Проверяем, что пользователю ушел ответ в чат
+    # Метод message.answer внутри вызывает bot.send_message
+    # Проверим, что был второй вызов send_message (для юзера)
+    assert mock_bot.send_message.call_count == 2
