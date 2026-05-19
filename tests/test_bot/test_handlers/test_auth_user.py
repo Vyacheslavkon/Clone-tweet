@@ -1,6 +1,9 @@
+import os
+from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
+from dotenv import load_dotenv
 
 from financial_bot.models import UserBot
 from tests.test_bot.utils import called_bot, keyboard_check, keyboards
@@ -8,6 +11,11 @@ from financial_bot.handlers.common import global_error_handler
 
 main_menu, _ = keyboards()
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(dotenv_path=BASE_DIR / ".env.test")
+
+admin_id = os.getenv("TEST_ADMIN")
 
 async def test_cmd_start_existing_user(
     create_mock_update,
@@ -64,35 +72,43 @@ async def test_cmd_start_new_user(
 
 
 
-async def test_global_error_handler_with_message(mock_bot, create_mock_update, test_user):
-
-    update, _ = create_mock_update
-
-    mock_update = update(text="some text",update_id=test_user.tg_id, user_id=1)
+async def test_global_error_handler_with_message(mock_bot,test_user):
 
 
-    # 3. Имитируем событие ошибки (ErrorEvent)
-    mock_exception = ValueError("Тестовая ошибка <with_html_unsafe_tags>")
+    with patch("financial_bot.handlers.common._", side_effect=lambda text, **kwargs: text):
+        mock_update = MagicMock()
+        mock_message = MagicMock()
+        mock_update.message = mock_message
+        mock_update.callback_query = None
 
-    # Мокаем сам ErrorEvent
-    mock_event = MagicMock()
-    mock_event.exception = mock_exception
-    mock_event.update = mock_update
+        mock_exception = ValueError("Тестовая ошибка <with_html_unsafe_tags>")
 
-    # 4. Вызываем обработчик
-    # Передаем заглушку для gettext (_), если используется интернационализация логов
-    await global_error_handler(mock_event)
 
-    # 5. Проверяем, что админу ушло сообщение
-    mock_bot.send_message.assert_called_once()
-    call_kwargs = mock_bot.send_message.call_args.kwargs
+        mock_event = MagicMock()
+        mock_event.exception = mock_exception
+        mock_event.update = mock_update
+        mock_event.update.bot = mock_bot
 
-    #assert call_kwargs["chat_id"] == admin_id  # Убедитесь, что admin_id доступен в тесте
-    assert "Критическая ошибка!" in call_kwargs["text"]
-    assert "Ivan Ivanov" in call_kwargs["text"]
-    assert "12345" in call_kwargs["text"]
+        mock_user = MagicMock()
+        mock_user.full_name = "Ivan Ivanov"
+        mock_user.id = 12345
+        mock_event.update.event.from_user = mock_user
 
-    # 6. Проверяем, что пользователю ушел ответ в чат
-    # Метод message.answer внутри вызывает bot.send_message
-    # Проверим, что был второй вызов send_message (для юзера)
-    assert mock_bot.send_message.call_count == 2
+        if mock_event.update.message:
+            mock_event.update.message.bot = mock_bot
+
+
+        await global_error_handler(mock_event, admin_id)
+
+        mock_bot.send_message.assert_called_once()
+        call_kwargs = mock_bot.send_message.call_args.kwargs
+
+        assert call_kwargs["chat_id"] == admin_id  # Убедитесь, что admin_id доступен в тесте
+        assert "Критическая ошибка!" in call_kwargs["text"]
+        assert "Ivan Ivanov" in call_kwargs["text"]
+        assert "12345" in call_kwargs["text"]
+
+
+        mock_message.answer.assert_called_once_with(
+            "⚠️ An error occurred. I've already reported it to the developer."
+        )

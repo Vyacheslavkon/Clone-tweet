@@ -1,4 +1,6 @@
 import asyncio
+import os
+from dotenv import load_dotenv
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
@@ -27,11 +29,13 @@ i18n = I18n(
 
 
 async def main():
+    load_dotenv()
     setup_logging()
     bot = Bot(token=TOKEN_BOT)
     dp = Dispatcher(storage=storage)
     session_pool = async_session
     scheduler = setup_scheduler(bot, session_pool, i18n)
+    dp["admin_id"] = int(os.getenv("ADMIN_ID", 0))
     dp.message.outer_middleware(SessionMiddleware(session_pool))
     dp.callback_query.outer_middleware(SessionMiddleware(session_pool))
     dp.message.middleware(MyI18nMiddleware(i18n=i18n))

@@ -19,10 +19,6 @@ from financial_bot.repositories import create_user, get_user_by_id
 from financial_bot.schemas import CreateUser
 
 router = Router()
-load_dotenv()
-
-admin_id = os.getenv("ADMIN_ID")
-
 
 @router.message(Command("start"))
 async def cmd_start(message: Message, session: AsyncSession):
@@ -77,7 +73,7 @@ async def cancel_handler(event: Union[Message, CallbackQuery], state: FSMContext
 
 
 @router.errors()
-async def global_error_handler(event: ErrorEvent):
+async def global_error_handler(event: ErrorEvent, admin_id: int):
 
     logger.exception("Global error caught")
 
