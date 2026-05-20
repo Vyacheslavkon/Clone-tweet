@@ -125,4 +125,4 @@ async def global_error_handler(event: ErrorEvent, admin_id: int):
 
     except Exception as e:
 
-        logger.error(_("Error while trying to reply to user: {error}", error=e))
+        logger.error(_(f"Error while trying to reply to user: {e}"))

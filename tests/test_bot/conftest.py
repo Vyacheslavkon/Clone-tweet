@@ -85,23 +85,6 @@ async def test_transaction(test_session, test_user):
 
     await add_transaction(test_session, data)
 
-# @pytest.fixture
-# async def test_transaction(test_session, test_user):
-#     types = random.choice(["expense", "income"])
-#     amount = random.randrange(100, 1000)
-#     description = random.choice(["coffe", "tea", "taxi"])
-#     cat = random.choice(["food", "bonus", "salary", "home"])
-#
-#     data = [Transactions(**{"type": types, "user_id": 1, "amount": amount,
-#                             "category": cat, "description": description})
-#                             for _ in range(10)
-#                                 ]
-#
-#
-#     test_session.add_all(data)
-#     await test_session.flush()
-
-
 
 class MyI18nMiddleware(I18nMiddleware):
     async def get_locale(self, event: TelegramObject, data: Dict[str, Any]) -> str:

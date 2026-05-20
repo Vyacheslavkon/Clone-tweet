@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 from dotenv import load_dotenv
 
 from financial_bot.models import UserBot
@@ -80,7 +80,7 @@ async def test_global_error_handler_with_message(mock_bot,test_user):
         mock_message = MagicMock()
         mock_update.message = mock_message
         mock_update.callback_query = None
-
+        mock_message.answer = AsyncMock()
         mock_exception = ValueError("Тестовая ошибка <with_html_unsafe_tags>")
 
 
