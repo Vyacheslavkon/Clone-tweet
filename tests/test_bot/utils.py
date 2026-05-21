@@ -1,6 +1,8 @@
-from datetime import datetime, timezone, time, timedelta
+from datetime import datetime, time, timezone
 
-from financial_bot.handlers.utils import get_week_boundaries, get_month_boundaries
+from financial_bot.handlers.utils import get_week_boundaries
+
+
 def called_bot(mock_bot, text: str):
 
     assert any(
@@ -26,15 +28,18 @@ def keyboard_check(kb, bot, i18n):
 def get_expected_timestamps(period: str):
 
     if period == "day":
-        start_day = datetime.combine(datetime.now(timezone.utc).date(), time.min, tzinfo=timezone.utc)
-        end_day = datetime.combine(datetime.now(timezone.utc).date(), time.max, tzinfo=timezone.utc)
+        start_day = datetime.combine(
+            datetime.now(timezone.utc).date(), time.min, tzinfo=timezone.utc
+        )
+        end_day = datetime.combine(
+            datetime.now(timezone.utc).date(), time.max, tzinfo=timezone.utc
+        )
         return start_day, end_day
     elif period == "week":
         start_day, end_day = get_week_boundaries()
         return start_day, end_day
     else:
         raise ValueError(f"Unknown period: {period}")
-
 
 
 def keyboards() -> tuple:
@@ -53,16 +58,13 @@ def keyboards() -> tuple:
 
 def kb_reports():
 
-    buttons = ["day", "month", "week", "cancel"]
-
-    return buttons
+    return ["day", "month", "week", "cancel"]
 
 
 def kb_history():
 
-    buttons = ["last two weeks", "arbitrary period"]
+    return ["last two weeks", "arbitrary period"]
 
-    return buttons
 
 dict_invalid_data = {
     "hello": "Please enter a valid number.",
@@ -77,4 +79,3 @@ comparison_dict = {
     "0": "The amount must be greater than zero.",
     "-100": "The amount must be greater than zero.",
 }
-

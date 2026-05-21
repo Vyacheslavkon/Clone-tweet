@@ -107,7 +107,10 @@ async def saving_limit_expense(
 
         if budget is None:
             await message.answer(
-                _("You don't have a planned budget set! Set a basic planned budget first.")
+                _(
+                    "You don't have a planned budget set! "
+                    "Set a basic planned budget first."
+                )
             )
             return
 
@@ -147,7 +150,10 @@ async def saving_goal(message: Message, session: AsyncSession, state: FSMContext
 
         if budget is None:
             await message.answer(
-                _("You don't have a planned budget set! Set a basic planned budget first.")
+                _(
+                    "You don't have a planned budget set! "
+                    "Set a basic planned budget first."
+                )
             )
             return
 

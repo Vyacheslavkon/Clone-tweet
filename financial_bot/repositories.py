@@ -1,18 +1,14 @@
+from datetime import datetime
 from decimal import Decimal
-from datetime import datetime, time, timezone
 
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.exceptions import UserNotFoundError
 from financial_bot.models import Transactions, UserBot
-from financial_bot.schemas import (
-    AddData,
-    CreateUser,
-    Plan
-)
+from financial_bot.schemas import AddData, CreateUser, Plan
 
 
 async def create_user(session: AsyncSession, data: CreateUser):
@@ -32,9 +28,8 @@ async def get_all_users(session: AsyncSession) -> list[UserBot]:
 
     query = select(UserBot)
     result = await session.execute(query)
-    list_users = result.scalars().all()
 
-    return list_users
+    return list(result.scalars().all())
 
 
 async def get_user_by_id(session: AsyncSession, tg_id: int) -> UserBot | None:
@@ -50,7 +45,6 @@ async def add_transaction(session: AsyncSession, data: dict):
     transaction = Transactions(**data)
     session.add(transaction)
     await session.commit()
-
 
 
 async def add_data_for_user(session: AsyncSession, obj_data: AddData, tg_id: int):
@@ -123,32 +117,34 @@ async def get_planned_goals(session: AsyncSession, tg_id: int) -> Plan:
     return Plan(
         monthly_budget=user.monthly_budget,
         budget_remind_percent=user.budget_remind_percent,
-        savings_goal=user.savings_goal
+        savings_goal=user.savings_goal,
     )
 
 
-async def get_report_period(session: AsyncSession, tg_id: int,
-                         date_start: datetime, date_end: datetime) -> list:
+async def get_report_period(
+    session: AsyncSession, tg_id: int, date_start: datetime, date_end: datetime
+) -> list:
 
     user = await get_user_by_id(session, tg_id)
 
     if user is not None:
 
-
         query = (
             select(
                 Transactions.type,
                 Transactions.category,
-                func.sum(Transactions.amount).label("total")
+                func.sum(Transactions.amount).label("total"),
             )
-            .where(Transactions.user_id == user.id,
-                   Transactions.created_at.between(date_start, date_end))
+            .where(
+                Transactions.user_id == user.id,
+                Transactions.created_at.between(date_start, date_end),
+            )
             .group_by(Transactions.type, Transactions.category)
         )
 
         results = await session.execute(query)
 
-        res =  results.all()
+        res = list(results.all())
 
     else:
         logger.warning("User with id {} not found", tg_id)

@@ -9,8 +9,9 @@ def get_main_menu():
         KeyboardButton(text=_("Enter amount")),
         KeyboardButton(text=_("Add/change data")),
     )
-    builder.row(KeyboardButton(text=_("Generate report")),
-                KeyboardButton(text=_("History")))
+    builder.row(
+        KeyboardButton(text=_("Generate report")), KeyboardButton(text=_("History"))
+    )
 
     builder.row(KeyboardButton(text=_("Settings")), KeyboardButton(text="AI"))
     builder.row(KeyboardButton(text=_("cancel")))

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-05-04 21:59+1000\n"
+"POT-Creation-Date: 2026-05-21 22:25+1000\n"
 "PO-Revision-Date: 2026-04-05 19:51+1000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -23,7 +23,7 @@ msgstr ""
 msgid "Please, select data type"
 msgstr "Выберите тип"
 
-#: financial_bot/handlers/adding_data.py:37 financial_bot/keyboards/reply.py:24
+#: financial_bot/handlers/adding_data.py:37 financial_bot/keyboards/reply.py:25
 msgid "monthly planned budget"
 msgstr "месячный планируемый бюджет"
 
@@ -31,7 +31,7 @@ msgstr "месячный планируемый бюджет"
 msgid "Enter your estimated monthly planned budget"
 msgstr "Введите свой предполагаемый месячный планируемый бюджет"
 
-#: financial_bot/handlers/adding_data.py:41 financial_bot/keyboards/reply.py:25
+#: financial_bot/handlers/adding_data.py:41 financial_bot/keyboards/reply.py:26
 msgid "limit expense"
 msgstr "лимит расходов"
 
@@ -45,7 +45,7 @@ msgstr "Введите сумму лимита расходов"
 msgid "Please set a monthly planned budget first."
 msgstr "Пожалуйста, сначала установите планируемый месячный бюджет"
 
-#: financial_bot/handlers/adding_data.py:49 financial_bot/keyboards/reply.py:26
+#: financial_bot/handlers/adding_data.py:49 financial_bot/keyboards/reply.py:27
 msgid "savings goal"
 msgstr "цель сбережений"
 
@@ -61,8 +61,8 @@ msgstr ""
 "вариантом!"
 
 #: financial_bot/handlers/adding_data.py:89
-#: financial_bot/handlers/adding_data.py:129
-#: financial_bot/handlers/adding_data.py:166
+#: financial_bot/handlers/adding_data.py:132
+#: financial_bot/handlers/adding_data.py:172
 msgid "The data was saved successfully."
 msgstr "Данные были успешно сохранены!"
 
@@ -71,50 +71,64 @@ msgid "Please, enter a number!"
 msgstr "Введите, пожалуйста, сумму!"
 
 #: financial_bot/handlers/adding_data.py:95
-#: financial_bot/handlers/adding_data.py:135
-#: financial_bot/handlers/adding_data.py:172
+#: financial_bot/handlers/adding_data.py:138
+#: financial_bot/handlers/adding_data.py:178
 msgid "Profile not found. Please type /start"
 msgstr "Профиль не найден. Пожалуйста, введите /start"
 
-#: financial_bot/handlers/adding_data.py:110
-#: financial_bot/handlers/adding_data.py:150
+#: financial_bot/handlers/adding_data.py:111
+#: financial_bot/handlers/adding_data.py:154
 msgid "You don't have a planned budget set! Set a basic planned budget first."
 msgstr ""
 "У вас нет установленного планируемого бюджета! Сначала установите базовый"
 " бюджет."
 
-#: financial_bot/handlers/common.py:35
+#: financial_bot/handlers/common.py:37
 #, python-brace-format
 msgid "Hello, {name}! Glad to meet you!"
 msgstr "Здравствуйте, {name}! Рад с вами познакомиться!"
 
-#: financial_bot/handlers/common.py:44
-#, python-brace-format
-msgid "Glad to see you {name}! Your balance: 0"
+#: financial_bot/handlers/common.py:46
+#, fuzzy, python-brace-format
+msgid "Glad to see you {name}!"
 msgstr "Рад вас видеть {name}! Ваш баланс: 0"
 
-#: financial_bot/handlers/common.py:57
+#: financial_bot/handlers/common.py:59
 msgid "Action canceled. Returning to main menu..."
 msgstr "Действие отменено. Возврат в главное меню..."
+
+#: financial_bot/handlers/common.py:103
+#, python-brace-format
+msgid "HTML parsing or message length error: {error}"
+msgstr "Ошибка при разборе HTML-кода или ошибка длины сообщения: {error}"
+
+#: financial_bot/handlers/common.py:107
+#, python-brace-format
+msgid "General Telegram API error when notifying admin: {error}"
+msgstr "Общая ошибка API Telegram при отправке уведомления администратору: {error}"
+
+#: financial_bot/handlers/common.py:111
+msgid "⚠️ An error occurred. I've already reported it to the developer."
+msgstr "⚠️ Произошла ошибка. Я уже сообщил об этом разработчику."
 
 #: financial_bot/handlers/history.py:27
 msgid "Please, select period"
 msgstr "Пожалуйста, выберите период"
 
-#: financial_bot/handlers/history.py:34
+#: financial_bot/handlers/history.py:36
 msgid "current week"
-msgstr "текущая неделя"
+msgstr "текущую неделю"
 
-#: financial_bot/handlers/history.py:35
+#: financial_bot/handlers/history.py:37
 msgid "last week"
-msgstr "прошлая неделя"
+msgstr "прошлую неделю"
 
-#: financial_bot/handlers/history.py:54
+#: financial_bot/handlers/history.py:66
 msgid "📅 Select the <b>start date</b> of the period:"
 msgstr "📅 Выберите <b>начальную дату</b> периода:"
 
-#: financial_bot/handlers/history.py:74
-
+#: financial_bot/handlers/history.py:94
+#, python-brace-format
 msgid ""
 "✅ Start date: {selected_date}\n"
 "📅 Now select the <b>end date</b>:\n"
@@ -128,9 +142,13 @@ msgstr ""
 msgid "please, select period"
 msgstr "Пожалуйста, выберите период"
 
-#: financial_bot/handlers/reports.py:44 financial_bot/keyboards/inline.py:82
+#: financial_bot/handlers/reports.py:48 financial_bot/keyboards/inline.py:81
 msgid "day"
 msgstr "день"
+
+#: financial_bot/handlers/reports.py:67 financial_bot/keyboards/inline.py:83
+msgid "week"
+msgstr "неделя"
 
 #: financial_bot/handlers/transactions.py:35
 #: financial_bot/handlers/transactions.py:44
@@ -172,7 +190,7 @@ msgstr "Данные успешно сохранены!"
 msgid "Please enter a valid number."
 msgstr "Введите, пожалуйста, корректную сумму!"
 
-#: financial_bot/handlers/utils.py:53
+#: financial_bot/handlers/utils.py:54
 msgid ""
 "You don't have a monthly planned budget set! Set a basic monthly planned "
 "budget first."
@@ -180,24 +198,24 @@ msgstr ""
 "У вас нет установленного планируемого бюджета! Сначала установите базовый"
 " месячный планируемый бюджет."
 
-#: financial_bot/handlers/utils.py:54
+#: financial_bot/handlers/utils.py:57
 msgid "This amount exceeds your planned budget."
 msgstr "Эта сумма превышает ваш планируемый бюджет."
 
-#: financial_bot/handlers/utils.py:55
+#: financial_bot/handlers/utils.py:58
 msgid "The amount must be greater than zero."
 msgstr "Сумма должна быть больше нуля."
 
-#: financial_bot/handlers/utils.py:57
+#: financial_bot/handlers/utils.py:60
 msgid "An unexpected error occurred."
 msgstr "Произошла непредвиденная ошибка."
 
-#: financial_bot/handlers/utils.py:73
+#: financial_bot/handlers/utils.py:82
 #, python-brace-format
 msgid "There is no data for {period} 🤷‍♂️"
 msgstr "Данные отсутствуют за {period}"
 
-#: financial_bot/handlers/utils.py:94
+#: financial_bot/handlers/utils.py:104
 #, python-brace-format
 msgid ""
 "<b>Report for {period}:</b>\n"
@@ -214,51 +232,81 @@ msgstr ""
 "💸 <b>Расходы: {total_exp_str}</b>\n"
 "{expense_details}"
 
-#: financial_bot/handlers/utils.py:191
+#: financial_bot/handlers/utils.py:147
+#, python-brace-format
+msgid "  • Planned budget: {budget}"
+msgstr "месячный планируемый бюджет: {budget}"
+
+#: financial_bot/handlers/utils.py:152
+#, python-brace-format
+msgid "  • Limit expense: {limit}"
+msgstr "лимит расходов: {limit}"
+
+#: financial_bot/handlers/utils.py:155
+#, python-brace-format
+msgid "  • Limit spent: {balance}%"
+msgstr "Лимит израсходован: {balance}%"
+
+#: financial_bot/handlers/utils.py:159
+#, python-brace-format
+msgid "  • Savings goal: {saving_goal}"
+msgstr "Цель сбережений: {saving_goal}"
+
+#: financial_bot/handlers/utils.py:163
+msgid ""
+"\n"
+"\n"
+"🎯 <b>Planning:</b>\n"
+msgstr ""
+"\n"
+"\n"
+"🎯 <b>Планирование:</b>\n"
+
+#: financial_bot/handlers/utils.py:222
 msgid "January"
 msgstr "Январь"
 
-#: financial_bot/handlers/utils.py:191
+#: financial_bot/handlers/utils.py:223
 msgid "February"
 msgstr "Февраль"
 
-#: financial_bot/handlers/utils.py:191
+#: financial_bot/handlers/utils.py:224
 msgid "March"
 msgstr "Март"
 
-#: financial_bot/handlers/utils.py:192
+#: financial_bot/handlers/utils.py:225
 msgid "April"
 msgstr "Апрель"
 
-#: financial_bot/handlers/utils.py:192
+#: financial_bot/handlers/utils.py:226
 msgid "May"
 msgstr "Май"
 
-#: financial_bot/handlers/utils.py:192
+#: financial_bot/handlers/utils.py:227
 msgid "June"
 msgstr "Июнь"
 
-#: financial_bot/handlers/utils.py:193
+#: financial_bot/handlers/utils.py:228
 msgid "July"
 msgstr "Июль"
 
-#: financial_bot/handlers/utils.py:193
+#: financial_bot/handlers/utils.py:229
 msgid "August"
 msgstr "Август"
 
-#: financial_bot/handlers/utils.py:193
+#: financial_bot/handlers/utils.py:230
 msgid "September"
 msgstr "Сентябрь"
 
-#: financial_bot/handlers/utils.py:194
+#: financial_bot/handlers/utils.py:231
 msgid "October"
 msgstr "Октябрь"
 
-#: financial_bot/handlers/utils.py:194
+#: financial_bot/handlers/utils.py:232
 msgid "November"
 msgstr "Ноябрь"
 
-#: financial_bot/handlers/utils.py:194
+#: financial_bot/handlers/utils.py:233
 msgid "December"
 msgstr "Декабрь"
 
@@ -322,19 +370,15 @@ msgstr "Здоровье"
 msgid "Skip description"
 msgstr "Пропустить описание"
 
-#: financial_bot/keyboards/inline.py:86
-msgid "week"
-msgstr "неделя"
-
-#: financial_bot/keyboards/inline.py:90
+#: financial_bot/keyboards/inline.py:85
 msgid "month"
 msgstr "месяц"
 
-#: financial_bot/keyboards/inline.py:105
+#: financial_bot/keyboards/inline.py:99
 msgid "last two weeks"
 msgstr "последние две недели"
 
-#: financial_bot/keyboards/inline.py:109
+#: financial_bot/keyboards/inline.py:103
 msgid "arbitrary period"
 msgstr "произвольный период"
 
@@ -346,7 +390,7 @@ msgstr "Ввести сумму"
 msgid "Add/change data"
 msgstr "Добавить/изменить данные"
 
-#: financial_bot/keyboards/reply.py:12
+#: financial_bot/keyboards/reply.py:13
 msgid "Generate report"
 msgstr "Создать отчёт"
 
@@ -354,68 +398,11 @@ msgstr "Создать отчёт"
 msgid "History"
 msgstr "История"
 
-#: financial_bot/keyboards/reply.py:15
+#: financial_bot/keyboards/reply.py:16
 msgid "Settings"
 msgstr "Настройки"
 
-#: financial_bot/keyboards/reply.py:16 financial_bot/keyboards/reply.py:28
+#: financial_bot/keyboards/reply.py:17 financial_bot/keyboards/reply.py:29
 msgid "cancel"
 msgstr "Отмена"
-
-#~ msgid "type"
-#~ msgstr "Тип"
-
-#~ msgid "cat"
-#~ msgstr ""
-
-#~ msgid "Food"
-#~ msgstr "Еда"
-
-#~ msgid "Home"
-#~ msgstr "Дом"
-
-#~ msgid "Entertainment"
-#~ msgstr "Развлечения"
-
-#~ msgid "Transport"
-#~ msgstr "Транспорт"
-
-#~ msgid "Health"
-#~ msgstr "Здоровье"
-
-#~ msgid "Other"
-#~ msgstr "Другое"
-
-#~ msgid "Description"
-#~ msgstr "Описание"
-
-#~ msgid "Main menu"
-#~ msgstr ""
-
-#~ msgid "The budget was successfully saved."
-#~ msgstr "Бюджет был успешно сохранён."
-
-#~ msgid "The spending limit was successfully saved."
-#~ msgstr "Лимит расходов был успешно сохранён."
-
-#~ msgid ""
-#~ "**Please enter a valid number.**\n"
-#~ "For example: 500 or 100.50"
-#~ msgstr ""
-#~ "**Пожалуйста, введите корректное число.**\n"
-#~ "Например: 500 или 100.50"
-
-#~ msgid "You don't have a budget set! Set a basic budget first."
-#~ msgstr "У вас нет установленного бюджета! Сначала установите базовый бюджет."
-
-#~ msgid ""
-#~ "You don't have a planned budget "
-#~ "set! Set a basic planned budget "
-#~ "budget first."
-#~ msgstr ""
-#~ "У вас нет установленного бюджета! "
-#~ "Сначала установите базовый планируемый бюджет."
-
-#~ msgid "There is no data for {} 🤷‍♂️"
-#~ msgstr ""
 

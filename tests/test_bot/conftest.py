@@ -3,7 +3,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 from unittest.mock import AsyncMock
-import random
 
 import pytest
 from aiogram import Bot, Dispatcher
@@ -13,13 +12,12 @@ from aiogram.utils.i18n import I18n, I18nMiddleware
 
 from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.common import router
-from financial_bot.handlers.transactions import router_tr
-from financial_bot.handlers.reports import report_rout
 from financial_bot.handlers.history import history_rout
+from financial_bot.handlers.reports import report_rout
+from financial_bot.handlers.transactions import router_tr
 from financial_bot.middlewares import SessionMiddleware
-from financial_bot.repositories import add_data_for_user, create_user, add_transaction
+from financial_bot.repositories import add_data_for_user, add_transaction, create_user
 from financial_bot.schemas import AddData, CreateUser
-from financial_bot.models import Transactions
 
 current_file_path = Path(__file__).resolve()
 base_dir = current_file_path.parent.parent.parent
@@ -41,12 +39,7 @@ def mock_bot():
 
 @pytest.fixture
 async def test_user(test_session):
-    data = {
-        "tg_id": 12345,
-        "language_code": "ru",
-        "first_name": "TestUser"
-
-    }
+    data = {"tg_id": 12345, "language_code": "ru", "first_name": "TestUser"}
 
     new_user = CreateUser(**data)
 
@@ -62,7 +55,7 @@ async def test_data(test_session, test_user):
     add_data = {
         "savings_goal": 10000,
         "monthly_budget": 30000,
-        "budget_remind_percent": 20
+        "budget_remind_percent": 20,
     }
 
     new_obg = AddData(**add_data)
@@ -80,7 +73,7 @@ async def test_transaction(test_session, test_user):
         "amount": 300,
         "type": "expense",
         "category": "food",
-        "description": "coffee"
+        "description": "coffee",
     }
 
     await add_transaction(test_session, data)
@@ -124,9 +117,6 @@ async def test_dp(test_session, test_redis, test_i18n):
     return dp
 
 
-
-
-
 @pytest.fixture
 def create_mock_update(mock_bot):
     def _create_message(text: str, user_id: int, update_id: int):
@@ -153,18 +143,15 @@ def create_mock_update(mock_bot):
         )
         callback_query = CallbackQuery(
             id="123",
-            from_user=User(id=user_id, is_bot=False, first_name="TestUser", language_code="ru"),
+            from_user=User(
+                id=user_id, is_bot=False, first_name="TestUser", language_code="ru"
+            ),
             data=data,
             chat_instance="abc",
             message=message,
             bot=mock_bot,
         )
         return Update(update_id=update_id, callback_query=callback_query)
-
-
-
-
-
 
     return _create_message, _create_callback
 

@@ -1,24 +1,24 @@
-from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from datetime import datetime, time, timezone
+
+from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
-from sqlalchemy.ext.asyncio import AsyncSession
+from aiogram.types import CallbackQuery, Message
 from aiogram.utils.i18n import gettext as _
-from datetime import datetime, timezone, time
-from loguru import logger
-from aiogram import Bot
-from financial_bot.keyboards.inline import period_report
-from financial_bot.repositories import get_report_period, get_planned_goals
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from financial_bot.filters import I18nTextFilter
+from financial_bot.handlers.utils import (
+    formatters,
+    get_month_boundaries,
+    get_month_name,
+    get_week_boundaries,
+)
+from financial_bot.keyboards.inline import period_report
+from financial_bot.repositories import get_planned_goals, get_report_period
 from financial_bot.states.generate_report import GenerateReport
-from financial_bot.handlers.utils import (formatters,
-                                          get_month_boundaries,
-                                          get_month_name,
-                                          get_week_boundaries,
-                                         )
-
-
 
 report_rout = Router()
+
 
 @report_rout.message(I18nTextFilter("Generate report"))
 async def reports_period(message: Message, state: FSMContext):
@@ -28,18 +28,22 @@ async def reports_period(message: Message, state: FSMContext):
 
 
 @report_rout.callback_query(F.data == "day", GenerateReport.waiting_for_period)
-async def  report_day(callback: CallbackQuery, session: AsyncSession, bot: Bot):
+async def report_day(callback: CallbackQuery, session: AsyncSession, bot: Bot):
 
     if not callback.data or not isinstance(callback.message, Message):
         await callback.answer()
         return
 
-    today_start = datetime.combine(datetime.now(timezone.utc).date(), time.min,
-                                   tzinfo=timezone.utc)
-    today_end = datetime.combine(datetime.now(timezone.utc).date(), time.max,
-                                 tzinfo=timezone.utc)
+    today_start = datetime.combine(
+        datetime.now(timezone.utc).date(), time.min, tzinfo=timezone.utc
+    )
+    today_end = datetime.combine(
+        datetime.now(timezone.utc).date(), time.max, tzinfo=timezone.utc
+    )
 
-    data = await get_report_period(session, callback.from_user.id, today_start, today_end)
+    data = await get_report_period(
+        session, callback.from_user.id, today_start, today_end
+    )
 
     period = _("day")
 
@@ -49,7 +53,7 @@ async def  report_day(callback: CallbackQuery, session: AsyncSession, bot: Bot):
         text=report_text,
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
-        parse_mode="HTML"
+        parse_mode="HTML",
     )
 
 
@@ -60,7 +64,7 @@ async def report_week(callback: CallbackQuery, session: AsyncSession, bot: Bot):
         await callback.answer()
         return
 
-    period = "week"
+    period = _("week")
 
     start_day, end_day = get_week_boundaries()
 
@@ -72,13 +76,12 @@ async def report_week(callback: CallbackQuery, session: AsyncSession, bot: Bot):
         text=report_text,
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
-        parse_mode="HTML"
+        parse_mode="HTML",
     )
 
 
-
 @report_rout.callback_query(F.data == "month", GenerateReport.waiting_for_period)
-async def  report_monthly(callback: CallbackQuery, session: AsyncSession, bot: Bot):
+async def report_monthly(callback: CallbackQuery, session: AsyncSession, bot: Bot):
 
     if not callback.data or not isinstance(callback.message, Message):
         await callback.answer()
@@ -93,13 +96,10 @@ async def  report_monthly(callback: CallbackQuery, session: AsyncSession, bot: B
 
     report_text = formatters(data, period, planned_data)
 
-    #await callback.message.edit_text(text=report_text, parse_mode="HTML")
+    # await callback.message.edit_text(text=report_text, parse_mode="HTML")
     await bot.edit_message_text(
         text=report_text,
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
-        parse_mode="HTML"
+        parse_mode="HTML",
     )
-
-
-

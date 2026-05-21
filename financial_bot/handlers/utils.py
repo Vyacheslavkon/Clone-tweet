@@ -1,6 +1,6 @@
-from decimal import Decimal, InvalidOperation
-from datetime import datetime, time, timezone, timedelta
 import calendar
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 
 from aiogram.utils.i18n import gettext as _
 
@@ -50,7 +50,10 @@ def transform(budget: Decimal, second_value: str) -> int | str:
 def get_error_text(error_code: str) -> str:
     errors = {
         "invalid_format": _("Please enter a valid number."),
-        "no_budget": _("You don't have a monthly planned budget set! Set a basic monthly planned budget first."),
+        "no_budget": _(
+            "You don't have a monthly planned budget set! "
+            "Set a basic monthly planned budget first."
+        ),
         "too_big": _("This amount exceeds your planned budget."),
         "too_small": _("The amount must be greater than zero."),
     }
@@ -58,28 +61,36 @@ def get_error_text(error_code: str) -> str:
 
 
 def fmt_limit_expense(expense: Decimal, plan: Plan):
-     limit_expense = plan.monthly_budget / 100 * plan.budget_remind_percent
-     balance_limit = limit_expense - expense
-     diff_limit = limit_expense - balance_limit
-     balance_limit_persent = round(diff_limit / limit_expense * 100)
+    if plan.monthly_budget is None or plan.budget_remind_percent is None:
+        return Decimal("0"), 0
 
-     return  limit_expense, balance_limit_persent
+    monthly_budget = Decimal(str(plan.monthly_budget))
+    remind_percent = Decimal(str(plan.budget_remind_percent))
+    hundred = Decimal("100")
+
+    limit_expense = monthly_budget / hundred * remind_percent
+    balance_limit = limit_expense - expense
+    diff_limit = limit_expense - balance_limit
+    balance_limit_persent = round(float(diff_limit / limit_expense * hundred))
+
+    return limit_expense, balance_limit_persent
 
 
-
-def formatters(data: list, period_name: str, plan: Plan = None) -> str:
+def formatters(data: list, period_name: str, plan: Plan | None = None) -> str:
 
     if not data:
-        report_text = _("There is no data for {period} 🤷‍♂️").format(period=period_name)
+        report_text = _("There is no data for {period} 🤷‍♂️").format(
+            period=period_name
+        )
     else:
-        income_total = 0
-        expense_total = 0
+        income_total = Decimal(0)
+        expense_total = Decimal(0)
         income_details = ""
         expense_details = ""
 
         for row in data:
             formated_amount = f"{row.total:,.2f}".replace(",", " ")
-            if row.type == 'income':
+            if row.type == "income":
                 income_total += row.total
                 income_details += f"  • {row.category}: {formated_amount}\n"
             else:
@@ -89,57 +100,63 @@ def formatters(data: list, period_name: str, plan: Plan = None) -> str:
         total_inc_str = f"{income_total:,.2f}".replace(",", " ")
         total_exp_str = f"{expense_total:,.2f}".replace(",", " ")
 
-
         report_text = _(
             "<b>Report for {period}:</b>\n\n"
             "💰 <b>Incomes: {total_inc_str}</b>\n{income_details}"
-            f"\n"
+            "\n"  # check attention
             "💸 <b>Expense: {total_exp_str}</b>\n{expense_details}"
         ).format(
             period=period_name,
             total_inc_str=total_inc_str,
             total_exp_str=total_exp_str,
             income_details=income_details,
-            expense_details=expense_details
+            expense_details=expense_details,
         )
 
-        if period_name != "day"  and plan and period_name != "week":
-            def fmt(val):return f"{val:,.2f}".replace(",", " ")
+        if period_name != "day" and plan and period_name != "week":
+
+            def fmt(val):
+                return f"{val:,.2f}".replace(",", " ")
 
             planning_lines = []
 
-
             if plan.monthly_budget:
-                planning_lines.append(_(f"  • Planned budget: {fmt(plan.monthly_budget)} "))
+                planning_lines.append(
+                    str(_("  • Planned budget: {budget}")).format(
+                        budget=fmt(plan.monthly_budget)
+                    )
+                )
             if plan.budget_remind_percent:
                 lim_expense, balance = fmt_limit_expense(expense_total, plan)
-                planning_lines.append(_(f"  • Limit expense: {fmt(lim_expense)}"))
-                planning_lines.append(_(f"  • Limit spent: {balance}%"))
+                planning_lines.append(
+                    str(_("  • Limit expense: {limit}")).format(limit=fmt(lim_expense))
+                )
+                planning_lines.append(
+                    str(_("  • Limit spent: {balance}%")).format(balance=balance)
+                )
             if plan.savings_goal:
-                planning_lines.append(_(f"  • Savings goal: {fmt(plan.savings_goal)} "))
+                planning_lines.append(
+                    str(_("  • Savings goal: {saving_goal}")).format(
+                        saving_goal=fmt(plan.savings_goal)
+                    )
+                )
 
             if planning_lines:
-                report_text += "\n\n🎯 <b>Planning:</b>\n" + "\n".join(planning_lines)
-
-
+                report_text += str(_("\n\n🎯 <b>Planning:</b>\n")) + "\n".join(
+                    planning_lines
+                )
 
     return report_text
 
 
 def format_multi_report(reports_data: list[dict]) -> str:
-    """
-    Принимает список словарей вида:
-    [{'data': data, 'period_name': '...', 'plan': plan}, ...]
-    """
+
     parts = []
     for el in reports_data:
-        # Вызываем ваш основной formatter для каждой части
-        part = formatters(el['data'], el['period_name'], el.get('plan'))
+        part = formatters(el["data"], el["period_name"])  # el.get("plan")
         parts.append(part)
 
-    # Склеиваем всё через красивый разделитель
     return "\n\n" + "───────────────────\n".join(parts)
-
 
 
 def get_arbitrary_period(start_date, end_date):
@@ -153,7 +170,7 @@ def get_arbitrary_period(start_date, end_date):
     return final_start, final_end
 
 
-def get_week_boundaries(name_week: str = None):
+def get_week_boundaries(name_week: str | None = None):
     now = datetime.now(timezone.utc)
     if name_week is None:
         target_date = now
@@ -168,11 +185,7 @@ def get_week_boundaries(name_week: str = None):
     return start_of_week, end_of_week
 
 
-
-
-
 def get_month_boundaries():
-
 
     now = datetime.now(timezone.utc)
 
@@ -180,7 +193,9 @@ def get_month_boundaries():
 
     _, last_day = calendar.monthrange(now.year, now.month)
 
-    end_month = now.replace(day=last_day, hour=23, minute=59, second=59, microsecond=999999)
+    end_month = now.replace(
+        day=last_day, hour=23, minute=59, second=59, microsecond=999999
+    )
     current_month = now.month
     return start_month, end_month, current_month
 
@@ -188,12 +203,18 @@ def get_month_boundaries():
 def get_month_name(number: int) -> str:
     month_rus = [
         "",
-        _("January"), _("February"), _("March"),
-        _("April"), _("May"), _("June"),
-        _("July"), _("August"), _("September"),
-        _("October"), _("November"), _("December")
+        _("January"),
+        _("February"),
+        _("March"),
+        _("April"),
+        _("May"),
+        _("June"),
+        _("July"),
+        _("August"),
+        _("September"),
+        _("October"),
+        _("November"),
+        _("December"),
     ]
 
     return month_rus[number]
-
-

@@ -1,12 +1,12 @@
-from typing import Any, Awaitable, Callable, Dict, Optional
 import time
+from typing import Any, Awaitable, Callable, Dict, Optional
 
 from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message, TelegramObject, Update
 from aiogram.utils.i18n import I18nMiddleware
+from loguru import logger
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from loguru import logger
 
 from financial_bot.repositories import get_user_by_id
 
@@ -54,37 +54,39 @@ class MyI18nMiddleware(I18nMiddleware):
 
 
 class UserActivityMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event: Update, data: dict):
+    async def __call__(self, handler, event: TelegramObject, data: dict[str, Any]):
         user = data.get("event_from_user")
         user_id = user.id if user else "unknown"
         username = f"(@{user.username})" if user and user.username else ""
 
-        if event.message:
-            payload = event.message.text if event.message.text else f"[{event.message.content_type}]"
-            action = f"Msg: {payload}"
-        elif event.callback_query:
-            action = f"CB: {event.callback_query.data}"
-        elif event.inline_query:
-            action = f"Inline: {event.inline_query.query}"
-        else:
-            action = f"Other update type"
-
+        action = "Non-Update event"
+        if isinstance(event, Update):
+            if event.message:
+                payload = (
+                    event.message.text
+                    if event.message.text
+                    else f"[{event.message.content_type}]"
+                )
+                action = f"Msg: {payload}"
+            elif event.callback_query:
+                action = f"CB: {event.callback_query.data}"
+            elif event.inline_query:
+                action = f"Inline: {event.inline_query.query}"
+            else:
+                action = "Other update type"
 
         start_time = time.time()
         try:
             result = await handler(event, data)
         finally:
             duration = time.time() - start_time
-            logger.info(f"User: {user_id}| Username: {username} | Action: {action} | Time: {duration:.3f}s")
+            logger.info(
+                "User: {user_id} | Username: {username} | "
+                "Action: {action} | Time: {duration:.3f}s",
+                user_id=user_id,
+                username=username,
+                action=action,
+                duration=duration,
+            )
 
         return result
-
-
-
-
-
-
-
-
-
-
