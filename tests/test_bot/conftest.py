@@ -12,9 +12,11 @@ from aiogram.utils.i18n import I18n, I18nMiddleware
 
 from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.common import router
+from financial_bot.handlers.history import history_rout
+from financial_bot.handlers.reports import report_rout
 from financial_bot.handlers.transactions import router_tr
 from financial_bot.middlewares import SessionMiddleware
-from financial_bot.repositories import add_data_for_user, create_user
+from financial_bot.repositories import add_data_for_user, add_transaction, create_user
 from financial_bot.schemas import AddData, CreateUser
 
 current_file_path = Path(__file__).resolve()
@@ -37,17 +39,44 @@ def mock_bot():
 
 @pytest.fixture
 async def test_user(test_session):
-    data = {
-        "tg_id": 12345,
-        "language_code": "ru",
-        "first_name": "TestUser",
-    }
+    data = {"tg_id": 12345, "language_code": "ru", "first_name": "TestUser"}
 
     new_user = CreateUser(**data)
 
-    await create_user(test_session, new_user)
+    user_db_obj = await create_user(test_session, new_user)
+    await test_session.flush()
+    await test_session.refresh(user_db_obj)
 
-    return new_user
+    return user_db_obj
+
+
+@pytest.fixture
+async def test_data(test_session, test_user):
+    add_data = {
+        "savings_goal": 10000,
+        "monthly_budget": 30000,
+        "budget_remind_percent": 20,
+    }
+
+    new_obg = AddData(**add_data)
+
+    await add_data_for_user(test_session, new_obg, test_user.tg_id)
+    await test_session.flush()
+    return new_obg
+
+
+@pytest.fixture
+async def test_transaction(test_session, test_user):
+
+    data = {
+        "user_id": test_user.id,
+        "amount": 300,
+        "type": "expense",
+        "category": "food",
+        "description": "coffee",
+    }
+
+    await add_transaction(test_session, data)
 
 
 class MyI18nMiddleware(I18nMiddleware):
@@ -74,7 +103,7 @@ async def test_dp(test_session, test_redis, test_i18n):
 
     dp.update.middleware(SessionMiddleware(session_pool=test_session))
 
-    for r in [router, router_tr, router_data]:
+    for r in [router, router_tr, router_data, report_rout, history_rout]:
         if r is not None:
 
             new_router = copy.deepcopy(r)
@@ -114,7 +143,9 @@ def create_mock_update(mock_bot):
         )
         callback_query = CallbackQuery(
             id="123",
-            from_user=User(id=user_id, is_bot=False, first_name="TestUser"),
+            from_user=User(
+                id=user_id, is_bot=False, first_name="TestUser", language_code="ru"
+            ),
             data=data,
             chat_instance="abc",
             message=message,

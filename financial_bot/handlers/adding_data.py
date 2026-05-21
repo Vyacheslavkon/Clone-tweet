@@ -34,8 +34,8 @@ async def add_data(message: Message, session: AsyncSession, state: FSMContext):
     if not message.from_user:
         return
 
-    if message.text == _("monthly budget"):
-        await message.answer(_("Enter your estimated monthly budget"))
+    if message.text == _("monthly planned budget"):
+        await message.answer(_("Enter your estimated monthly planned budget"))
         await state.set_state(AddDataState.waiting_for_monthly_budget)
 
     elif message.text == _("limit expense"):
@@ -44,7 +44,7 @@ async def add_data(message: Message, session: AsyncSession, state: FSMContext):
             await message.answer(_("Enter the spending limit amount"))
             await state.set_state(AddDataState.waiting_for_limit_expense)
         else:
-            await message.answer(_("Please set a monthly budget first."))
+            await message.answer(_("Please set a monthly planned budget first."))
 
     elif message.text == _("savings goal"):
         budget = await get_monthly_budget(session, message.from_user.id)
@@ -52,7 +52,7 @@ async def add_data(message: Message, session: AsyncSession, state: FSMContext):
             await message.answer(_("Enter your desired savings amount"))
             await state.set_state(AddDataState.waiting_for_savings_goal)
         else:
-            await message.answer(_("Please set a monthly budget first."))
+            await message.answer(_("Please set a monthly planned budget first."))
 
     else:
         await message.reply(
@@ -79,9 +79,7 @@ async def saving_value_budget(
 
         else:
             data = AddData(monthly_budget=value_budget)
-            old_value_budget = await get_monthly_budget(
-                session, message.from_user.id
-            )  # new
+            old_value_budget = await get_monthly_budget(session, message.from_user.id)
             await add_data_for_user(session, data, message.from_user.id)
             if old_value_budget is not None:
                 await message.answer(_("Enter the spending limit amount"))
@@ -109,7 +107,10 @@ async def saving_limit_expense(
 
         if budget is None:
             await message.answer(
-                _("You don't have a budget set! Set a basic budget first.")
+                _(
+                    "You don't have a planned budget set! "
+                    "Set a basic planned budget first."
+                )
             )
             return
 
@@ -149,7 +150,10 @@ async def saving_goal(message: Message, session: AsyncSession, state: FSMContext
 
         if budget is None:
             await message.answer(
-                _("You don't have a budget set! Set a basic budget first.")
+                _(
+                    "You don't have a planned budget set! "
+                    "Set a basic planned budget first."
+                )
             )
             return
 

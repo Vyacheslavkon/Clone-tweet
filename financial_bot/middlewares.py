@@ -1,8 +1,10 @@
+import time
 from typing import Any, Awaitable, Callable, Dict, Optional
 
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery, Message, TelegramObject
+from aiogram.types import CallbackQuery, Message, TelegramObject, Update
 from aiogram.utils.i18n import I18nMiddleware
+from loguru import logger
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
@@ -50,19 +52,41 @@ class MyI18nMiddleware(I18nMiddleware):
 
         return str(self.i18n.default_locale)
 
-        return self.i18n.default_locale
 
+class UserActivityMiddleware(BaseMiddleware):
+    async def __call__(self, handler, event: TelegramObject, data: dict[str, Any]):
+        user = data.get("event_from_user")
+        user_id = user.id if user else "unknown"
+        username = f"(@{user.username})" if user and user.username else ""
 
-# user = await get_user_by_id(session, event.from_user.id)
-#
-# if user and user.language_code:
-#     active_lang = user.language_code
-#
-# else:
-#     active_lang = event.from_user.language_code or "en"
-#
-# if active_lang not in LANGUAGE:
-#     active_lang = "en"
-#
-#
-# data['lp'] = LANGUAGE.get(active_lang, LANGUAGE['en'])
+        action = "Non-Update event"
+        if isinstance(event, Update):
+            if event.message:
+                payload = (
+                    event.message.text
+                    if event.message.text
+                    else f"[{event.message.content_type}]"
+                )
+                action = f"Msg: {payload}"
+            elif event.callback_query:
+                action = f"CB: {event.callback_query.data}"
+            elif event.inline_query:
+                action = f"Inline: {event.inline_query.query}"
+            else:
+                action = "Other update type"
+
+        start_time = time.time()
+        try:
+            result = await handler(event, data)
+        finally:
+            duration = time.time() - start_time
+            logger.info(
+                "User: {user_id} | Username: {username} | "
+                "Action: {action} | Time: {duration:.3f}s",
+                user_id=user_id,
+                username=username,
+                action=action,
+                duration=duration,
+            )
+
+        return result

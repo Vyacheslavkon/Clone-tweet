@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import Optional
 
@@ -39,3 +40,10 @@ class AddData(BaseModel):
     budget_remind_percent: Optional[int] = Field(default=None, ge=1, le=99)
 
     model_config = ConfigDict(from_attributes=True)
+
+
+@dataclass
+class Plan:
+    monthly_budget: Optional[Decimal] = None
+    budget_remind_percent: Optional[int] = None
+    savings_goal: Optional[Decimal] = None

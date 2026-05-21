@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-04-22 22:16+1000\n"
+"POT-Creation-Date: 2026-05-21 22:25+1000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,78 +17,133 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: financial_bot/handlers/adding_data.py:24
+#: financial_bot/handlers/adding_data.py:27
 msgid "Please, select data type"
 msgstr ""
 
-#: financial_bot/handlers/adding_data.py:31 financial_bot/keyboards/reply.py:20
-msgid "monthly budget"
-msgstr ""
-
-#: financial_bot/handlers/adding_data.py:32
-msgid "Enter your estimated monthly budget"
-msgstr ""
-
-#: financial_bot/handlers/adding_data.py:35 financial_bot/keyboards/reply.py:21
-msgid "limit expense"
+#: financial_bot/handlers/adding_data.py:37 financial_bot/keyboards/reply.py:25
+msgid "monthly planned budget"
 msgstr ""
 
 #: financial_bot/handlers/adding_data.py:38
-#: financial_bot/handlers/adding_data.py:69
+msgid "Enter your estimated monthly planned budget"
+msgstr ""
+
+#: financial_bot/handlers/adding_data.py:41 financial_bot/keyboards/reply.py:26
+msgid "limit expense"
+msgstr ""
+
+#: financial_bot/handlers/adding_data.py:44
+#: financial_bot/handlers/adding_data.py:85
 msgid "Enter the spending limit amount"
 msgstr ""
 
-#: financial_bot/handlers/adding_data.py:41
-#: financial_bot/handlers/adding_data.py:49
-msgid "Please set a monthly budget first."
+#: financial_bot/handlers/adding_data.py:47
+#: financial_bot/handlers/adding_data.py:55
+msgid "Please set a monthly planned budget first."
 msgstr ""
 
-#: financial_bot/handlers/adding_data.py:43 financial_bot/keyboards/reply.py:22
+#: financial_bot/handlers/adding_data.py:49 financial_bot/keyboards/reply.py:27
 msgid "savings goal"
 msgstr ""
 
-#: financial_bot/handlers/adding_data.py:46
+#: financial_bot/handlers/adding_data.py:52
 msgid "Enter your desired savings amount"
 msgstr ""
 
-#: financial_bot/handlers/adding_data.py:52
-#: financial_bot/handlers/fallback.py:11
+#: financial_bot/handlers/adding_data.py:59
+#: financial_bot/handlers/fallback.py:13
 msgid "Sorry, I didn't understand you, please use the suggested choice!"
 msgstr ""
 
-#: financial_bot/handlers/adding_data.py:72
-#: financial_bot/handlers/adding_data.py:98
-#: financial_bot/handlers/adding_data.py:126
+#: financial_bot/handlers/adding_data.py:89
+#: financial_bot/handlers/adding_data.py:132
+#: financial_bot/handlers/adding_data.py:172
 msgid "The data was saved successfully."
 msgstr ""
 
-#: financial_bot/handlers/adding_data.py:75
+#: financial_bot/handlers/adding_data.py:93
 msgid "Please, enter a number!"
 msgstr ""
 
-#: financial_bot/handlers/adding_data.py:77
-#: financial_bot/handlers/adding_data.py:104
-#: financial_bot/handlers/adding_data.py:132
+#: financial_bot/handlers/adding_data.py:95
+#: financial_bot/handlers/adding_data.py:138
+#: financial_bot/handlers/adding_data.py:178
 msgid "Profile not found. Please type /start"
 msgstr ""
 
-#: financial_bot/handlers/common.py:30
+#: financial_bot/handlers/adding_data.py:111
+#: financial_bot/handlers/adding_data.py:154
+msgid "You don't have a planned budget set! Set a basic planned budget first."
+msgstr ""
+
+#: financial_bot/handlers/common.py:37
 #, python-brace-format
 msgid "Hello, {name}! Glad to meet you!"
 msgstr ""
 
-#: financial_bot/handlers/common.py:36
+#: financial_bot/handlers/common.py:46
 #, python-brace-format
-msgid "Glad to see you {name}! Your balance: 0"
+msgid "Glad to see you {name}!"
 msgstr ""
 
-#: financial_bot/handlers/common.py:47
+#: financial_bot/handlers/common.py:59
 msgid "Action canceled. Returning to main menu..."
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:32
-#: financial_bot/handlers/transactions.py:43
-#: financial_bot/handlers/transactions.py:64
+#: financial_bot/handlers/common.py:103
+#, python-brace-format
+msgid "HTML parsing or message length error: {error}"
+msgstr ""
+
+#: financial_bot/handlers/common.py:107
+#, python-brace-format
+msgid "General Telegram API error when notifying admin: {error}"
+msgstr ""
+
+#: financial_bot/handlers/common.py:111
+msgid "⚠️ An error occurred. I've already reported it to the developer."
+msgstr ""
+
+#: financial_bot/handlers/history.py:27
+msgid "Please, select period"
+msgstr ""
+
+#: financial_bot/handlers/history.py:36
+msgid "current week"
+msgstr ""
+
+#: financial_bot/handlers/history.py:37
+msgid "last week"
+msgstr ""
+
+#: financial_bot/handlers/history.py:66
+msgid "📅 Select the <b>start date</b> of the period:"
+msgstr ""
+
+#: financial_bot/handlers/history.py:94
+#, python-brace-format
+msgid ""
+"✅ Start date: {selected_date}\n"
+"📅 Now select the <b>end date</b>:\n"
+"(click the same date again if you need a report for one day)"
+msgstr ""
+
+#: financial_bot/handlers/reports.py:26
+msgid "please, select period"
+msgstr ""
+
+#: financial_bot/handlers/reports.py:48 financial_bot/keyboards/inline.py:81
+msgid "day"
+msgstr ""
+
+#: financial_bot/handlers/reports.py:67 financial_bot/keyboards/inline.py:83
+msgid "week"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:35
+#: financial_bot/handlers/transactions.py:44
+#: financial_bot/handlers/transactions.py:65
 msgid "Please enter the amount!"
 msgstr ""
 
@@ -96,60 +151,157 @@ msgstr ""
 msgid "Select type"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:55
-#: financial_bot/handlers/transactions.py:94
+#: financial_bot/handlers/transactions.py:56
+#: financial_bot/handlers/transactions.py:97
 msgid "Select category"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:75
+#: financial_bot/handlers/transactions.py:73
+msgid "Please send a text message with a number!"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:80
 msgid "Select type:"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:79
+#: financial_bot/handlers/transactions.py:84
 msgid "Enter a numeric value!"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:105
+#: financial_bot/handlers/transactions.py:114
 msgid "Write a comment"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:144
+#: financial_bot/handlers/transactions.py:162
 msgid "Data saved successfully!"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:49
+#: financial_bot/handlers/utils.py:52
 msgid "Please enter a valid number."
 msgstr ""
 
-#: financial_bot/handlers/utils.py:50
-msgid "You don't have a budget set! Set a basic budget first."
+#: financial_bot/handlers/utils.py:54
+msgid ""
+"You don't have a monthly planned budget set! Set a basic monthly planned "
+"budget first."
 msgstr ""
 
-#: financial_bot/handlers/utils.py:51
-msgid "This amount exceeds your total budget."
+#: financial_bot/handlers/utils.py:57
+msgid "This amount exceeds your planned budget."
 msgstr ""
 
-#: financial_bot/handlers/utils.py:52
+#: financial_bot/handlers/utils.py:58
 msgid "The amount must be greater than zero."
 msgstr ""
 
-#: financial_bot/handlers/utils.py:54
+#: financial_bot/handlers/utils.py:60
 msgid "An unexpected error occurred."
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:7
+#: financial_bot/handlers/utils.py:82
+#, python-brace-format
+msgid "There is no data for {period} 🤷‍♂️"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:104
+#, python-brace-format
+msgid ""
+"<b>Report for {period}:</b>\n"
+"\n"
+"💰 <b>Incomes: {total_inc_str}</b>\n"
+"{income_details}\n"
+"💸 <b>Expense: {total_exp_str}</b>\n"
+"{expense_details}"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:147
+#, python-brace-format
+msgid "  • Planned budget: {budget}"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:152
+#, python-brace-format
+msgid "  • Limit expense: {limit}"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:155
+#, python-brace-format
+msgid "  • Limit spent: {balance}%"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:159
+#, python-brace-format
+msgid "  • Savings goal: {saving_goal}"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:163
+msgid ""
+"\n"
+"\n"
+"🎯 <b>Planning:</b>\n"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:222
+msgid "January"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:223
+msgid "February"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:224
+msgid "March"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:225
+msgid "April"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:226
+msgid "May"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:227
+msgid "June"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:228
+msgid "July"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:229
+msgid "August"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:230
+msgid "September"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:231
+msgid "October"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:232
+msgid "November"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:233
+msgid "December"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:8
 msgid "Cancel"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:13
-msgid "⬅️ Back"
-msgstr ""
-
-#: financial_bot/keyboards/inline.py:19
-msgid "Income"
+#: financial_bot/keyboards/inline.py:14
+msgid "Back"
 msgstr ""
 
 #: financial_bot/keyboards/inline.py:20
+msgid "Income"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:21
 msgid "Expense"
 msgstr ""
 
@@ -169,51 +321,67 @@ msgstr ""
 msgid "Deal"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:35 financial_bot/keyboards/inline.py:37
+#: financial_bot/keyboards/inline.py:35 financial_bot/keyboards/inline.py:43
 msgid "Other"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:37
+#: financial_bot/keyboards/inline.py:38
 msgid "Food"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:37
+#: financial_bot/keyboards/inline.py:39
 msgid "Home"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:37
+#: financial_bot/keyboards/inline.py:40
 msgid "Entertainment"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:37
+#: financial_bot/keyboards/inline.py:41
 msgid "Transport"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:37
+#: financial_bot/keyboards/inline.py:42
 msgid "Health"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:55
+#: financial_bot/keyboards/inline.py:65
 msgid "Skip description"
 msgstr ""
 
-#: financial_bot/keyboards/reply.py:7
-msgid "Enter amount"
+#: financial_bot/keyboards/inline.py:85
+msgid "month"
 msgstr ""
 
-#: financial_bot/keyboards/reply.py:8
-msgid "Add/change data"
+#: financial_bot/keyboards/inline.py:99
+msgid "last two weeks"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:103
+msgid "arbitrary period"
 msgstr ""
 
 #: financial_bot/keyboards/reply.py:9
+msgid "Enter amount"
+msgstr ""
+
+#: financial_bot/keyboards/reply.py:10
+msgid "Add/change data"
+msgstr ""
+
+#: financial_bot/keyboards/reply.py:13
 msgid "Generate report"
 msgstr ""
 
-#: financial_bot/keyboards/reply.py:12
+#: financial_bot/keyboards/reply.py:13
+msgid "History"
+msgstr ""
+
+#: financial_bot/keyboards/reply.py:16
 msgid "Settings"
 msgstr ""
 
-#: financial_bot/keyboards/reply.py:13 financial_bot/keyboards/reply.py:24
+#: financial_bot/keyboards/reply.py:17 financial_bot/keyboards/reply.py:29
 msgid "cancel"
 msgstr ""
 

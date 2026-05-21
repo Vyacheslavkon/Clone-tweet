@@ -8,7 +8,9 @@ def get_main_menu():
     builder.row(
         KeyboardButton(text=_("Enter amount")),
         KeyboardButton(text=_("Add/change data")),
-        KeyboardButton(text=_("Generate report")),
+    )
+    builder.row(
+        KeyboardButton(text=_("Generate report")), KeyboardButton(text=_("History"))
     )
 
     builder.row(KeyboardButton(text=_("Settings")), KeyboardButton(text="AI"))
@@ -20,7 +22,7 @@ def get_main_menu():
 def change_data():
     builder = ReplyKeyboardBuilder()
     builder.row(
-        KeyboardButton(text=_("monthly budget")),
+        KeyboardButton(text=_("monthly planned budget")),
         KeyboardButton(text=_("limit expense")),
         KeyboardButton(text=_("savings goal")),
     )

@@ -15,7 +15,7 @@ database_url = os.getenv("DATABASE_URL_DOCKER")
 
 if database_url is None:
     raise ValueError("DATABASE_URL_DOCKER is not set in environment variables")
-engine = create_async_engine(database_url, echo=True)
+engine = create_async_engine(database_url, echo=False)
 async_session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 

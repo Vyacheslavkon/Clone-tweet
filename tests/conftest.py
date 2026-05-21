@@ -53,8 +53,7 @@ async def test_session():
 @pytest.fixture
 async def test_redis():
 
-    # redis = Redis(host="test_redis", port=6379, db=3)
-    redis = Redis(host=REDIS_HOST, port=6379, db=3)  # new
+    redis = Redis(host=REDIS_HOST, port=6379, db=3)
     yield redis
     await redis.flushdb()
     await redis.aclose()

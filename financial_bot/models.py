@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from sqlalchemy import (
@@ -37,7 +37,7 @@ class UserBot(Base):
     )  # limit expense
     budget_remind_percent: Mapped[int] = mapped_column(
         SmallInteger, default=80, server_default="80"
-    )  # limit expense %
+    )
 
     savings_goal: Mapped[Decimal | None] = mapped_column(
         Numeric(
@@ -69,8 +69,14 @@ class Transactions(Base):
         ForeignKey("users_bot.id", ondelete="CASCADE"), index=True
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
-    type: Mapped[str] = mapped_column(String(10))  # income, expense
+    type: Mapped[str] = mapped_column(String(10))
     category: Mapped[str] = mapped_column(String(50), index=True)
     description: Mapped[str | None] = mapped_column(String(255))
     receipt_photo_url: Mapped[str | None] = mapped_column(Text)
     text_check: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        server_default=func.now(),
+        index=True,
+    )
