@@ -29,3 +29,14 @@ def change_data():
     builder.row(KeyboardButton(text=_("cancel")))
 
     return builder.as_markup(resize_keyboard=True)
+
+
+def request_ai():
+    builder = ReplyKeyboardBuilder()
+    builder.row(
+        KeyboardButton(text=_("weekly data analysis")),
+        KeyboardButton(text=_("monthly data analysis"))
+    )
+    builder.row(KeyboardButton(text=_("check")))
+
+    builder.row(KeyboardButton(text=_("cancel")))

@@ -183,7 +183,6 @@ services:
       - PYTHONPATH=/application
       - PYTHONUNBUFFERED=1
       - LOG_FILENAME=worker.log
-      - REDIS_URL=${CELERY_BROKER_URL}
       - DATABASE_URL=${DATABASE_URL_DOCKER}
 
     env_file:
