@@ -1,30 +1,34 @@
-# flake8: noqa
-# import openai
-# from typing import List, Dict
-# from .schemas import AIResponse
-#
-# class AIService:
-#     def __init__(self, api_key: str, model: str = "gpt-4-turbo"):
-#         self.client = openai.AsyncOpenAI(api_key=api_key)
-#         self.model = model
-#
-#     async def get_chat_completion(
-#         self,
-#         messages: List[Dict[str, str]],
-#         temperature: float = 0.7
-#     ) -> AIResponse:
-#         """
-#         Принимает список сообщений в формате OpenAI и возвращает объект ответа.
-#         Никакой логики БД здесь нет!
-#         """
-#         try:
-#             response = await self.client.chat.completions.create(
-#                 model=self.model,
-#                 messages=messages,
-#                 temperature=temperature
-#             )
-#             content = response.choices[0].message.content
-#             return AIResponse(content=content, tokens_used=response.usage.total_tokens)
-#         except Exception as e:
-#             # Логируем и выбрасываем свое исключение
-#             raise ConnectionError(f"AI Service error: {e}")
+from openai import OpenAI
+from pydantic import BaseModel
+from typing import Type
+
+class AIService:
+    def __init__(self, api_key: str, base_url: str, model: str = "gpt-4o-mini"):
+        # Инициализируем клиент, готовый работать с любым прокси-шлюзом
+        self.client = OpenAI(api_key=api_key, base_url=base_url)
+        self.model = model
+
+    def analyze_image(self, image_url: str, response_schema: Type[BaseModel], prompt: str) -> BaseModel:
+        """Универсальный метод для распознавания чеков со строгой структурой ответа"""
+        completion = self.client.beta.chat.completions.parse(
+            model=self.model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {"type": "image_url", "image_url": {"url": image_url}}
+                    ],
+                }
+            ],
+            response_format=response_schema,
+        )
+        return completion.choices.message.parsed
+
+
+# Инициализируем сервис один раз при запуске воркера
+# ai_service = AIService(
+#     api_key=settings.AI_API_KEY,
+#     base_url=settings.AI_BASE_URL, # Сюда передаем URL реселлера
+#     model="gpt-4o-mini"
+#)

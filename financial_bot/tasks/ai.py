@@ -37,3 +37,22 @@ def process_ai_request(chat_id: int, message_id: int, user_prompt: str):
         logger.error("Error in AI task: {e}", e=e)
         # Оповещаем пользователя об ошибке
         asyncio.run(bot.send_message(chat_id=chat_id, text="An error occurred while processing AI."))
+
+
+# @celery_app.task
+# def process_receipt_task(user_id: int, file_url: str):
+#     # 1. Тяжелый запрос к AI (БД в это время отдыхает)
+#     prompt = "Распознай чек на фото. Выдели общую сумму, категорию и позиции."
+#     parsed_receipt = ai_service.analyze_image(file_url, ReceiptSchema, prompt)
+#
+#     # 2. Быстрая транзакция в БД
+#     with db_session_ctx() as session:
+#         # Ваша логика сохранения через SQLAlchemy модели...
+#         session.add(NewReceipt(user_id=user_id, total=parsed_receipt.total_amount))
+#         session.commit()
+#
+#     # 3. Отправка уведомления в Telegram...
+
+
+
+#"Как найти API-реселлеров?"

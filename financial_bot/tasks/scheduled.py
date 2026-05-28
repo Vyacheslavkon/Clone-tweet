@@ -1,5 +1,6 @@
 from aiogram import Bot
 from aiogram.utils.i18n import I18n
+from aiogram.exceptions import TelegramForbiddenError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from loguru import logger
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -32,10 +33,14 @@ async def send_weekly_stats(bot: Bot, session_pool: async_sessionmaker, i18n: I1
                     await bot.send_message(
                         chat_id=user.tg_id, text=text, parse_mode="HTML"
                     )
+
+                except TelegramForbiddenError:
+                    logger.warning("USer {user_id} blocked the bot. disable the mailing list.", user_id=user.tg_id)
+                    # implementation function disable mailing list
                 except Exception as e:  # noqa
 
                     logger.error(
-                        "Не удалось отправить отчет {user.tg_id}: {e}", user.tg_id, e
+                        "Не удалось отправить отчет {user_id}: {error}", all_users_id=user.tg_id, error=e
                     )
 
 
