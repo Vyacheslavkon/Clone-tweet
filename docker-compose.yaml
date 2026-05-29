@@ -69,6 +69,7 @@ services:
       - ./financial_bot:/application/financial_bot
       - ./migrations:/application/migrations
       - ./alembic.ini:/application/alembic.ini
+      - ./services:/application/services
       - ./pytest.ini:/application/pytest.ini
       - ./requirement.txt:/application/requirement.txt
       - ./tests:/application/tests
@@ -172,10 +173,11 @@ services:
       - ./migrations:/application/migrations
       - ./alembic.ini:/application/alembic.ini
       - ./core:/application/core
+      - ./services:/application/services
       - ./${LOG_PATH:-./logs}:/application/logs
       - ./logger_config.py:/application/logger_config.py
 
-    command: celery -A core.celery_app:app worker --loglevel=info
+    command: celery -A services.celery_app:app worker --loglevel=info
     depends_on:
       - redis
       - db

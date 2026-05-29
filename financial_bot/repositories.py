@@ -26,7 +26,7 @@ async def create_user(session: AsyncSession, data: CreateUser):
 
 async def get_all_users(session: AsyncSession) -> list[UserBot]:
 
-    query = select(UserBot)
+    query = select(UserBot).where(UserBot.is_active == True)
     result = await session.execute(query)
 
     return list(result.scalars().all())
@@ -38,6 +38,20 @@ async def get_user_by_id(session: AsyncSession, tg_id: int) -> UserBot | None:
     result = await session.execute(query)
 
     return result.scalars().one_or_none()
+
+
+async def blocked_user(session: AsyncSession, user_tg_id: int):
+
+    user = await get_user_by_id(session, user_tg_id)
+
+    if user:
+        user.is_active = False
+        await session.commit()
+
+    else:
+        error_message = _(f"The user with the id {user_tg_id} was not found in the system.")
+        logger.error(error_message)
+        raise UserNotFoundError(error_message)
 
 
 async def add_transaction(session: AsyncSession, data: dict):

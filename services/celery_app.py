@@ -6,15 +6,14 @@ from celery.signals import after_setup_logger
 from logger_config import setup_logging
 
 load_dotenv()
-# Получаем URL брокера из переменных окружения (те, что в docker-compose)
+
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/1")
 
 app = Celery(
-    "financial_project",
+    "financial_worker",
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
-    # Указываем Celery, где искать задачи (автоматическое сканирование)
     include=["financial_bot.tasks"],
 )
 

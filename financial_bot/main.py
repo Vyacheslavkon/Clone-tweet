@@ -9,6 +9,7 @@ from redis.asyncio import Redis
 
 from core.config import TOKEN_BOT
 from core.database import async_session
+from services.client import AIService
 from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.common import router
 from financial_bot.handlers.fallback import router_fallback
@@ -39,6 +40,12 @@ async def main():
     session_pool = async_session
     scheduler = setup_scheduler(bot, session_pool, i18n)
     dp["admin_id"] = int(os.getenv("ADMIN_ID", 0))
+    # ai_service = AIService(
+    #         api_key=settings.OPENAI_API_KEY,
+    #         base_url=settings.OPENAI_BASE_URL,
+    #         model="gpt-4o-mini"
+    #     )
+    #dp["ai_service"] = ai_service
     dp.message.outer_middleware(SessionMiddleware(session_pool))
     dp.callback_query.outer_middleware(SessionMiddleware(session_pool))
     dp.message.middleware(MyI18nMiddleware(i18n=i18n))

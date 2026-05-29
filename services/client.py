@@ -1,11 +1,11 @@
-from openai import OpenAI
+from openai import AsyncOpenAI
 from pydantic import BaseModel
 from typing import Type
 
 class AIService:
     def __init__(self, api_key: str, base_url: str, model: str = "gpt-4o-mini"):
         # Инициализируем клиент, готовый работать с любым прокси-шлюзом
-        self.client = OpenAI(api_key=api_key, base_url=base_url)
+        self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
         self.model = model
 
     def analyze_image(self, image_url: str, response_schema: Type[BaseModel], prompt: str) -> BaseModel:
