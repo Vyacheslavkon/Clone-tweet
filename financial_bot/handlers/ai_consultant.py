@@ -1,4 +1,4 @@
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.utils.i18n import gettext as _
@@ -6,7 +6,7 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.exceptions import UserNotFoundError
-from financial_bot.filters import I18nTextFilter
+from financial_bot.filters import I18nTextFilter, IsProUserFilter
 from financial_bot.handlers.utils import (
     check_value_budget,
     comparison,
@@ -20,17 +20,15 @@ from financial_bot.states.ai_states import AIState
 
 ai_router = Router()
 
-@ai_router.message("AI")
+@ai_router.message(F.text == "AI", IsProUserFilter())
 async def waiting_for_request(message: Message, state: FSMContext, session: AsyncSession):
+    await message.answer(_("Please, select request!"), reply_markup=request_ai())
+    await state.set_state(AIState.waiting_for_request)
 
-    user = await get_user_by_id(session, message.from_user.id)
 
-    if user and  user.subscription_type == "pro":
-        await message.answer(_("Please, select request!"), reply_markup=request_ai())
-        await state.set_state(AIState.waiting_for_request)
-
-    else:
-        await message.answer(_("Sorry, you need a PRO subscription to use AI."))
+@ai_router.message(F.text == "AI")
+async def ai_access_denied(message: Message):
+    await message.answer(_("Sorry, you need a PRO subscription to use AI."))
 
 
 @ai_router.message()

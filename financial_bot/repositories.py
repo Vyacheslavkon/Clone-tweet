@@ -7,9 +7,9 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.exceptions import UserNotFoundError
-from financial_bot.models import Transactions, UserBot
+from financial_bot.models import Transactions, UserBot, TransactionItems
 from financial_bot.schemas import AddData, CreateUser, Plan
-
+from services.schemas import ReceiptAnalysisSchema
 
 async def create_user(session: AsyncSession, data: CreateUser):
 
@@ -168,3 +168,35 @@ async def get_report_period(
     return res
 
 
+
+async def save_receipt_to_db(
+        session: AsyncSession,
+        user_id: int,
+        analysis_result: ReceiptAnalysisSchema,
+        photo_url: str,
+        raw_text: str
+):
+    transaction = Transactions(
+        user_id=user_id,
+        amount=analysis_result.amount,
+        type="expense",
+        category=analysis_result.category,
+        description=analysis_result.description,
+        receipt_photo_url=photo_url,
+        text_check=raw_text
+    )
+
+    for item in analysis_result.items:
+        db_item = TransactionItems(
+            name=item.name,
+            price=item.price,
+            category=item.category
+        )
+
+        transaction.items.append(db_item)
+
+    session.add(transaction)
+    await session.commit()
+    await session.refresh(transaction)
+
+    return transaction
