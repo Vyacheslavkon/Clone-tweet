@@ -1,8 +1,8 @@
 import os
-from dotenv import load_dotenv
 from typing import Type
 from pydantic import BaseModel
 from openai import AsyncOpenAI
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -46,15 +46,7 @@ class AIService:
 
 ai_service = AIService(api_key=proxy_api_key, base_url=proxy_base_url)
 
-# Вызов внутри асинхронной функции (например, в Celery или хэндлере)
-# analysis_result = await ai_service.analyze_image(
-#     image_url=file_url,
-#     response_schema=ReceiptAnalysisSchema,
-#     system_prompt=RECEIPT_SYSTEM_PROMPT
-# )
-#
-# # На выходе получаем уже готовый, отвалидированный Pydantic-объект!
-# print(analysis_result.total_amount)
+
 
 
 

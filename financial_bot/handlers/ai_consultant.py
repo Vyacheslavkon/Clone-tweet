@@ -14,8 +14,7 @@ from financial_bot.handlers.utils import (
     transform,
 )
 from financial_bot.keyboards.reply import request_ai
-from financial_bot.repositories import get_user_by_id
-from financial_bot.tasks.ai import process_ai_request
+#from financial_bot.tasks.ai import process_ai_request
 from financial_bot.states.ai_states import AIState
 
 ai_router = Router()
@@ -39,7 +38,7 @@ async def weekly_analysis(message: Message):
     # Write to text for the request Ai
 
     # Триггерим Celery задачу (передаем .delay() или .apply_async())
-    process_ai_request.apply_async(
-        args=[message.chat.id, placeholder.message_id, message.text],
-        queue="ai_tasks"
-    )
+    # process_ai_request.apply_async(
+    #     args=[message.chat.id, placeholder.message_id, message.text],
+    #     queue="ai_tasks"
+    # )
