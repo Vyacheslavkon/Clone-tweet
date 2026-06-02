@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.exceptions import UserNotFoundError
 from financial_bot.filters import I18nTextFilter, IsProUserFilter
+from financial_bot.repositories import get_user_by_id
 from financial_bot.handlers.utils import (
     check_value_budget,
     comparison,
@@ -16,11 +17,12 @@ from financial_bot.handlers.utils import (
 from financial_bot.keyboards.reply import request_ai
 #from financial_bot.tasks.ai import process_ai_request
 from financial_bot.states.ai_states import AIState
+from financial_bot.tasks.ai import process_receipt_task
 
 ai_router = Router()
 
 @ai_router.message(F.text == "AI", IsProUserFilter())
-async def waiting_for_request(message: Message, state: FSMContext, session: AsyncSession):
+async def waiting_for_request(message: Message, state: FSMContext):
     await message.answer(_("Please, select request!"), reply_markup=request_ai())
     await state.set_state(AIState.waiting_for_request)
 
@@ -30,10 +32,10 @@ async def ai_access_denied(message: Message):
     await message.answer(_("Sorry, you need a PRO subscription to use AI."))
 
 
-@ai_router.message()
-async def weekly_analysis(message: Message):
-    # Отправляем заглушку пользователю
-    placeholder = await message.answer(_("🤖 Wait a second, I'm analyzing your finances..."))
+# @ai_router.message()
+# async def weekly_analysis(message: Message):
+#     # Отправляем заглушку пользователю
+#     placeholder = await message.answer(_("🤖 Wait a second, I'm analyzing your finances..."))
 
     # Write to text for the request Ai
 
@@ -42,3 +44,26 @@ async def weekly_analysis(message: Message):
     #     args=[message.chat.id, placeholder.message_id, message.text],
     #     queue="ai_tasks"
     # )
+
+@ai_router.message(F.text == "check",AIState.waiting_for_request)
+async def waiting_check(message: Message, state: FSMContext):
+
+    await message.answer(_("Please send me a photo of the receipt!"))
+    await state.set_state(AIState.waiting_for_receipt)
+
+
+@ai_router.message(F.photo, AIState.waiting_for_receipt)
+async def handle_receipt_photo(message: Message, state: FSMContext, session: AsyncSession):
+
+    user = await get_user_by_id(session, message.from_user.id)
+
+    photo = message.photo[-1]
+
+    process_receipt_task.delay(
+        chat_id=message.chat.id,
+        db_user_id=user.id,
+        file_id=photo.file_id  # ID файла в Telegram
+    )
+
+    await message.answer("⏳  Чек принят на анализ, это займет несколько секунд...")
+    await state.clear()

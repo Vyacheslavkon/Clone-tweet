@@ -1,5 +1,12 @@
 import asyncio
+import os
+
+from celery.signals import worker_process_init, worker_process_shutdown
 from dotenv import load_dotenv
+from loguru import logger
+from aiogram import Bot
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 
 from services.celery_app import app
 from services.pipelines import async_process_receipt
@@ -8,6 +15,44 @@ load_dotenv()
 
 celery_app = app
 
+bot: Bot = None
+
+
+@worker_process_init.connect
+def init_bot_worker(**kwargs):
+    """
+    Вызывается ОДИН раз при старте каждого процесса-воркера Celery.
+    Здесь мы безопасно инициализируем бота.
+    """
+    global bot
+    # Токен лучше брать из настроек или os.environ
+    bot_token = os.getenv("BOT_TOKEN")
+
+    # Для aiogram 3 обязательно передавать parse_mode через DefaultBotProperties
+    bot = Bot(
+        token=bot_token,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+    )
+    logger.info(f"--- [Celery Worker] The bot has been successfully initialized for the process. ---")
+
+
+@worker_process_shutdown.connect
+def shutdown_bot_worker(**kwargs):
+    """
+    Вызывается при остановке воркера Celery.
+    Корректно закрывает сетевые сессии, чтобы избежать утечек памяти.
+    """
+    global bot
+    if bot:
+        # Так как сигнал синхронный, закрываем сессию через event loop
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            loop.create_task(bot.session.close())
+        else:
+            loop.run_until_complete(bot.session.close())
+        logger.info(f"--- [Celery Worker] The bot session was closed successfully ---")
+
+
 
 @celery_app.task(name="tasks.process_receipt")
 def process_receipt_task(chat_id: int, db_user_id: int, file_id: str):
@@ -15,22 +60,4 @@ def process_receipt_task(chat_id: int, db_user_id: int, file_id: str):
     asyncio.run(async_process_receipt(chat_id, db_user_id, file_id))
 
 
-# Предыдущие шаги проверки подписки пройдены, юзер прислал фото
-# @ai_router.message(AIState.waiting_for_receipt, F.photo)
-# async def handle_receipt_photo(message: Message, state: FSMContext, session: AsyncSession):
-#     # Получаем внутренний id из БД (мы уже обсудили, почему он нужен)
-#     user = await get_user_by_id(session, message.from_user.id)
-#
-#     # Берем самое качественное фото из массива
-#     photo = message.photo[-1]
-#
-#     # Отправляем в Celery. За счет .delay() метод срабатывает мгновенно
-#     from tasks import process_receipt_task
-#     process_receipt_task.delay(
-#         chat_id=message.chat.id,
-#         db_user_id=user.id,  # Внутренний ID из базы данных
-#         file_id=photo.file_id  # ID файла в Telegram
-#     )
-#
-#     await message.answer("⏳ Магия ИИ началась! Чек принят на анализ, это займет несколько секунд...")
-#     await state.clear()  # Сбрасываем состояние
+
