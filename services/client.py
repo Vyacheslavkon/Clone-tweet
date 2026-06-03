@@ -42,7 +42,7 @@ class AIService:
             response_format=response_schema,
             temperature=0.0
         )
-        return completion.choices.message.parsed
+        return completion.choices[0].message.parsed
 
 ai_service = AIService(api_key=proxy_api_key, base_url=proxy_base_url)
 

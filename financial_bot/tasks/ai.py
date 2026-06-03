@@ -20,15 +20,11 @@ bot: Bot = None
 
 @worker_process_init.connect
 def init_bot_worker(**kwargs):
-    """
-    Вызывается ОДИН раз при старте каждого процесса-воркера Celery.
-    Здесь мы безопасно инициализируем бота.
-    """
+
     global bot
-    # Токен лучше брать из настроек или os.environ
     bot_token = os.getenv("BOT_TOKEN")
 
-    # Для aiogram 3 обязательно передавать parse_mode через DefaultBotProperties
+
     bot = Bot(
         token=bot_token,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
@@ -38,13 +34,10 @@ def init_bot_worker(**kwargs):
 
 @worker_process_shutdown.connect
 def shutdown_bot_worker(**kwargs):
-    """
-    Вызывается при остановке воркера Celery.
-    Корректно закрывает сетевые сессии, чтобы избежать утечек памяти.
-    """
+
     global bot
     if bot:
-        # Так как сигнал синхронный, закрываем сессию через event loop
+
         loop = asyncio.get_event_loop()
         if loop.is_running():
             loop.create_task(bot.session.close())
@@ -54,10 +47,9 @@ def shutdown_bot_worker(**kwargs):
 
 
 
-@celery_app.task(name="tasks.process_receipt")
+@celery_app.task(name="financial_bot.ai.process_receipt_task")
 def process_receipt_task(chat_id: int, db_user_id: int, file_id: str):
-    """Синхронная обертка Celery, запускающая асинсохронный event loop"""
-    asyncio.run(async_process_receipt(chat_id, db_user_id, file_id))
+    asyncio.run(async_process_receipt(chat_id, db_user_id, file_id, bot))
 
 
 

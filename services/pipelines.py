@@ -48,13 +48,13 @@ async def async_process_receipt(chat_id: int, db_user_id: int, file_id: str, bot
                 raw_text=analysis_result.model_dump_json()
             )
 
-            msg_text = (_(
+            msg_text = (
                 f"✅ <b>The check has been processed successfully!</b>\n\n"
                 f"🏬 Description: {analysis_result.description or 'Неизвестно'}\n"
                 f"💰 Amount: {analysis_result.amount} {analysis_result.currency}\n"
                 f"🗂 Category: {analysis_result.category}\n\n"
                 f"🧾 Positions have been added to your detailed statistics."
-            ))
+            )
             await bot.send_message(chat_id=chat_id, text=msg_text)
 
         except Exception as e:
@@ -64,5 +64,5 @@ async def async_process_receipt(chat_id: int, db_user_id: int, file_id: str, bot
 
             await bot.send_message(
                 chat_id=chat_id,
-                text=_("❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again.")
+                text="❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again."
             )

@@ -14,7 +14,7 @@ app = Celery(
     "financial_worker",
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
-    include=["financial_bot.tasks"],
+    include=["financial_bot.tasks.ai"],
 )
 
 # Дополнительные настройки ( сериализация и т.д.)
