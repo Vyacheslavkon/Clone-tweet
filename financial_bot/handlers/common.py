@@ -1,7 +1,7 @@
 from typing import Union
 
 from aiogram import F, Router, html
-from aiogram.exceptions import TelegramAPIError, TelegramBadRequest
+from aiogram.exceptions import TelegramAPIError, TelegramBadRequest, TelegramForbiddenError
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ErrorEvent, Message
@@ -13,6 +13,7 @@ from financial_bot.filters import I18nTextFilter
 from financial_bot.keyboards.reply import get_main_menu
 from financial_bot.repositories import create_user, get_user_by_id
 from financial_bot.schemas import CreateUser
+from financial_bot.handlers.utils import _safe_gettext
 
 router = Router()
 
@@ -92,18 +93,23 @@ async def global_error_handler(event: ErrorEvent, admin_id: int):
         f"🔗 <a href='{user_link}'>Перейти к профилю пользователя</a>"
     )
 
+    if isinstance(event.exception, TelegramForbiddenError):
+        logger.warning(
+            f"Bot was blocked by user (ID: {event.update.message.from_user.id if event.update.message else 'Unknown'})")
+        return True
+
     try:
         if event.update.bot is not None:
             await event.update.bot.send_message(
                 chat_id=admin_id, text=admin_msg, parse_mode="HTML"
             )
     except TelegramBadRequest as e:
-        logger.error(_("HTML parsing or message length error: {error}"), error=e)
+        logger.error(_("HTML parsing or message length error: {error}", error=e))
 
     except TelegramAPIError as e:
         logger.error(
-            _("General Telegram API error when notifying admin: {error}"), error=e
-        )
+            _("General Telegram API error when notifying admin: {error}", error=e
+        ))
 
     try:
         text = _("⚠️ An error occurred. I've already reported it to the developer.")

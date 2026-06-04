@@ -84,17 +84,17 @@ def setup_scheduler(
     scheduler.add_job(
         send_weekly_stats,
         "cron",
-        day_of_week=4,
-        hour=13,
-        minute=57,
+        day_of_week=3,
+        hour=15,
+        minute=6,
         kwargs={"bot": bot, "session_pool": session_pool, "i18n": i18n},
     )
 
     scheduler.add_job(
         send_monthly_stats,
         "cron",
-        day=29,
-        hour=13,
+        day=4,
+        hour=14,
         minute=58,
         kwargs={"bot": bot, "session_pool": session_pool, "i18n": i18n},
     )

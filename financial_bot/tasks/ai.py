@@ -52,4 +52,30 @@ def process_receipt_task(chat_id: int, db_user_id: int, file_id: str):
     asyncio.run(async_process_receipt(chat_id, db_user_id, file_id, bot))
 
 
-
+# session: AiohttpSession = None
+#
+#
+# @worker_process_init.connect
+# def init_bot_worker(**kwargs):
+#     global session
+#     # Создаем пул сетевых соединений один раз при старте процесса воркера
+#     session = AiohttpSession()
+#     logger.info("--- [Celery Worker] AiohttpSession пул успешно инициализирован. ---")
+#
+#
+# @worker_process_shutdown.connect
+# def shutdown_bot_worker(**kwargs):
+#     global session
+#     if session:
+#         # Корректно и безопасно закрываем пул соединений при остановке воркера
+#         try:
+#             loop = asyncio.get_event_loop()
+#         except RuntimeError:
+#             loop = asyncio.new_event_loop()
+#             asyncio.set_event_loop(loop)
+#
+#         if loop.is_running():
+#             loop.create_task(session.close())
+#         else:
+#             loop.run_until_complete(session.close())
+#         logger.info("--- [Celery Worker] Сессия пула соединений закрыта. ---")

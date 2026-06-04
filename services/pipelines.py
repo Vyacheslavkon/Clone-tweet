@@ -66,3 +66,32 @@ async def async_process_receipt(chat_id: int, db_user_id: int, file_id: str, bot
                 chat_id=chat_id,
                 text="❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again."
             )
+
+
+# async def async_process_receipt(chat_id: int, db_user_id: int, file_id: str):
+#     global session
+#     bot_token = os.getenv("BOT_TOKEN")
+#
+#     # Создаем легковесный объект Bot под ТЕКУЩИЙ event loop таски,
+#     # но передаем ему ГЛОБАЛЬНЫЙ прогретый пул соединений `session`
+#     bot = Bot(
+#         token=bot_token,
+#         session=session,
+#         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+#     )
+#
+#     try:
+#         # ТУТ ВАШ КОД: скачивание файла, AIService, БД
+#         file_io = await bot.download_file_by_id(file_id)
+#
+#         await bot.send_message(chat_id=chat_id, text="✅ Чек обработан!")
+#     except Exception as e:
+#         logger.error(f"Ошибка: {e}", exc_info=True)
+#         await bot.send_message(chat_id=chat_id, text="❌ Произошла ошибка.")
+#     # bot.session.close() вызывать НЕ НАДО, так как сессия глобальная и должна жить дальше
+#
+#
+# @celery_app.task(name="services.pipelines.async_process_receipt")
+# def process_receipt_task(chat_id: int, db_user_id: int, file_id: str):
+#     # Внутрь async_process_receipt больше НЕ передаем bot аргументом!
+#     asyncio.run(async_process_receipt(chat_id, db_user_id, file_id))

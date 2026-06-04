@@ -37,6 +37,7 @@ async def main():
     setup_logging()
     bot = Bot(token=TOKEN_BOT)
     dp = Dispatcher(storage=storage)
+    #await bot.delete_webhook(drop_pending_updates=True)
     session_pool = async_session
     scheduler = setup_scheduler(bot, session_pool, i18n)
     dp["admin_id"] = int(os.getenv("ADMIN_ID", 0))
@@ -48,6 +49,7 @@ async def main():
     #dp["ai_service"] = ai_service
     dp.message.outer_middleware(SessionMiddleware(session_pool))
     dp.callback_query.outer_middleware(SessionMiddleware(session_pool))
+    dp.errors.middleware(SimpleI18nMiddleware(i18n))
     dp.message.middleware(MyI18nMiddleware(i18n=i18n))
     dp.update.outer_middleware(SimpleI18nMiddleware(i18n))
     dp.update.outer_middleware(UserActivityMiddleware())

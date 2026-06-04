@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 
 from aiogram.utils.i18n import gettext as _
+from aiogram.utils.i18n import get_i18n
 
 from financial_bot.schemas import Plan
 
@@ -218,3 +219,11 @@ def get_month_name(number: int) -> str:
     ]
 
     return month_rus[number]
+
+
+
+def _safe_gettext(text: str) -> str:
+    try:
+        return get_i18n().gettext(text)
+    except LookupError:
+        return text
