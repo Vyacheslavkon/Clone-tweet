@@ -1,9 +1,15 @@
 import os
 import base64
+import io
 
+from PIL import Image, ImageEnhance, ImageOps
+from sqlalchemy.pool import NullPool
+from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.enums import ParseMode
 from dotenv import load_dotenv
 from aiogram import Bot
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
 from loguru import logger
 from aiogram.utils.i18n import gettext as _
 
@@ -17,81 +23,104 @@ load_dotenv()
 POSTGRES_ASYNC_URL = os.getenv("DATABASE_URL_DOCKER")
 
 
-celery_engine = create_async_engine(POSTGRES_ASYNC_URL, echo=False)
-celery_AsyncSessionLocal = async_sessionmaker(bind=celery_engine, expire_on_commit=False)
+def get_isolated_session() -> AsyncSession:
+    engine = create_async_engine(
+        POSTGRES_ASYNC_URL,
+        echo=False,
+        poolclass=NullPool
+    )
+
+    session_maker = async_sessionmaker(bind=engine, expire_on_commit=False)
+    return session_maker()
 
 
-async def async_process_receipt(chat_id: int, db_user_id: int, file_id: str, bot: Bot):
+def process_receipt_to_base64(file_io: io.BytesIO) -> str:
 
-    async with celery_AsyncSessionLocal() as session:
-        try:
-            file_io = await bot.download(file_id)
-            file_bytes = file_io.read()
+    with Image.open(file_io) as img:
 
-            # 2. Кодируем байты в base64 для безопасной передачи в OpenAI/ProxyAPI
-            base64_image = base64.b64encode(file_bytes).decode('utf-8')
-            image_data_url = f"data:image/jpeg;base64,{base64_image}"
+        img = ImageOps.grayscale(img)
 
-            # 3. Отправляем base64-строку вместо публичного URL бота
-            analysis_result: ReceiptAnalysisSchema = await ai_service.analyze_image(
-                image_url=image_data_url,  # Передаем Data URL с base64
-                response_schema=ReceiptAnalysisSchema,
-                system_prompt=RECEIPT_SYSTEM_PROMPT
-            )
+        contrast = ImageEnhance.Contrast(img)
+        img = contrast.enhance(2.5)
 
+        sharpness = ImageEnhance.Sharpness(img)
+        img = sharpness.enhance(2.0)
 
-            await save_receipt_to_db(
-                session=session,
-                user_id=db_user_id,
-                analysis_result=analysis_result,
-                photo_url=None,
-                raw_text=analysis_result.model_dump_json()
-            )
+        img = ImageOps.autocontrast(img, cutoff=2)
 
-            msg_text = (
-                f"✅ <b>The check has been processed successfully!</b>\n\n"
-                f"🏬 Description: {analysis_result.description or 'Неизвестно'}\n"
-                f"💰 Amount: {analysis_result.amount} {analysis_result.currency}\n"
-                f"🗂 Category: {analysis_result.category}\n\n"
-                f"🧾 Positions have been added to your detailed statistics."
-            )
-            await bot.send_message(chat_id=chat_id, text=msg_text)
+        output_buffer = io.BytesIO()
+        img.save(output_buffer, format="JPEG", quality=90)
+        processed_bytes = output_buffer.getvalue()
 
-        except Exception as e:
-            logger.error(f"Error processing check for user {db_user_id}: {e}", exc_info=True)
-
-            await session.rollback()
-
-            await bot.send_message(
-                chat_id=chat_id,
-                text="❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again."
-            )
+    base64_image = base64.b64encode(processed_bytes).decode('utf-8')
+    return f"data:image/jpeg;base64,{base64_image}"
 
 
-# async def async_process_receipt(chat_id: int, db_user_id: int, file_id: str):
-#     global session
-#     bot_token = os.getenv("BOT_TOKEN")
+async def async_process_receipt(chat_id: int, db_user_id: int, file_id: str):
+
+    bot_session = AiohttpSession()
+    bot = Bot(
+        token=os.getenv("BOT_TOKEN"),
+        session=bot_session,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+    )
+
+    session = get_isolated_session()
+    try:
+        #file_io = await bot.download_file(file_path) (to improve productivity)
+        file_io = await bot.download(file_id)
+        image_data_url = process_receipt_to_base64(file_io)
+
+
+        analysis_result: ReceiptAnalysisSchema = await ai_service.analyze_image(
+            image_url=image_data_url,
+            response_schema=ReceiptAnalysisSchema,
+            system_prompt=RECEIPT_SYSTEM_PROMPT
+        )
+
+        await save_receipt_to_db(
+            session=session,
+            user_id=db_user_id,
+            analysis_result=analysis_result,
+            photo_url=None,
+            raw_text=analysis_result.model_dump_json()
+        )
+
+        msg_text = (
+            f"✅ <b>The check has been processed successfully!</b>\n\n"
+            f"🏬 Description: {analysis_result.description or 'Неизвестно'}\n"
+            f"💰 Amount: {analysis_result.amount} {analysis_result.currency}\n"
+            f"🗂 Category: {analysis_result.category}\n\n"
+            f"🧾 Positions have been added to your detailed statistics."
+        )
+        await bot.send_message(chat_id=chat_id, text=msg_text)
+
+    except Exception as e:
+        logger.error(f"Error processing check for user {db_user_id}: {e}", exc_info=True)
+
+        await session.rollback()
+
+        await bot.send_message(
+            chat_id=chat_id,
+            text="❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again."
+        )
+
+    finally:
+        await session.close()
+        await bot_session.close()
+
+
+# if any(item.category == "other" and "батон" in item.name.lower() for item in analysis_result.items):
+#     raise ValueError("Подозрение на ошибку OCR")
 #
-#     # Создаем легковесный объект Bot под ТЕКУЩИЙ event loop таски,
-#     # но передаем ему ГЛОБАЛЬНЫЙ прогретый пул соединений `session`
-#     bot = Bot(
-#         token=bot_token,
-#         session=session,
-#         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
-#     )
+# except Exception:
+# # 2. Если мини-модель ошиблась или сработал наш триггер — включаем тяжелую артиллерию
+# logger.warning(f"gpt-4o-mini не справился. Переключаемся на gpt-4o для юзера {db_user_id}")
 #
-#     try:
-#         # ТУТ ВАШ КОД: скачивание файла, AIService, БД
-#         file_io = await bot.download_file_by_id(file_id)
-#
-#         await bot.send_message(chat_id=chat_id, text="✅ Чек обработан!")
-#     except Exception as e:
-#         logger.error(f"Ошибка: {e}", exc_info=True)
-#         await bot.send_message(chat_id=chat_id, text="❌ Произошла ошибка.")
-#     # bot.session.close() вызывать НЕ НАДО, так как сессия глобальная и должна жить дальше
-#
-#
-# @celery_app.task(name="services.pipelines.async_process_receipt")
-# def process_receipt_task(chat_id: int, db_user_id: int, file_id: str):
-#     # Внутрь async_process_receipt больше НЕ передаем bot аргументом!
-#     asyncio.run(async_process_receipt(chat_id, db_user_id, file_id))
+# model_to_use = "gpt-4o"
+# analysis_result = await ai_service.analyze_image(
+#     model=model_to_use,
+#     image_url=image_data_url,
+#     response_schema=ReceiptAnalysisSchema,
+#     system_prompt=RECEIPT_SYSTEM_PROMPT
+# )

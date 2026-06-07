@@ -14,7 +14,7 @@ from financial_bot.handlers.utils import (
     get_error_text,
     transform,
 )
-from financial_bot.keyboards.reply import request_ai
+from financial_bot.keyboards.reply import request_ai, get_main_menu
 #from financial_bot.tasks.ai import process_ai_request
 from financial_bot.states.ai_states import AIState
 from financial_bot.tasks.ai import process_receipt_task
@@ -32,19 +32,6 @@ async def ai_access_denied(message: Message):
     await message.answer(_("Sorry, you need a PRO subscription to use AI."))
 
 
-# @ai_router.message()
-# async def weekly_analysis(message: Message):
-#     # Отправляем заглушку пользователю
-#     placeholder = await message.answer(_("🤖 Wait a second, I'm analyzing your finances..."))
-
-    # Write to text for the request Ai
-
-    # Триггерим Celery задачу (передаем .delay() или .apply_async())
-    # process_ai_request.apply_async(
-    #     args=[message.chat.id, placeholder.message_id, message.text],
-    #     queue="ai_tasks"
-    # )
-
 @ai_router.message(F.text == "check",AIState.waiting_for_request)
 async def waiting_check(message: Message, state: FSMContext):
 
@@ -59,11 +46,16 @@ async def handle_receipt_photo(message: Message, state: FSMContext, session: Asy
 
     photo = message.photo[-1]
 
+    # 2. Запрашиваем инфо о файле СРАЗУ в основном цикле бота (to improve productivity)
+    #file_info = await message.bot.get_file(photo.file_id)
+
     process_receipt_task.delay(
         chat_id=message.chat.id,
         db_user_id=user.id,
-        file_id=photo.file_id  # ID файла в Telegram
+        file_id=photo.file_id
+        #file_path = file_info.file_path  # Передаем путь(to improve productivity)
     )
 
-    await message.answer("⏳  Чек принят на анализ, это займет несколько секунд...")
+    await message.answer("⏳  Чек принят на анализ, это займет несколько секунд...",
+                         reply_markup=get_main_menu())
     await state.clear()
