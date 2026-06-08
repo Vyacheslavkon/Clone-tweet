@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-05-21 22:25+1000\n"
+"POT-Creation-Date: 2026-06-08 21:58+1000\n"
 "PO-Revision-Date: 2026-04-05 19:51+1000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -83,31 +83,44 @@ msgstr ""
 "У вас нет установленного планируемого бюджета! Сначала установите базовый"
 " бюджет."
 
-#: financial_bot/handlers/common.py:37
+#: financial_bot/handlers/ai_consultant.py:26
+#, fuzzy
+msgid "Please, select request!"
+msgstr "Пожалуйста, выберите период"
+
+#: financial_bot/handlers/ai_consultant.py:32
+msgid "Sorry, you need a PRO subscription to use AI."
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:38
+msgid "Please send me a photo of the receipt!"
+msgstr ""
+
+#: financial_bot/handlers/common.py:38
 #, python-brace-format
 msgid "Hello, {name}! Glad to meet you!"
 msgstr "Здравствуйте, {name}! Рад с вами познакомиться!"
 
-#: financial_bot/handlers/common.py:46
+#: financial_bot/handlers/common.py:47
 #, fuzzy, python-brace-format
 msgid "Glad to see you {name}!"
 msgstr "Рад вас видеть {name}! Ваш баланс: 0"
 
-#: financial_bot/handlers/common.py:59
+#: financial_bot/handlers/common.py:58
 msgid "Action canceled. Returning to main menu..."
 msgstr "Действие отменено. Возврат в главное меню..."
 
-#: financial_bot/handlers/common.py:103
+#: financial_bot/handlers/common.py:107
 #, python-brace-format
 msgid "HTML parsing or message length error: {error}"
 msgstr "Ошибка при разборе HTML-кода или ошибка длины сообщения: {error}"
 
-#: financial_bot/handlers/common.py:107
+#: financial_bot/handlers/common.py:111
 #, python-brace-format
 msgid "General Telegram API error when notifying admin: {error}"
 msgstr "Общая ошибка API Telegram при отправке уведомления администратору: {error}"
 
-#: financial_bot/handlers/common.py:111
+#: financial_bot/handlers/common.py:115
 msgid "⚠️ An error occurred. I've already reported it to the developer."
 msgstr "⚠️ Произошла ошибка. Я уже сообщил об этом разработчику."
 
@@ -147,6 +160,7 @@ msgid "day"
 msgstr "день"
 
 #: financial_bot/handlers/reports.py:67 financial_bot/keyboards/inline.py:83
+#: financial_bot/tasks/scheduled.py:33
 msgid "week"
 msgstr "неделя"
 
@@ -186,11 +200,11 @@ msgstr "Напишите комментарий"
 msgid "Data saved successfully!"
 msgstr "Данные успешно сохранены!"
 
-#: financial_bot/handlers/utils.py:52
+#: financial_bot/handlers/utils.py:53
 msgid "Please enter a valid number."
 msgstr "Введите, пожалуйста, корректную сумму!"
 
-#: financial_bot/handlers/utils.py:54
+#: financial_bot/handlers/utils.py:55
 msgid ""
 "You don't have a monthly planned budget set! Set a basic monthly planned "
 "budget first."
@@ -198,24 +212,24 @@ msgstr ""
 "У вас нет установленного планируемого бюджета! Сначала установите базовый"
 " месячный планируемый бюджет."
 
-#: financial_bot/handlers/utils.py:57
+#: financial_bot/handlers/utils.py:58
 msgid "This amount exceeds your planned budget."
 msgstr "Эта сумма превышает ваш планируемый бюджет."
 
-#: financial_bot/handlers/utils.py:58
+#: financial_bot/handlers/utils.py:59
 msgid "The amount must be greater than zero."
 msgstr "Сумма должна быть больше нуля."
 
-#: financial_bot/handlers/utils.py:60
+#: financial_bot/handlers/utils.py:61
 msgid "An unexpected error occurred."
 msgstr "Произошла непредвиденная ошибка."
 
-#: financial_bot/handlers/utils.py:82
+#: financial_bot/handlers/utils.py:83
 #, python-brace-format
 msgid "There is no data for {period} 🤷‍♂️"
 msgstr "Данные отсутствуют за {period}"
 
-#: financial_bot/handlers/utils.py:104
+#: financial_bot/handlers/utils.py:105
 #, python-brace-format
 msgid ""
 "<b>Report for {period}:</b>\n"
@@ -232,27 +246,27 @@ msgstr ""
 "💸 <b>Расходы: {total_exp_str}</b>\n"
 "{expense_details}"
 
-#: financial_bot/handlers/utils.py:147
+#: financial_bot/handlers/utils.py:126
 #, python-brace-format
 msgid "  • Planned budget: {budget}"
 msgstr "месячный планируемый бюджет: {budget}"
 
-#: financial_bot/handlers/utils.py:152
+#: financial_bot/handlers/utils.py:133
 #, python-brace-format
 msgid "  • Limit expense: {limit}"
 msgstr "лимит расходов: {limit}"
 
-#: financial_bot/handlers/utils.py:155
+#: financial_bot/handlers/utils.py:136
 #, python-brace-format
 msgid "  • Limit spent: {balance}%"
 msgstr "Лимит израсходован: {balance}%"
 
-#: financial_bot/handlers/utils.py:159
+#: financial_bot/handlers/utils.py:140
 #, python-brace-format
 msgid "  • Savings goal: {saving_goal}"
 msgstr "Цель сбережений: {saving_goal}"
 
-#: financial_bot/handlers/utils.py:163
+#: financial_bot/handlers/utils.py:146
 msgid ""
 "\n"
 "\n"
@@ -262,51 +276,51 @@ msgstr ""
 "\n"
 "🎯 <b>Планирование:</b>\n"
 
-#: financial_bot/handlers/utils.py:222
+#: financial_bot/handlers/utils.py:207
 msgid "January"
 msgstr "Январь"
 
-#: financial_bot/handlers/utils.py:223
+#: financial_bot/handlers/utils.py:208
 msgid "February"
 msgstr "Февраль"
 
-#: financial_bot/handlers/utils.py:224
+#: financial_bot/handlers/utils.py:209
 msgid "March"
 msgstr "Март"
 
-#: financial_bot/handlers/utils.py:225
+#: financial_bot/handlers/utils.py:210
 msgid "April"
 msgstr "Апрель"
 
-#: financial_bot/handlers/utils.py:226
+#: financial_bot/handlers/utils.py:211
 msgid "May"
 msgstr "Май"
 
-#: financial_bot/handlers/utils.py:227
+#: financial_bot/handlers/utils.py:212
 msgid "June"
 msgstr "Июнь"
 
-#: financial_bot/handlers/utils.py:228
+#: financial_bot/handlers/utils.py:213
 msgid "July"
 msgstr "Июль"
 
-#: financial_bot/handlers/utils.py:229
+#: financial_bot/handlers/utils.py:214
 msgid "August"
 msgstr "Август"
 
-#: financial_bot/handlers/utils.py:230
+#: financial_bot/handlers/utils.py:215
 msgid "September"
 msgstr "Сентябрь"
 
-#: financial_bot/handlers/utils.py:231
+#: financial_bot/handlers/utils.py:216
 msgid "October"
 msgstr "Октябрь"
 
-#: financial_bot/handlers/utils.py:232
+#: financial_bot/handlers/utils.py:217
 msgid "November"
 msgstr "Ноябрь"
 
-#: financial_bot/handlers/utils.py:233
+#: financial_bot/handlers/utils.py:218
 msgid "December"
 msgstr "Декабрь"
 
@@ -370,7 +384,7 @@ msgstr "Здоровье"
 msgid "Skip description"
 msgstr "Пропустить описание"
 
-#: financial_bot/keyboards/inline.py:85
+#: financial_bot/keyboards/inline.py:85 financial_bot/tasks/scheduled.py:62
 msgid "month"
 msgstr "месяц"
 
@@ -403,6 +417,19 @@ msgid "Settings"
 msgstr "Настройки"
 
 #: financial_bot/keyboards/reply.py:17 financial_bot/keyboards/reply.py:29
+#: financial_bot/keyboards/reply.py:42
 msgid "cancel"
 msgstr "Отмена"
+
+#: financial_bot/keyboards/reply.py:37
+msgid "weekly data analysis"
+msgstr "анализ данных за неделю"
+
+#: financial_bot/keyboards/reply.py:38
+msgid "monthly data analysis"
+msgstr "анализ данных за месяц"
+
+#: financial_bot/keyboards/reply.py:40
+msgid "check"
+msgstr "чек"
 
