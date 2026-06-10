@@ -176,6 +176,7 @@ services:
       - ./services:/application/services
       - ./${LOG_PATH:-./logs}:/application/logs
       - ./logger_config.py:/application/logger_config.py
+      - paddle_models:/home/app/.paddleocr
 
     command: celery -A services.celery_app:app worker --loglevel=info
     depends_on:
@@ -200,3 +201,4 @@ networks:
 
 volumes:
   db-data:
+  paddle_models:

@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 
+from services.prompts import PROMPT_FOR_TEXT
+
 load_dotenv()
 
 proxy_api_key = os.getenv("OPENAI_API_KEY")
@@ -43,6 +45,37 @@ class AIService:
             temperature=0.0
         )
         return completion.choices[0].message.parsed
+
+
+    async def process_receipt(
+            self,
+            response_schema: Type[BaseModel],
+            text: dict
+    ):
+        """Отправляет структурированный текст в LLM и сохраняет в БД."""
+        user_prompt: str = "Проанализируй текст распознанного чека."
+
+        completion = await self.client.beta.chat.completions.parse(
+            model=self.model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": PROMPT_FOR_TEXT
+                },
+                {
+                    "role": "user",
+                    "content": text  # Передаем обычную строку
+                }
+            ],
+            response_format= response_schema,
+        )
+
+        # Получаем валидированный Pydantic-объект
+        return completion.choices[0].message.parsed
+
+
+
+
 
 ai_service = AIService(api_key=proxy_api_key, base_url=proxy_base_url)
 
