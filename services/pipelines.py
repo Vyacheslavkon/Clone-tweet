@@ -2,6 +2,7 @@ import os
 import io
 import gettext
 import tempfile
+import logging
 
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
@@ -15,12 +16,13 @@ from services.schemas import ReceiptAnalysisSchema
 from services.prompts import PROMPT_FOR_TEXT
 from financial_bot.repositories import save_receipt_to_db
 from services.utils_pipelines import get_isolated_session, merge_ocr_blocks_to_text
-from paddleocr import PaddleOCR
+from rapidocr_onnxruntime import RapidOCR
 
 # 2. Инициализируем PaddleOCR (подключаем русский и английский)
         # show_log=False убирает лишний спам в консоли Celery
-ocr = PaddleOCR(use_angle_cls=True, lang='ru', show_log=False)
+ocr = RapidOCR()
 
+logging.getLogger("ppocr").setLevel(logging.WARNING)
 
 async def async_process_receipt(chat_id: int, db_user_id: int,
                                 locale: str, image_bytes: bytes):
@@ -62,9 +64,9 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
 
             # Получаем абсолютный путь к файлу (например, '/tmp/tmp_abc123.jpg')
             file_path = temp_file.name
-        logger.info(f"Начало обработки чека для пользователя {db_user_id}")
+            logger.info(f"Начало обработки чека для пользователя {db_user_id}")
 
-        result = ocr.ocr(file_path, cls=True)
+            result = ocr.ocr(file_path, cls=True)
 
         if not result or not result[0]:
             logger.warning("PaddleOCR не нашел текст на изображении")
