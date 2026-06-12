@@ -66,7 +66,7 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             file_path = temp_file.name
             logger.info(f"Начало обработки чека для пользователя {db_user_id}")
 
-            result = ocr.ocr(file_path, cls=True)
+            result, elapse_list = ocr(file_path)
 
         if not result or not result[0]:
             logger.warning("PaddleOCR не нашел текст на изображении")
@@ -76,8 +76,8 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
 
         analysis_result: ReceiptAnalysisSchema = await ai_service.process_receipt(
                     text=text,
-                    response_schema=ReceiptAnalysisSchema,
-                    system_prompt=PROMPT_FOR_TEXT
+                    response_schema=ReceiptAnalysisSchema
+
                 )
 
         await save_receipt_to_db(

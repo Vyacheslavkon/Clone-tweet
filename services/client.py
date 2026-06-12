@@ -52,8 +52,6 @@ class AIService:
             response_schema: Type[BaseModel],
             text: dict
     ):
-        """Отправляет структурированный текст в LLM и сохраняет в БД."""
-        user_prompt: str = "Проанализируй текст распознанного чека."
 
         completion = await self.client.beta.chat.completions.parse(
             model=self.model,
@@ -64,7 +62,7 @@ class AIService:
                 },
                 {
                     "role": "user",
-                    "content": text  # Передаем обычную строку
+                    "content": text
                 }
             ],
             response_format= response_schema,

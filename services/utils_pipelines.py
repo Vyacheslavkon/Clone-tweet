@@ -28,40 +28,124 @@ def get_isolated_session() -> AsyncSession:
     return session_maker()
 
 
-def merge_ocr_blocks_to_text(paddle_results, y_threshold: int = 15) -> str:
+# def merge_ocr_blocks_to_text(paddle_results, y_threshold: int = 15) -> str:
+#
+#
+#     lines_dict = defaultdict(list)
+#
+#     for line in paddle_results:
+#         # PaddleOCR возвращает структуру: [[ [x1,y1],... ], (Текст, Уверенность)]
+#         cords = line[0]
+#         text = line[1][0]
+#
+#         # Вычисляем геометрический центр блока по Y и X
+#         y_center = sum(point[1] for point in cords) / 4
+#         x_center = sum(point[0] for point in cords) / 4
+#
+#         # Ищем, подходит ли блок к уже существующим строкам
+#         matched_y = None
+#         for existing_y in lines_dict.keys():
+#             if abs(existing_y - y_center) <= y_threshold:
+#                 matched_y = existing_y
+#                 break
+#
+#         # Добавляем в существующую строку или создаем новую
+#         if matched_y is not None:
+#             lines_dict[matched_y].append((x_center, text))
+#         else:
+#             lines_dict[y_center].append((x_center, text))
+#
+#     # Формируем финальный структурированный текст
+#     final_lines = []
+#     for y in sorted(lines_dict.keys()):
+#         # Сортируем слова внутри текущей строки строго слева направо (по X)
+#         sorted_words = sorted(lines_dict[y], key=lambda item: item[0])
+#         line_text = " ".join(word[1] for word in sorted_words)
+#         final_lines.append(line_text)
+#
+#     return "\n".join(final_lines)
 
+
+# from collections import defaultdict
+#
+# def merge_ocr_blocks_to_text(rapid_results, y_threshold: int = 15) -> str:
+#     if not rapid_results:
+#         return ""
+#
+#     lines_dict = defaultdict(list)
+#
+#     for line in rapid_results:
+#         # В RapidOCR структура: [ [[x1,y1], [x2,y2], [x3,y3], [x4,y4]], "Текст", 0.95 ]
+#         cords = line[0]
+#         text = line[1] # <--- ИСПРАВЛЕНО: берем текст напрямую, без [0]
+#
+#         # Вычисляем геометрический центр блока по Y и X
+#         y_center = sum(point[1] for point in cords) / 4
+#         x_center = sum(point[0] for point in cords) / 4
+#
+#         # Ищем, подходит ли блок к уже существующим строкам
+#         matched_y = None
+#         for existing_y in lines_dict.keys():
+#             if abs(existing_y - y_center) <= y_threshold:
+#                 matched_y = existing_y
+#                 break
+#
+#         # Добавляем в существующую строку или создаем новую
+#         if matched_y is not None:
+#             lines_dict[matched_y].append((x_center, text))
+#         else:
+#             lines_dict[y_center].append((x_center, text))
+#
+#     # Формируем финальный структурированный текст
+#     final_lines = []
+#     for y in sorted(lines_dict.keys()):
+#         # Сортируем слова внутри текущей строки строго слева направо (по X)
+#         sorted_words = sorted(lines_dict[y], key=lambda item: item[0])
+#         line_text = " ".join(word[1] for word in sorted_words)
+#         final_lines.append(line_text)
+#
+#     return "\n".join(final_lines)
+
+#option without Chinese/  apply
+import re
+
+def merge_ocr_blocks_to_text(rapid_results, y_threshold: int = 15) -> str:
+    if not rapid_results:
+        return ""
 
     lines_dict = defaultdict(list)
 
-    for line in paddle_results:
-        # PaddleOCR возвращает структуру: [[ [x1,y1],... ], (Текст, Уверенность)]
+    for line in rapid_results:
         cords = line[0]
-        text = line[1][0]
+        text = line[1]
 
-        # Вычисляем геометрический центр блока по Y и X
+        # 🔥 ДОБАВЛЕНО: Удаляем китайские/японские/корейские иероглифы (весь блок CJK)
+        # Они больше всего ломают мозг модели gpt-4o-mini
+        text = re.sub(r'[\u4e00-\u9fff]+', '', text)
+        # Убираем лишние двойные пробелы, которые могли остаться после удаления
+        text = " ".join(text.split())
+
         y_center = sum(point[1] for point in cords) / 4
         x_center = sum(point[0] for point in cords) / 4
 
-        # Ищем, подходит ли блок к уже существующим строкам
         matched_y = None
         for existing_y in lines_dict.keys():
             if abs(existing_y - y_center) <= y_threshold:
                 matched_y = existing_y
                 break
 
-        # Добавляем в существующую строку или создаем новую
         if matched_y is not None:
             lines_dict[matched_y].append((x_center, text))
         else:
             lines_dict[y_center].append((x_center, text))
 
-    # Формируем финальный структурированный текст
     final_lines = []
     for y in sorted(lines_dict.keys()):
-        # Сортируем слова внутри текущей строки строго слева направо (по X)
         sorted_words = sorted(lines_dict[y], key=lambda item: item[0])
-        line_text = " ".join(word[1] for word in sorted_words)
-        final_lines.append(line_text)
+        # Игнорируем пустые строки, если там были только иероглифы
+        line_text = " ".join(word[1] for word in sorted_words if word[1].strip())
+        if line_text:
+            final_lines.append(line_text)
 
     return "\n".join(final_lines)
 
