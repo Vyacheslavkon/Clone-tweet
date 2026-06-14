@@ -18,9 +18,13 @@ from financial_bot.repositories import save_receipt_to_db
 from services.utils_pipelines import get_isolated_session, merge_ocr_blocks_to_text
 from rapidocr_onnxruntime import RapidOCR
 
-# 2. Инициализируем PaddleOCR (подключаем русский и английский)
-        # show_log=False убирает лишний спам в консоли Celery
-ocr = RapidOCR()
+ocr = RapidOCR(
+    det_model_path="/application/ocr_models/ch_PP-OCRv4_det_infer.onnx",
+    rec_model_path="/application/ocr_models/latin_PP-OCRv3_rec_infer.onnx",
+    rec_keys_path="/application/ocr_models/multilingual_dict.txt"
+)
+
+
 
 logging.getLogger("ppocr").setLevel(logging.WARNING)
 
@@ -71,6 +75,8 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
         if not result or not result[0]:
             logger.warning("PaddleOCR не нашел текст на изображении")
             return {"status": "error", "message": "No text found"}
+
+        logger.info("Data for AI: {}".format(result))
 
         text = merge_ocr_blocks_to_text(result)
 
