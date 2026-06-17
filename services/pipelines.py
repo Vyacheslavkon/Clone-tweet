@@ -13,16 +13,20 @@ from pathlib import Path
 
 from services.client import ai_service
 from services.schemas import ReceiptAnalysisSchema
-from services.prompts import PROMPT_FOR_TEXT
 from financial_bot.repositories import save_receipt_to_db
-from services.utils_pipelines import get_isolated_session, merge_ocr_blocks_to_text
+from services.utils_pipelines import get_isolated_session, merge_ocr_blocks_to_text, clean_ocr_text
 from rapidocr_onnxruntime import RapidOCR
 
-ocr = RapidOCR(
-    det_model_path="/application/ocr_models/ch_PP-OCRv4_det_infer.onnx",
-    rec_model_path="/application/ocr_models/latin_PP-OCRv3_rec_infer.onnx",
-    rec_keys_path="/application/ocr_models/multilingual_dict.txt"
-)
+ocr = RapidOCR()
+    # det_model_path="/application/ocr_models/ch_PP-OCRv4_det_infer.onnx",
+    #
+    # # Указываем модель распознавания текста (latin)
+    # rec_model_path="/application/ocr_models/ch_PP-OCRv4_rec_infer.onnx",
+    #
+    # # Путь к словарю символов
+    # rec_keys_path="/application/ocr_models/multilingual_dict.txt",
+
+#)
 
 
 
@@ -68,17 +72,22 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
 
             # Получаем абсолютный путь к файлу (например, '/tmp/tmp_abc123.jpg')
             file_path = temp_file.name
+
             logger.info(f"Начало обработки чека для пользователя {db_user_id}")
+            logger.info("Path for func: {}".format(file_path))
 
             result, elapse_list = ocr(file_path)
+            logger.info("Data for func: {}".format(result))
 
         if not result or not result[0]:
             logger.warning("PaddleOCR не нашел текст на изображении")
             return {"status": "error", "message": "No text found"}
 
-        logger.info("Data for AI: {}".format(result))
-
+        logger.info("Data for func: {}".format(result))
+        #clear_text = clean_ocr_text(result)
         text = merge_ocr_blocks_to_text(result)
+        #text = merge_ocr_blocks_to_text(text)
+        logger.info("Text for AI: {}".format(text))
 
         analysis_result: ReceiptAnalysisSchema = await ai_service.process_receipt(
                     text=text,

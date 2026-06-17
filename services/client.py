@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 
-from services.prompts import PROMPT_FOR_TEXT
+from services.prompts import PROMPT_FOR_TEXT_TEST, RECEIPT_SYSTEM_PROMPT
 
 load_dotenv()
 
@@ -58,7 +58,7 @@ class AIService:
             messages=[
                 {
                     "role": "system",
-                    "content": PROMPT_FOR_TEXT
+                    "content": RECEIPT_SYSTEM_PROMPT
                 },
                 {
                     "role": "user",

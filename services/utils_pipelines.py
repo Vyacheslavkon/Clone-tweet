@@ -29,103 +29,123 @@ def get_isolated_session() -> AsyncSession:
     return session_maker()
 
 
-# def merge_ocr_blocks_to_text(rapid_results, y_threshold: int = 15) -> str:
-#     if not rapid_results:
-#         return ""
-#
-#     lines_dict = defaultdict(list)
-#
-#     for line in rapid_results:
-#         cords = line[0]
-#         text = line[1]
-#
-#         # 🔥 ДОБАВЛЕНО: Удаляем китайские/японские/корейские иероглифы (весь блок CJK)
-#         # Они больше всего ломают мозг модели gpt-4o-mini
-#         text = re.sub(r'[\u4e00-\u9fff]+', '', text)
-#         # Убираем лишние двойные пробелы, которые могли остаться после удаления
-#         text = " ".join(text.split())
-#
-#         y_center = sum(point[1] for point in cords) / 4
-#         x_center = sum(point[0] for point in cords) / 4
-#
-#         matched_y = None
-#         for existing_y in lines_dict.keys():
-#             if abs(existing_y - y_center) <= y_threshold:
-#                 matched_y = existing_y
-#                 break
-#
-#         if matched_y is not None:
-#             lines_dict[matched_y].append((x_center, text))
-#         else:
-#             lines_dict[y_center].append((x_center, text))
-#
-#     final_lines = []
-#     for y in sorted(lines_dict.keys()):
-#         sorted_words = sorted(lines_dict[y], key=lambda item: item[0])
-#         # Игнорируем пустые строки, если там были только иероглифы
-#         line_text = " ".join(word[1] for word in sorted_words if word[1].strip())
-#         if line_text:
-#             final_lines.append(line_text)
-#
-#     return "\n".join(final_lines)
-
-import re
-from collections import defaultdict
-
-
 def merge_ocr_blocks_to_text(rapid_results, y_threshold: int = 6) -> str:
     if not rapid_results:
         return ""
 
-    flat_elements = []
+    lines_dict = defaultdict(list)
 
     for line in rapid_results:
         cords = line[0]
         text = line[1]
 
-        # Удаляем CJK иероглифы
+        # 🔥 ДОБАВЛЕНО: Удаляем китайские/японские/корейские иероглифы (весь блок CJK)
+        # Они больше всего ломают мозг модели gpt-4o-mini
         text = re.sub(r'[\u4e00-\u9fff]+', '', text)
+        # Убираем лишние двойные пробелы, которые могли остаться после удаления
         text = " ".join(text.split())
 
-        # Если после очистки строка пустая — пропускаем
-        if not text.strip():
-            continue
-
-        # Считаем центры масс
         y_center = sum(point[1] for point in cords) / 4
         x_center = sum(point[0] for point in cords) / 4
 
-        flat_elements.append({"x": x_center, "y": y_center, "text": text})
+        matched_y = None
+        for existing_y in lines_dict.keys():
+            if abs(existing_y - y_center) <= y_threshold:
+                matched_y = existing_y
+                break
 
-    if not flat_elements:
-        return ""
-
-    # 1. Сортируем абсолютно все элементы по вертикали (Y)
-    flat_elements.sort(key=lambda item: item["y"])
-
-    lines = []
-    current_line = [flat_elements[0]]
-
-    # 2. Группируем в строки на основе соседа
-    for element in flat_elements[1:]:
-        # Сравниваем с последним добавленным элементом в текущей строке
-        if abs(element["y"] - current_line[-1]["y"]) <= y_threshold:
-            current_line.append(element)
+        if matched_y is not None:
+            lines_dict[matched_y].append((x_center, text))
         else:
-            lines.append(current_line)
-            current_line = [element]
+            lines_dict[y_center].append((x_center, text))
 
-    if current_line:
-        lines.append(current_line)
-
-    # 3. Собираем финальный текст, сортируя элементы внутри строк по горизонтали (X)
     final_lines = []
-    for line in lines:
-        line.sort(key=lambda item: item["x"])
-        line_text = " ".join(item["text"] for item in line)
-        final_lines.append(line_text)
+    for y in sorted(lines_dict.keys()):
+        sorted_words = sorted(lines_dict[y], key=lambda item: item[0])
+        # Игнорируем пустые строки, если там были только иероглифы
+        line_text = " ".join(word[1] for word in sorted_words if word[1].strip())
+        if line_text:
+            final_lines.append(line_text)
 
     return "\n".join(final_lines)
+
+import re
+from collections import defaultdict
+
+# import re
+#
+#
+# def merge_ocr_blocks_to_text(rapid_results, y_threshold: int = 6) -> str:
+#     # 1. Защита от пустого ввода
+#     if not rapid_results:
+#         return ""
+#
+#     flat_elements = []
+#
+#     for line in rapid_results:
+#         # Защита от некорректной структуры элемента
+#         if not line or len(line) < 2:
+#             continue
+#
+#         cords = line[0]
+#         raw_text = line[1]
+#
+#         # RapidOCR может вернуть кортеж (text, conf) или просто строку text.
+#         # Приводим к строке в любом случае:
+#         if isinstance(raw_text, (list, tuple)) and len(raw_text) > 0:
+#             text = str(raw_text[0])
+#         else:
+#             text = str(raw_text)
+#
+#         # Удаляем CJK иероглифы (китайский/японский/корейский шум)
+#         text = re.sub(r'[\u4e00-\u9fff]+', '', text)
+#         text = " ".join(text.split())
+#
+#         # Если после очистки строка пустая — пропускаем
+#         if not text.strip():
+#             continue
+#
+#         # Защита: проверяем, что у нас есть 4 точки координат
+#         if not cords or len(cords) < 4:
+#             continue
+#
+#         try:
+#             # Считаем центры масс
+#             y_center = sum(point[1] for point in cords) / 4
+#             x_center = sum(point[0] for point in cords) / 4
+#             flat_elements.append({"x": x_center, "y": y_center, "text": text})
+#         except (IndexError, TypeError):
+#             continue  # Пропускаем, если структура точек сломалась
+#
+#     # 2. ВАЖНАЯ ЗАЩИТА: Если после фильтрации не осталось элементов, возвращаем пустую строку
+#     if not flat_elements:
+#         return ""
+#
+#     # Сортируем абсолютно все элементы по вертикали (Y)
+#     flat_elements.sort(key=lambda item: item["y"])
+#
+#     lines = []
+#     current_line = [flat_elements[0]]  # Теперь тут никогда не упадет
+#
+#     # 3. Группируем в строки на основе соседа
+#     for element in flat_elements[1:]:
+#         if abs(element["y"] - current_line[-1]["y"]) <= y_threshold:
+#             current_line.append(element)
+#         else:
+#             lines.append(current_line)
+#             current_line = [element]
+#
+#     if current_line:
+#         lines.append(current_line)
+#
+#     # 4. Собираем финальный текст, сортируя элементы внутри строк по горизонтали (X)
+#     final_lines = []
+#     for line in lines:
+#         line.sort(key=lambda item: item["x"])
+#         line_text = " ".join(item["text"] for item in line)
+#         final_lines.append(line_text)
+#
+#     return "\n".join(final_lines)
 
 
 def process_receipt_to_base64(file_io: io.BytesIO) -> str:
@@ -170,3 +190,37 @@ def process_receipt_to_base64(file_io: io.BytesIO) -> str:
 
     base64_image = base64.b64encode(processed_bytes).decode('utf-8')
     return f"data:image/jpeg;base64,{base64_image}"
+
+
+import re
+
+# Словарь посимвольной визуальной замены (Leet-speak / Транслит)
+LEET_MAP = {
+    'b': 'б', 'M': 'м', 'a': 'а', 'r': 'р', 'P': 'р', 'W': 'и',
+    '6': 'б', '5': 'б', 'O': 'о', 'x': 'х', 'e': 'е', 'H': 'н',
+    'O': 'о', 'B': 'в', '4': 'ч', 'E': 'е', 'K': 'к', 'c': 'с',
+    'k': 'к', 'y': 'у', 'e': 'е', 'n': 'н', 'p': 'п', 'M': 'м',
+    'O': 'о', 'n': 'н', 'u': 'и', '3': 'з', 'S': 'с', 'T': 'т'
+}
+
+
+def clean_ocr_text(raw_text: str) -> str:
+    """
+    Первичная грубая очистка текста на Python перед отправкой в LLM.
+    """
+    # 1. Заменяем явные мусорные китайские иероглифы, которые выдал OCR на наклоне
+    text = raw_text.replace('三', '=')
+
+    # 2. Исправляем частую ошибку OCR в ценах весовых товаров (замена точки на дефис)
+    # Вариант с позиционными аргументами (самый частый и лаконичный):
+    text = re.sub(r'(\d+)-(\d{2})', r'\1.\2', text)
+
+    # Вариант с явными именованными аргументами (если хочется сохранить читаемость):
+    text = re.sub(pattern=r'(\d+)-(\d{2})', repl=r'\1.\2', string=text)
+
+    # 3. Восстанавливаем символы по словарю LEET_MAP
+    # (Применяем только к блокам, похожим на слова, чтобы не испортить нормальный английский)
+    for eng_char, rus_char in LEET_MAP.items():
+        text = text.replace(eng_char, rus_char)
+
+    return text
