@@ -14,7 +14,7 @@ from pathlib import Path
 from services.client import ai_service
 from services.schemas import ReceiptAnalysisSchema
 from financial_bot.repositories import save_receipt_to_db
-from services.utils_pipelines import get_isolated_session, merge_ocr_blocks_to_text, clean_ocr_text
+from services.utils_pipelines import get_isolated_session, merge_ocr_blocks_to_text, decode_visual_translit
 from rapidocr_onnxruntime import RapidOCR
 
 ocr = RapidOCR()
@@ -83,15 +83,17 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             logger.warning("PaddleOCR не нашел текст на изображении")
             return {"status": "error", "message": "No text found"}
 
-        logger.info("Data for func: {}".format(result))
-        #clear_text = clean_ocr_text(result)
+        logger.info("Type data: {}; Data for func: {}".format(type(result),result))
+        # clear_text = clean_ocr_text(result)
+        # text = merge_ocr_blocks_to_text(clear_text)
         text = merge_ocr_blocks_to_text(result)
-        #text = merge_ocr_blocks_to_text(text)
-        logger.info("Text for AI: {}".format(text))
+        clear_text = decode_visual_translit(text)
+        logger.info("Text for AI: {}".format(clear_text))
 
         analysis_result: ReceiptAnalysisSchema = await ai_service.process_receipt(
-                    text=text,
-                    response_schema=ReceiptAnalysisSchema
+                    text=clear_text,
+                    response_schema=ReceiptAnalysisSchema,
+                    locale=locale
 
                 )
 

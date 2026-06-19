@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 
-from services.prompts import PROMPT_FOR_TEXT_TEST, RECEIPT_SYSTEM_PROMPT
+from services.prompts import  get_system_prompt
 
 load_dotenv()
 
@@ -50,7 +50,8 @@ class AIService:
     async def process_receipt(
             self,
             response_schema: Type[BaseModel],
-            text: dict
+            text: dict,
+            locale: str
     ):
 
         completion = await self.client.beta.chat.completions.parse(
@@ -58,7 +59,7 @@ class AIService:
             messages=[
                 {
                     "role": "system",
-                    "content": RECEIPT_SYSTEM_PROMPT
+                    "content": get_system_prompt(locale)
                 },
                 {
                     "role": "user",
@@ -66,6 +67,7 @@ class AIService:
                 }
             ],
             response_format= response_schema,
+            temperature=0.0
         )
 
         # Получаем валидированный Pydantic-объект

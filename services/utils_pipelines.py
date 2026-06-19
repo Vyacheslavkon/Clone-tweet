@@ -29,7 +29,7 @@ def get_isolated_session() -> AsyncSession:
     return session_maker()
 
 
-def merge_ocr_blocks_to_text(rapid_results, y_threshold: int = 6) -> str:
+def merge_ocr_blocks_to_text(rapid_results, y_threshold: int = 12) -> str:
     if not rapid_results:
         return ""
 
@@ -68,9 +68,14 @@ def merge_ocr_blocks_to_text(rapid_results, y_threshold: int = 6) -> str:
             final_lines.append(line_text)
 
     return "\n".join(final_lines)
+#
+# import re
+# from collections import defaultdict
 
-import re
-from collections import defaultdict
+
+
+
+
 
 # import re
 #
@@ -203,24 +208,76 @@ LEET_MAP = {
     'O': 'о', 'n': 'н', 'u': 'и', '3': 'з', 'S': 'с', 'T': 'т'
 }
 
+import re
 
-def clean_ocr_text(raw_text: str) -> str:
-    """
-    Первичная грубая очистка текста на Python перед отправкой в LLM.
-    """
-    # 1. Заменяем явные мусорные китайские иероглифы, которые выдал OCR на наклоне
-    text = raw_text.replace('三', '=')
 
-    # 2. Исправляем частую ошибку OCR в ценах весовых товаров (замена точки на дефис)
-    # Вариант с позиционными аргументами (самый частый и лаконичный):
-    text = re.sub(r'(\d+)-(\d{2})', r'\1.\2', text)
+def decode_visual_translit(text: str) -> str:
+    if not text:
+        return ""
 
-    # Вариант с явными именованными аргументами (если хочется сохранить читаемость):
-    text = re.sub(pattern=r'(\d+)-(\d{2})', repl=r'\1.\2', string=text)
+    # Шаг 1. Безопасная замена букв (буквы на буквы не ломают цены!)
+    # Этот шаг можно делать глобально по всему тексту
+    letter_map = str.maketrans({
+        'A': 'А', 'a': 'а',
+        'B': 'В',
+        'C': 'С', 'c': 'с',
+        'E': 'Е', 'e': 'е',
+        'H': 'Н',
+        'K': 'К', 'k': 'к',
+        'M': 'М',
+        'O': 'О', 'o': 'о',
+        'P': 'Р', 'p': 'р',
+        'T': 'Т', 't': 'т',
+        'X': 'Х', 'x': 'х',
+        'y': 'у',
+        'r': 'г',
+        'u': 'и',
+        'n': 'н',
+        'b': 'б',
+    })
+    decoded = text.translate(letter_map)
 
-    # 3. Восстанавливаем символы по словарю LEET_MAP
-    # (Применяем только к блокам, похожим на слова, чтобы не испортить нормальный английский)
-    for eng_char, rus_char in LEET_MAP.items():
-        text = text.replace(eng_char, rus_char)
+    # Шаг 2. Контекстная замена ЦИФР на БУКВЫ (Магия регулярных выражений)
+    # Мы заменяем цифры только если они граничат с буквами (латинскими или русскими)
 
-    return text
+    # 4 -> ч (если рядом буквы, например, 'KACCOBb4EK' -> 'КАССОВЫЧЕК')
+    decoded = re.sub(r'(?<=[a-zA-Zа-яА-Я])4|4(?=[a-zA-Zа-яА-Я])', 'ч', decoded)
+
+    # 3 -> з (например, '0326309T.eneHuS' -> 'Т.еленеш')
+    decoded = re.sub(r'(?<=[a-zA-Zа-яА-Я])3|3(?=[a-zA-Zа-яА-Я])', 'з', decoded)
+
+    # 5 -> б (например, 'CaM5ePW' -> 'Самбери')
+    decoded = re.sub(r'(?<=[a-zA-Zа-яА-Я])5|5(?=[a-zA-Zа-яА-Я])', 'б', decoded)
+
+    # 6 -> б или ь (в зависимости от контекста, чаще 'б' в именах собственных)
+    decoded = re.sub(r'(?<=[a-zA-Zа-яА-Я])6|6(?=[a-zA-Zа-яА-Я])', 'б', decoded)
+
+    # 8 -> я (очень частая ошибка OCR в конце слов, например, 'MoHaCTbIPCka8' -> 'Монастырская')
+    decoded = re.sub(r'(?<=[a-zA-Zа-яА-Я])8|8(?=[a-zA-Zа-яА-Я])', 'я', decoded)
+
+    # Шаг 3. Точечные исправления известных брендов и шума
+    replacements = {
+        r"\b000\b": "ООО",  # Заменяем '000' на 'ООО' только если это отдельное слово
+        r"lokynaTenb": "покупатель",
+        r"CaMбePW": "Самбери",  # с учетом того, что 5 уже заменилось на б
+        r"CaMбePи": "Самбери",
+        r"byMara": "бумага",
+        r"TyaneTHaA": "туалетная",
+        r"MopOxeHOe": "мороженое",
+        r"WoKonaA": "шоколад",
+        r"yBenka": "Увелка",
+        r"nakeT-Mauka": "пакет-майка",
+        r"Hera3MPOBaHH": "негазированная",
+        r"Hera3MP0BaHH": "негазированная",
+        r"BoAз": "вода",
+        r"Bona": "вода",
+        r"BoAa": "вода",
+        r"CanaT npM6On": "салат прибой",
+    }
+
+    for pattern, repl in replacements.items():
+        decoded = re.sub(pattern, repl, decoded, flags=re.IGNORECASE)
+
+    return decoded
+
+
