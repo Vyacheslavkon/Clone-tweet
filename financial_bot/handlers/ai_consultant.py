@@ -1,4 +1,5 @@
 import io
+from pyexpat.errors import messages
 
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
@@ -20,7 +21,7 @@ from financial_bot.handlers.utils import (
 from financial_bot.keyboards.reply import request_ai, get_main_menu
 #from financial_bot.tasks.ai import process_ai_request
 from financial_bot.states.ai_states import AIState
-from financial_bot.tasks.ai import process_receipt_task
+from financial_bot.tasks.ai import process_receipt_task, process_expense_task
 
 ai_router = Router()
 
@@ -77,63 +78,52 @@ async def handle_receipt_photo(message: Message, state: FSMContext, session: Asy
     await state.clear()
 
 
-"""
-import os
-from aiogram import Router, F
-from aiogram.types import Message
+@ai_router.message(I18nTextFilter("data entry"),AIState.waiting_for_request)
+async def waiting_purchases(message: Message, state: FSMContext):
 
-# Импортируем вашу Celery-таску (укажите ваш правильный путь импорта)
-from pipelines import process_receipt_task 
-
-router = Router()
-
-# Создаем папку для чеков, если её еще нет
-# В Docker эта папка должна быть общей (Volume) для бота и Celery
-MEDIA_DIR = "/app/media/receipts"
-os.makedirs(MEDIA_DIR, exist_ok=True)
+    await message.answer(_("Please tell us or write about your purchases!"))
+    await state.set_state(AIState.waiting_for_receipt)
 
 
-@router.message(F.photo)
-async def handle_receipt_photo(message: Message):
-    ""Хэндлер принимает фото, сохраняет на диск и отправляет путь в Celery.""
-    
-    # 1. Берем самое последнее фото из списка (оно всегда самого лучшего качества)
-    photo = message.photo[-1]
-    
-    # 2. Получаем объект файла из Telegram (там содержится file_path для скачивания)
-    file_info = await message.bot.get_file(photo.file_id)
-    telegram_file_path = file_info.file_path # Внутренний путь на серверах TG (например, photos/file_0.jpg)
+@ai_router.message(F.voice)
+async def handle_voice_receipt(message: Message, session: AsyncSession ):
+    user = await get_user_by_id(session, message.from_user.id)
 
-    # 3. Формируем уникальное имя файла для нашего локального диска
-    # Используем file_id или ID сообщения, чтобы имена не повторялись
-    file_extension = telegram_file_path.split('.')[-1] # Получаем расширение (jpg, png)
-    local_file_name = f"user_{message.from_user.id}_{message.message_id}.{file_extension}"
-    
-    # Полный абсолютный путь на нашем сервере
-    absolute_local_path = os.path.join(MEDIA_DIR, local_file_name)
+    # 1. Отправляем пользователю сигнал, что бот начал слушать и обрабатывать голос
+    waiting_msg = await message.answer(_("🎙 <i>I am listening to your message and analyzing the expenses...</i>"))
 
-    # 4. Скачиваем файл из Telegram на наш локальный диск
-    await message.bot.download_file(
-        file_path=telegram_file_path, 
-        destination=absolute_local_path
-    )
+    try:
+        # 2. Получаем объект голосового сообщения
+        voice = message.voice
 
-    # Имитируем создание транзакции в БД, чтобы получить её ID
-    # (Здесь должен быть ваш код создания пустой транзакции на SQLAlchemy)
-    mock_transaction_id = 42 
+        # Защита: ограничим длину аудио (например, не больше 30 секунд),
+        # чтобы пользователи не наговаривали аудиокниги
+        if voice.duration > 35:
+            await waiting_msg.edit_text(
+                _("❌ The voice message is too long. Please dictate a shorter message (up to 30 seconds).."))
+            return
 
-    # 5. Передаем локальный путь в Celery-таску через .delay()
-    process_receipt_task.delay(
-        user_id=message.from_user.id,
-        transaction_id=mock_transaction_id,
-        image_path=absolute_local_path # Улетает простая строка!
-    )
+        # 3. Получаем путь к файлу на серверах Telegram через Bot API
+        file_info =  await message.bot.get_file(voice.file_id)
 
-    # 6. Отвечаем пользователю, что чек ушел на обработку
-    await message.answer(
-        "🧾 Ваша квитанция принята на обработку! "
-        "Нейросеть уже разбирает товары, это займет около 10-15 секунд."
-    )
+        # 4. Скачиваем файл напрямую в буфер оперативной памяти (BytesIO)
+        file_buffer = io.BytesIO()
+        await message.bot.download_file(file_info.file_path, file_buffer)
 
+        # Получаем чистые байты (тип bytes)
+        voice_bytes = file_buffer.getvalue()
 
-"""
+        # 5. Отправляем байты в фоновую Celery-таску!
+        # Передаем chat_id, id пользователя из базы, локаль и сами байты
+        process_expense_task.delay(
+            chat_id=message.chat.id,
+            db_user_id=user.id,  # или как у вас в коде называется id пользователя
+            locale=user.language_code,
+            voice_bytes=voice_bytes
+        )
+        # Удаляем временное сообщение "слушаю", так как таска отправит финальный результат
+        await message.bot.delete_message(chat_id=message.chat.id, message_id=waiting_msg.message_id)
+
+    except Exception as e:
+        logger.error(f"Ошибка при скачивании голосового сообщения: {e}", exc_info=True)
+        await waiting_msg.edit_text(_("❌ Unable to process the voice message. Please try again."))
