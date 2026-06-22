@@ -89,8 +89,7 @@ async def waiting_purchases(message: Message, state: FSMContext):
 async def handle_voice_receipt(message: Message, session: AsyncSession ):
     user = await get_user_by_id(session, message.from_user.id)
 
-    # 1. Отправляем пользователю сигнал, что бот начал слушать и обрабатывать голос
-    waiting_msg = await message.answer(_("🎙 <i>I am listening to your message and analyzing the expenses...</i>"))
+    waiting_msg = await message.answer("🧠 I am analyzing your expenses...")
 
     try:
         # 2. Получаем объект голосового сообщения
@@ -113,17 +112,39 @@ async def handle_voice_receipt(message: Message, session: AsyncSession ):
         # Получаем чистые байты (тип bytes)
         voice_bytes = file_buffer.getvalue()
 
-        # 5. Отправляем байты в фоновую Celery-таску!
-        # Передаем chat_id, id пользователя из базы, локаль и сами байты
+
         process_expense_task.delay(
             chat_id=message.chat.id,
             db_user_id=user.id,  # или как у вас в коде называется id пользователя
             locale=user.language_code,
             voice_bytes=voice_bytes
         )
-        # Удаляем временное сообщение "слушаю", так как таска отправит финальный результат
+
         await message.bot.delete_message(chat_id=message.chat.id, message_id=waiting_msg.message_id)
 
     except Exception as e:
         logger.error(f"Ошибка при скачивании голосового сообщения: {e}", exc_info=True)
         await waiting_msg.edit_text(_("❌ Unable to process the voice message. Please try again."))
+
+
+
+@ai_router.message(F.text)
+async def handle_text_message(message: Message, session: AsyncSession):
+
+    user = await get_user_by_id(session, message.from_user.id)
+
+    waiting_msg = await message.answer("🧠 I am analyzing your expenses...")
+
+
+
+    text = message.text
+
+    process_expense_task.delay(
+        chat_id=message.chat.id,
+        db_user_id=user.id,  # или как у вас в коде называется id пользователя
+        locale=user.language_code,
+        text=text
+    )
+
+    await message.bot.delete_message(chat_id=message.chat.id, message_id=waiting_msg.message_id)
+

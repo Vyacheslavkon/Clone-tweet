@@ -16,3 +16,10 @@ class ReceiptAnalysisSchema(BaseModel):
     currency: str = Field(default="RUB", description="ISO код валюты (RUB, USD, EUR)")
     category: str = Field(description="Основная категория для всего чека (выбирается по наибольшим тратам)")
     items: List[ReceiptItemSchema] = Field(description="Список всех позиций в чеке")
+    is_shopping_related: bool = Field(
+        description="True, если текст содержит информацию о покупках и ценах/суммах. False в противном случае."
+    )
+    error_message: str | None = Field(
+        default=None,
+        description="Если is_shopping_related=False или total_amount=0, напиши здесь короткий, ироничный или шутливый ответ пользователю на языке пользователя."
+    )

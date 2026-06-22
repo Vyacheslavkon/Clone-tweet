@@ -17,7 +17,8 @@ def process_receipt_task(chat_id: int, db_user_id: int, locale: str, image_bytes
     asyncio.run(async_process_receipt(chat_id, db_user_id, locale, image_bytes))
 
 
-@celery_app.task(name="financial_bot.ai.process_receipt_task", rate_limit="2/s")
+@celery_app.task(name="financial_bot.ai.process_expense_task", rate_limit="2/s")
 def process_expense_task(chat_id: int, db_user_id: int, locale: str, voice_bytes: bytes):
 
     asyncio.run(async_process_receipt(chat_id, db_user_id, locale, voice_bytes))
+

@@ -170,6 +170,23 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
 
                 )
 
+
+
+        if not analysis_result.is_shopping_related or analysis_result.amount <= 0:
+            joke_text = analysis_result.error_message or _("Не удалось распознать сумму покупки.")
+
+            # КРИТИЧЕСКИЙ ШАГ: Отправляем шутку напрямую в чат пользователю!
+            await bot.send_message(
+                chat_id=chat_id,
+                text=f"❌ {joke_text}"
+            )
+
+            # Логируем для себя
+            logger.info("Обработка отменена ИИ для юзера %s. Шутка: %s", db_user_id, joke_text)
+
+            # Просто завершаем таску
+            return {"status": "cancelled", "message": joke_text}
+
         await save_receipt_to_db(
             session=session,
             user_id=db_user_id,
@@ -200,4 +217,7 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
     finally:
         await session.close()
         await bot_session.close()
+
+
+
 
