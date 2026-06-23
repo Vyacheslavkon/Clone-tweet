@@ -132,7 +132,6 @@ from rapidocr_onnxruntime import RapidOCR
 
 
 
-
 async def async_process_receipt(chat_id: int, db_user_id: int,
                                 locale: str, voice_bytes: bytes):
 
@@ -195,17 +194,25 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             raw_text=analysis_result.model_dump_json()
         )
 
-        msg_text = _((
-            f"✅ <b>The check has been processed successfully!</b>\n\n"
-            f"🏬 Description: {analysis_result.description or 'Неизвестно'}\n"
-            f"💰 Amount: {analysis_result.amount} {analysis_result.currency}\n"
-            f"🗂 Category: {analysis_result.category}\n\n"
-            f"🧾 Positions have been added to your detailed statistics."
-        ))
+        template_msg = _(
+            "✅ <b>The check has been processed successfully!</b>\n\n"
+            "🏬 Description: {description}\n"
+            "💰 Amount: {amount} {currency}\n"
+            "🗂 Category: {category}\n\n"
+            "🧾 Positions have been added to your detailed statistics."
+        )
+
+        msg_text = template_msg.format(
+            description=analysis_result.description or _("Неизвестно"),
+            amount=analysis_result.amount,
+            currency=analysis_result.currency,
+            category=analysis_result.category
+        )
+
         await bot.send_message(chat_id=chat_id, text=msg_text)
 
     except Exception as e:
-        logger.error(f"Error processing check for user {db_user_id}: {e}", exc_info=True)
+        logger.exception("Error processing check for user {user_id}", user_id=db_user_id)
 
         await session.rollback()
 
@@ -217,7 +224,5 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
     finally:
         await session.close()
         await bot_session.close()
-
-
 
 

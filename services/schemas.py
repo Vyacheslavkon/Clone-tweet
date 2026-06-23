@@ -11,11 +11,12 @@ class ReceiptItemSchema(BaseModel):
 
 class ReceiptAnalysisSchema(BaseModel):
     description: Optional[str] = Field(
+        default=None,
         description="Название магазина, бренда или организации (например, 'ВкусВилл', 'Яндекс.Такси')")
     amount: Decimal = Field(description="Итоговая сумма всего чека")
     currency: str = Field(default="RUB", description="ISO код валюты (RUB, USD, EUR)")
-    category: str = Field(description="Основная категория для всего чека (выбирается по наибольшим тратам)")
-    items: List[ReceiptItemSchema] = Field(description="Список всех позиций в чеке")
+    category: str = Field(default=None, description="Основная категория для всего чека (выбирается по наибольшим тратам)")
+    items: List[ReceiptItemSchema] = Field(default=[], description="Список всех позиций в чеке")
     is_shopping_related: bool = Field(
         description="True, если текст содержит информацию о покупках и ценах/суммах. False в противном случае."
     )
