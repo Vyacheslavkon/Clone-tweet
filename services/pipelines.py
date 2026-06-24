@@ -12,7 +12,7 @@ from loguru import logger
 from pathlib import Path
 
 from services.client import ai_service
-from services.schemas import ReceiptAnalysisSchema
+from services.schemas import ReceiptAnalysisSchema, ReceiptListAnalysisSchema
 from financial_bot.repositories import save_receipt_to_db
 from services.utils_pipelines import get_isolated_session, merge_ocr_blocks_to_text, decode_visual_translit
 from rapidocr_onnxruntime import RapidOCR
@@ -132,6 +132,100 @@ from rapidocr_onnxruntime import RapidOCR
 
 
 
+# async def async_process_receipt(chat_id: int, db_user_id: int,
+#                                 locale: str, voice_bytes: bytes):
+#
+#     locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
+#
+#     try:
+#         lang = gettext.translation(
+#             domain='messages',
+#             localedir=str(locales_dir),  # gettext требует строку, а не объект Path
+#             languages=[locale],
+#             fallback=True
+#         )
+#     except Exception as e:
+#         logger.error(f"Не удалось загрузить локализацию из {locales_dir}: {e}")
+#         lang = gettext.NullTranslations()  # Фоллбек на оригинальный текст, если файлы не найдены
+#
+#     _ = lang.gettext
+#
+#
+#
+#     bot_session = AiohttpSession()
+#     bot = Bot(
+#         token=os.getenv("BOT_TOKEN"),
+#         session=bot_session,
+#         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+#     )
+#
+#     session = get_isolated_session()
+#     try:
+#
+#         analysis_result: ReceiptAnalysisSchema = await ai_service.process_voice_message(
+#                     voice_bytes=voice_bytes,
+#                     response_schema=ReceiptAnalysisSchema,
+#                     locale=locale
+#
+#                 )
+#
+#
+#
+#         if not analysis_result.is_shopping_related or analysis_result.amount <= 0:
+#             joke_text = analysis_result.error_message or _("Не удалось распознать сумму покупки.")
+#
+#             # КРИТИЧЕСКИЙ ШАГ: Отправляем шутку напрямую в чат пользователю!
+#             await bot.send_message(
+#                 chat_id=chat_id,
+#                 text=f"❌ {joke_text}"
+#             )
+#
+#             # Логируем для себя
+#             logger.info("Обработка отменена ИИ для юзера %s. Шутка: %s", db_user_id, joke_text)
+#
+#             # Просто завершаем таску
+#             return {"status": "cancelled", "message": joke_text}
+#
+#         await save_receipt_to_db(
+#             session=session,
+#             user_id=db_user_id,
+#             analysis_result=analysis_result,
+#             photo_url=None,
+#             raw_text=analysis_result.model_dump_json()
+#         )
+#
+#         template_msg = _(
+#             "✅ <b>The check has been processed successfully!</b>\n\n"
+#             "🏬 Description: {description}\n"
+#             "💰 Amount: {amount} {currency}\n"
+#             "🗂 Category: {category}\n\n"
+#             "🧾 Positions have been added to your detailed statistics."
+#         )
+#
+#         msg_text = template_msg.format(
+#             description=analysis_result.description or _("Неизвестно"),
+#             amount=analysis_result.amount,
+#             currency=analysis_result.currency,
+#             category=analysis_result.category
+#         )
+#
+#         await bot.send_message(chat_id=chat_id, text=msg_text)
+#
+#     except Exception as e:
+#         logger.exception("Error processing check for user {user_id}", user_id=db_user_id)
+#
+#         await session.rollback()
+#
+#         await bot.send_message(
+#             chat_id=chat_id,
+#             text=_("❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again.")
+#         )
+#
+#     finally:
+#         await session.close()
+#         await bot_session.close()
+
+
 async def async_process_receipt(chat_id: int, db_user_id: int,
                                 locale: str, voice_bytes: bytes):
 
@@ -162,29 +256,29 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
     session = get_isolated_session()
     try:
 
-        analysis_result: ReceiptAnalysisSchema = await ai_service.process_voice_message(
+        analysis_result: ReceiptListAnalysisSchema = await ai_service.process_voice_message(
                     voice_bytes=voice_bytes,
-                    response_schema=ReceiptAnalysisSchema,
+                    response_schema=ReceiptListAnalysisSchema,
                     locale=locale
 
                 )
 
 
+        for transaction in analysis_result.transactions:
+            if not analysis_result.is_shopping_related or transaction.amount <= 0:
+                joke_text = analysis_result.error_message or _("Не удалось распознать сумму покупки.")
 
-        if not analysis_result.is_shopping_related or analysis_result.amount <= 0:
-            joke_text = analysis_result.error_message or _("Не удалось распознать сумму покупки.")
+                # КРИТИЧЕСКИЙ ШАГ: Отправляем шутку напрямую в чат пользователю!
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=f"❌ {joke_text}"
+                )
 
-            # КРИТИЧЕСКИЙ ШАГ: Отправляем шутку напрямую в чат пользователю!
-            await bot.send_message(
-                chat_id=chat_id,
-                text=f"❌ {joke_text}"
-            )
+                # Логируем для себя
+                logger.info("Обработка отменена ИИ для юзера %s. Шутка: %s", db_user_id, joke_text)
 
-            # Логируем для себя
-            logger.info("Обработка отменена ИИ для юзера %s. Шутка: %s", db_user_id, joke_text)
-
-            # Просто завершаем таску
-            return {"status": "cancelled", "message": joke_text}
+                # Просто завершаем таску
+                return {"status": "cancelled", "message": joke_text}
 
         await save_receipt_to_db(
             session=session,
@@ -194,20 +288,22 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             raw_text=analysis_result.model_dump_json()
         )
 
-        template_msg = _(
-            "✅ <b>The check has been processed successfully!</b>\n\n"
-            "🏬 Description: {description}\n"
-            "💰 Amount: {amount} {currency}\n"
-            "🗂 Category: {category}\n\n"
-            "🧾 Positions have been added to your detailed statistics."
-        )
+        # template_msg = _(
+        #     "✅ <b>The check has been processed successfully!</b>\n\n"
+        #     "🏬 Description: {description}\n"
+        #     "💰 Amount: {amount} {currency}\n"
+        #     "🗂 Category: {category}\n\n"
+        #     "🧾 Positions have been added to your detailed statistics."
+        # )
 
-        msg_text = template_msg.format(
-            description=analysis_result.description or _("Неизвестно"),
-            amount=analysis_result.amount,
-            currency=analysis_result.currency,
-            category=analysis_result.category
-        )
+        # msg_text = template_msg.format(
+        #     description=analysis_result.description or _("Неизвестно"),
+        #     amount=analysis_result.amount,
+        #     currency=analysis_result.currency,
+        #     category=analysis_result.category
+        # )
+
+        msg_text = "successfully save!"
 
         await bot.send_message(chat_id=chat_id, text=msg_text)
 
