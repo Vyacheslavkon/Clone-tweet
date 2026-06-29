@@ -2,6 +2,8 @@ from aiogram.types import InlineKeyboardButton
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from financial_bot.filters import DeleteTransactionCallback
+
 
 def cancel():
     builder = InlineKeyboardBuilder()
@@ -107,4 +109,13 @@ def report_history():
     cancel_builder = cancel()
     builder.attach(cancel_builder)
 
+    return builder.as_markup()
+
+
+def get_delete_keyboard(batch_id: str, button_text: str):
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text=button_text,
+        callback_data=DeleteTransactionCallback( batch_id= batch_id)
+    )
     return builder.as_markup()

@@ -168,49 +168,49 @@ async def get_report_period(
     return res
 
 
-
 # async def save_receipt_to_db(
 #         session: AsyncSession,
 #         user_id: int,
-#         analysis_result: ReceiptAnalysisSchema,
+#         analysis_result: ReceiptListAnalysisSchema,
 #         photo_url: str,
 #         raw_text: str
 # ):
-#     transaction = Transactions(
-#         user_id=user_id,
-#         amount=analysis_result.amount,
-#         type="expense",
-#         category=analysis_result.category,
-#         description=analysis_result.description,
-#         receipt_photo_url=photo_url,
-#         text_check=raw_text
-#     )
 #
-#     for item in analysis_result.items:
-#         db_item = TransactionItems(
-#             name=item.name,
-#             price=item.price,
-#             category=item.category
+#     for group in analysis_result.transactions:
+#         db_transaction = Transactions(
+#             user_id=user_id,
+#             amount=group.amount,
+#             category=group.category,
+#             type="expense",
+#             description=group.description,
+#             text_check=raw_text
 #         )
+#         session.add(db_transaction)
+#         await session.flush()  # Получаем id для One-to-Many
 #
-#         transaction.items.append(db_item)
+#         if group.items:
+#             db_items = [
+#                 TransactionItems(
+#                     transaction_id=db_transaction.id,
+#                     name=item.name,
+#                     price=item.price,
+#                     category=group.category
+#                 )
+#                 for item in group.items
+#             ]
+#             session.add_all(db_items)
 #
-#     session.add(transaction)
 #     await session.commit()
-#     await session.refresh(transaction)
-#
-#     return transaction
 
-
+# test
 async def save_receipt_to_db(
         session: AsyncSession,
         user_id: int,
         analysis_result: ReceiptListAnalysisSchema,
         photo_url: str,
-        raw_text: str
+        raw_text: str,
+        batch_id: str
 ):
-    # Ранее: db_transaction = Transaction(...)
-    # Теперь: перебираем разделенные ИИ группы товаров
 
     for group in analysis_result.transactions:
         db_transaction = Transactions(
@@ -219,7 +219,8 @@ async def save_receipt_to_db(
             category=group.category,
             type="expense",
             description=group.description,
-            text_check=raw_text
+            text_check=raw_text,
+            batch_id=batch_id
         )
         session.add(db_transaction)
         await session.flush()  # Получаем id для One-to-Many

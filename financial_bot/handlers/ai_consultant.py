@@ -89,7 +89,7 @@ async def waiting_purchases(message: Message, state: FSMContext):
 async def handle_voice_receipt(message: Message, session: AsyncSession ):
     user = await get_user_by_id(session, message.from_user.id)
 
-    waiting_msg = await message.answer("🧠 I am analyzing your expenses...")
+    waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
 
     try:
         # 2. Получаем объект голосового сообщения
@@ -122,9 +122,16 @@ async def handle_voice_receipt(message: Message, session: AsyncSession ):
 
         await message.bot.delete_message(chat_id=message.chat.id, message_id=waiting_msg.message_id)
 
+        await message.answer(
+            _("⏳ Background analysis started. I’ll send the result in a couple of seconds; in the meantime, you can continue working:"),
+            reply_markup=get_main_menu()
+
+        )
+
     except Exception as e:
         logger.error(f"Ошибка при скачивании голосового сообщения: {e}", exc_info=True)
-        await waiting_msg.edit_text(_("❌ Unable to process the voice message. Please try again."))
+        await waiting_msg.edit_text(_("❌ Unable to process the voice message. Please try again."),
+                                    reply_markup=get_main_menu())
 
 
 

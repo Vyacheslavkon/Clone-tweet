@@ -13,6 +13,7 @@ from collections import defaultdict
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.pool import NullPool
 
+from services.schemas import ReceiptAnalysisSchema, ReceiptListAnalysisSchema
 load_dotenv()
 
 POSTGRES_ASYNC_URL = os.getenv("DATABASE_URL_DOCKER")
@@ -281,3 +282,21 @@ def decode_visual_translit(text: str) -> str:
     return decoded
 
 
+def merge_transactions_by_category(analysis_result: ReceiptListAnalysisSchema) -> ReceiptListAnalysisSchema:
+    """
+    Группирует транзакции одной категории внутри одного ответа ИИ.
+    Суммирует их amount и объединяет списки items.
+    """
+    grouped_transactions = {}
+
+    for trans in analysis_result.transactions:
+        if trans.category in grouped_transactions:
+            grouped_transactions[trans.category].amount += trans.amount
+            grouped_transactions[trans.category].items.extend(trans.items)
+        else:
+
+            grouped_transactions[trans.category] = trans
+
+
+    analysis_result.transactions = list(grouped_transactions.values())
+    return analysis_result

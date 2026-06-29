@@ -3,6 +3,7 @@ import io
 import gettext
 import tempfile
 import logging
+import uuid
 
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
@@ -14,7 +15,8 @@ from pathlib import Path
 from services.client import ai_service
 from services.schemas import ReceiptAnalysisSchema, ReceiptListAnalysisSchema
 from financial_bot.repositories import save_receipt_to_db
-from services.utils_pipelines import get_isolated_session, merge_ocr_blocks_to_text, decode_visual_translit
+from services.utils_pipelines import get_isolated_session, merge_transactions_by_category
+from financial_bot.keyboards.inline import get_delete_keyboard
 from rapidocr_onnxruntime import RapidOCR
 
 # for check.
@@ -263,49 +265,91 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
 
                 )
 
+        if not analysis_result.is_shopping_related:
+            joke_text = analysis_result.error_message or _("Unable to recognize the purchase amount.")
+
+            await bot.send_message(chat_id=chat_id, text=f"❌ {joke_text}")
+            logger.info("Обработка отменена ИИ для юзера %s. Шутка: %s", db_user_id, joke_text)
+            return {"status": "cancelled", "message": joke_text}
 
         for transaction in analysis_result.transactions:
-            if not analysis_result.is_shopping_related or transaction.amount <= 0:
-                joke_text = analysis_result.error_message or _("Не удалось распознать сумму покупки.")
+            if transaction.amount <= 0:
+                # Фоллбек-текст, если у транзакции почему-то нулевая сумма
+                invalid_amount_msg = _("The transaction amount must be greater than zero.")
+                await bot.send_message(chat_id=chat_id, text=f"❌ {invalid_amount_msg}")
+                return {"status": "cancelled", "message": "Zero amount transaction"}
 
-                # КРИТИЧЕСКИЙ ШАГ: Отправляем шутку напрямую в чат пользователю!
-                await bot.send_message(
-                    chat_id=chat_id,
-                    text=f"❌ {joke_text}"
-                )
+        if not analysis_result.transactions:
+            await bot.send_message(chat_id=chat_id, text=_("❌ No transactions found to save."))
+            return {"status": "cancelled", "message": "Empty transactions list"}
 
-                # Логируем для себя
-                logger.info("Обработка отменена ИИ для юзера %s. Шутка: %s", db_user_id, joke_text)
+        final_analysis_result = merge_transactions_by_category(analysis_result)
 
-                # Просто завершаем таску
-                return {"status": "cancelled", "message": joke_text}
+        #test
+        message_batch_id = str(uuid.uuid4())
 
         await save_receipt_to_db(
             session=session,
             user_id=db_user_id,
-            analysis_result=analysis_result,
+            analysis_result=final_analysis_result,
             photo_url=None,
+            batch_id=message_batch_id,
             raw_text=analysis_result.model_dump_json()
         )
 
-        # template_msg = _(
-        #     "✅ <b>The check has been processed successfully!</b>\n\n"
-        #     "🏬 Description: {description}\n"
-        #     "💰 Amount: {amount} {currency}\n"
-        #     "🗂 Category: {category}\n\n"
-        #     "🧾 Positions have been added to your detailed statistics."
+        # await save_receipt_to_db(
+        #     session=session,
+        #     user_id=db_user_id,
+        #     analysis_result=final_analysis_result,
+        #     photo_url=None,
+        #     raw_text=analysis_result.model_dump_json()
         # )
 
-        # msg_text = template_msg.format(
-        #     description=analysis_result.description or _("Неизвестно"),
-        #     amount=analysis_result.amount,
-        #     currency=analysis_result.currency,
-        #     category=analysis_result.category
-        # )
 
-        msg_text = "successfully save!"
 
-        await bot.send_message(chat_id=chat_id, text=msg_text)
+        total_receipt_amount = sum(transaction.amount for transaction in analysis_result.transactions)
+
+        # Собираем детальный отчет по каждой категории
+        categories_details = []
+        for transaction in analysis_result.transactions:
+            # Маппинг иконок под ваши категории
+            icons = {"food": "🍏", "transport": "🚗", "home": "🏠", "entertainment": "🎉", "health": "💊", "other": "📦"}
+            icon = icons.get(transaction.category, "💰")
+
+            # Локализуем название категории (gettext вернет перевод, если он есть в .mo файле)
+            localized_category = _(transaction.category)
+
+            # Собираем товары внутри этой категории
+            items_lines = []
+            for item in transaction.items:
+                if item.price > 0:
+                    items_lines.append(f"  • {item.name}: <b>{item.price}</b>")
+                else:
+                    items_lines.append(f"  • {item.name}")  # Если цена 0.0
+
+            items_str = "\n".join(items_lines)
+            categories_details.append(
+                f"{icon} <b>{localized_category}</b>: {transaction.amount}\n{items_str}"
+            )
+
+        # Собираем финальный текст сообщения
+        report_chunks = [
+            _("✅ <b>Expenses successfully recorded!</b>\n"),
+            "\n\n".join(categories_details),
+            "\n" + "─" * 20,
+            _("📊 A total of ... have been recorded: <b>{total_amount}</b>").format(total_amount=total_receipt_amount)
+        ]
+        msg_text = "\n".join(report_chunks)
+
+        localized_button_label = _("❌ cancel appointment")
+
+        await bot.send_message(chat_id=chat_id, text=msg_text,
+                               reply_markup=get_delete_keyboard(batch_id=message_batch_id,
+                                                                button_text=localized_button_label))
+
+        # msg_text = "successfully save!"
+        #
+        # await bot.send_message(chat_id=chat_id, text=msg_text)
 
     except Exception as e:
         logger.exception("Error processing check for user {user_id}", user_id=db_user_id)
