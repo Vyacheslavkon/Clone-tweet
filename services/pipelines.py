@@ -4,6 +4,7 @@ import gettext
 import tempfile
 import logging
 import uuid
+import openai
 
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
@@ -134,100 +135,6 @@ from rapidocr_onnxruntime import RapidOCR
 
 
 
-# async def async_process_receipt(chat_id: int, db_user_id: int,
-#                                 locale: str, voice_bytes: bytes):
-#
-#     locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
-#
-#     try:
-#         lang = gettext.translation(
-#             domain='messages',
-#             localedir=str(locales_dir),  # gettext требует строку, а не объект Path
-#             languages=[locale],
-#             fallback=True
-#         )
-#     except Exception as e:
-#         logger.error(f"Не удалось загрузить локализацию из {locales_dir}: {e}")
-#         lang = gettext.NullTranslations()  # Фоллбек на оригинальный текст, если файлы не найдены
-#
-#     _ = lang.gettext
-#
-#
-#
-#     bot_session = AiohttpSession()
-#     bot = Bot(
-#         token=os.getenv("BOT_TOKEN"),
-#         session=bot_session,
-#         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
-#     )
-#
-#     session = get_isolated_session()
-#     try:
-#
-#         analysis_result: ReceiptAnalysisSchema = await ai_service.process_voice_message(
-#                     voice_bytes=voice_bytes,
-#                     response_schema=ReceiptAnalysisSchema,
-#                     locale=locale
-#
-#                 )
-#
-#
-#
-#         if not analysis_result.is_shopping_related or analysis_result.amount <= 0:
-#             joke_text = analysis_result.error_message or _("Не удалось распознать сумму покупки.")
-#
-#             # КРИТИЧЕСКИЙ ШАГ: Отправляем шутку напрямую в чат пользователю!
-#             await bot.send_message(
-#                 chat_id=chat_id,
-#                 text=f"❌ {joke_text}"
-#             )
-#
-#             # Логируем для себя
-#             logger.info("Обработка отменена ИИ для юзера %s. Шутка: %s", db_user_id, joke_text)
-#
-#             # Просто завершаем таску
-#             return {"status": "cancelled", "message": joke_text}
-#
-#         await save_receipt_to_db(
-#             session=session,
-#             user_id=db_user_id,
-#             analysis_result=analysis_result,
-#             photo_url=None,
-#             raw_text=analysis_result.model_dump_json()
-#         )
-#
-#         template_msg = _(
-#             "✅ <b>The check has been processed successfully!</b>\n\n"
-#             "🏬 Description: {description}\n"
-#             "💰 Amount: {amount} {currency}\n"
-#             "🗂 Category: {category}\n\n"
-#             "🧾 Positions have been added to your detailed statistics."
-#         )
-#
-#         msg_text = template_msg.format(
-#             description=analysis_result.description or _("Неизвестно"),
-#             amount=analysis_result.amount,
-#             currency=analysis_result.currency,
-#             category=analysis_result.category
-#         )
-#
-#         await bot.send_message(chat_id=chat_id, text=msg_text)
-#
-#     except Exception as e:
-#         logger.exception("Error processing check for user {user_id}", user_id=db_user_id)
-#
-#         await session.rollback()
-#
-#         await bot.send_message(
-#             chat_id=chat_id,
-#             text=_("❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again.")
-#         )
-#
-#     finally:
-#         await session.close()
-#         await bot_session.close()
-
-
 async def async_process_receipt(chat_id: int, db_user_id: int,
                                 locale: str, voice_bytes: bytes):
 
@@ -272,20 +179,18 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             logger.info("Обработка отменена ИИ для юзера %s. Шутка: %s", db_user_id, joke_text)
             return {"status": "cancelled", "message": joke_text}
 
-        for transaction in analysis_result.transactions:
-            if transaction.amount <= 0:
-                # Фоллбек-текст, если у транзакции почему-то нулевая сумма
-                invalid_amount_msg = _("The transaction amount must be greater than zero.")
-                await bot.send_message(chat_id=chat_id, text=f"❌ {invalid_amount_msg}")
-                return {"status": "cancelled", "message": "Zero amount transaction"}
+
+        valid_transactions = [t for t in analysis_result.transactions if t.amount > 0]
+
+        analysis_result.transactions = valid_transactions
 
         if not analysis_result.transactions:
             await bot.send_message(chat_id=chat_id, text=_("❌ No transactions found to save."))
             return {"status": "cancelled", "message": "Empty transactions list"}
 
+
         final_analysis_result = merge_transactions_by_category(analysis_result)
 
-        #test
         message_batch_id = str(uuid.uuid4())
 
         await save_receipt_to_db(
@@ -297,29 +202,18 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             raw_text=analysis_result.model_dump_json()
         )
 
-        # await save_receipt_to_db(
-        #     session=session,
-        #     user_id=db_user_id,
-        #     analysis_result=final_analysis_result,
-        #     photo_url=None,
-        #     raw_text=analysis_result.model_dump_json()
-        # )
-
-
 
         total_receipt_amount = sum(transaction.amount for transaction in analysis_result.transactions)
 
-        # Собираем детальный отчет по каждой категории
         categories_details = []
         for transaction in analysis_result.transactions:
-            # Маппинг иконок под ваши категории
+
             icons = {"food": "🍏", "transport": "🚗", "home": "🏠", "entertainment": "🎉", "health": "💊", "other": "📦"}
             icon = icons.get(transaction.category, "💰")
 
             # Локализуем название категории (gettext вернет перевод, если он есть в .mo файле)
             localized_category = _(transaction.category)
 
-            # Собираем товары внутри этой категории
             items_lines = []
             for item in transaction.items:
                 if item.price > 0:
@@ -332,7 +226,6 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
                 f"{icon} <b>{localized_category}</b>: {transaction.amount}\n{items_str}"
             )
 
-        # Собираем финальный текст сообщения
         report_chunks = [
             _("✅ <b>Expenses successfully recorded!</b>\n"),
             "\n\n".join(categories_details),
@@ -347,9 +240,11 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
                                reply_markup=get_delete_keyboard(batch_id=message_batch_id,
                                                                 button_text=localized_button_label))
 
-        # msg_text = "successfully save!"
-        #
-        # await bot.send_message(chat_id=chat_id, text=msg_text)
+    except openai.OpenAIError as net_err:
+        logger.warning("Сетевой сбой API OpenAI. Отправляем таску на повтор в Celery.")
+        await session.rollback()
+        # Пробрасываем базовый класс, чтобы asyncio.run() выкинул его наружу в таску
+        raise net_err
 
     except Exception as e:
         logger.exception("Error processing check for user {user_id}", user_id=db_user_id)

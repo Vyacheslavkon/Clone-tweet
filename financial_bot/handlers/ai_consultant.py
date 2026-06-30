@@ -3,15 +3,15 @@ from pyexpat.errors import messages
 
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.filters import I18nTextFilter
 from financial_bot.exceptions import UserNotFoundError
-from financial_bot.filters import I18nTextFilter, IsProUserFilter
-from financial_bot.repositories import get_user_by_id
+from financial_bot.filters import I18nTextFilter, IsProUserFilter, DeleteTransactionCallback
+from financial_bot.repositories import get_user_by_id, delete_check
 from financial_bot.handlers.utils import (
     check_value_budget,
     comparison,
@@ -155,3 +155,19 @@ async def handle_text_message(message: Message, session: AsyncSession):
 
     await message.bot.delete_message(chat_id=message.chat.id, message_id=waiting_msg.message_id)
 
+
+@ai_router.callback_query(DeleteTransactionCallback.filter())
+async def delete_batch_handler(callback: CallbackQuery, callback_data: DeleteTransactionCallback, session: AsyncSession):
+
+
+    # Логируем для отладки в консоль, чтобы увидеть, долетает ли клик
+    print(f"Clicked Cancel for batch_id: {callback_data.batch_id}")
+
+
+    result = await delete_check(session, callback_data.batch_id)
+    if result:
+        await callback.message.edit_text(_("❌ The record has been cancelled and removed from the database."))
+    else:
+        await callback.answer(_("Record not found."), show_alert=True)
+
+        await callback.message.edit_reply_markup(reply_markup=None)

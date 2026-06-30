@@ -15,7 +15,7 @@ proxy_base_url = os.getenv("OPENAI_BASE_URL")
 
 class AIService:
     def __init__(self, api_key: str, base_url: str, model: str = "gpt-4o-mini"):
-        self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+        self.client = AsyncOpenAI(api_key=api_key, base_url=base_url, timeout=60.0 )
         self.model = model
 
     async def analyze_image(

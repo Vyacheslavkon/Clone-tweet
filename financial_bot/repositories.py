@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
-from sqlalchemy import func, select
+from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.exceptions import UserNotFoundError
@@ -238,3 +238,18 @@ async def save_receipt_to_db(
             session.add_all(db_items)
 
     await session.commit()
+
+
+async def delete_check(session: AsyncSession, batch_id: str):
+    stmt_select = select(Transactions).where(Transactions.batch_id == batch_id)
+    list_transactions = await session.execute(stmt_select)
+
+    if len(list_transactions.all()) > 0:
+        stmt = delete(Transactions).where(Transactions.batch_id == batch_id)
+        await session.execute(stmt)
+        await session.commit()
+        return True
+
+    else:
+        return False
+
