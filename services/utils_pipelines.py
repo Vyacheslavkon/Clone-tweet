@@ -282,21 +282,52 @@ def decode_visual_translit(text: str) -> str:
     return decoded
 
 
-def merge_transactions_by_category(analysis_result: ReceiptListAnalysisSchema) -> ReceiptListAnalysisSchema:
-    """
-    Группирует транзакции одной категории внутри одного ответа ИИ.
-    Суммирует их amount и объединяет списки items.
-    """
-    grouped_transactions = {}
+# def merge_transactions_by_category(analysis_result: ReceiptListAnalysisSchema) -> ReceiptListAnalysisSchema:
+#     """
+#     Группирует транзакции одной категории внутри одного ответа ИИ.
+#     Суммирует их amount и объединяет списки items.
+#     """
+#     grouped_transactions = {}
+#
+#     for trans in analysis_result.transactions:
+#         if trans.category in grouped_transactions:
+#             grouped_transactions[trans.category].amount += trans.amount
+#             grouped_transactions[trans.category].items.extend(trans.items)
+#         else:
+#
+#             grouped_transactions[trans.category] = trans
+#
+#
+#     analysis_result.transactions = list(grouped_transactions.values())
+#     return analysis_result
 
-    for trans in analysis_result.transactions:
-        if trans.category in grouped_transactions:
-            grouped_transactions[trans.category].amount += trans.amount
-            grouped_transactions[trans.category].items.extend(trans.items)
+
+def merge_transactions_by_category(analysis_result: ReceiptListAnalysisSchema) -> ReceiptListAnalysisSchema:
+
+    merged_map = {}
+
+    for tx in analysis_result.transactions:
+        key = (tx.type, tx.category)
+
+        if key not in merged_map:
+
+            merged_map[key] = ReceiptAnalysisSchema(
+                type=tx.type,
+                category=tx.category,
+                amount=tx.amount,
+                description=tx.description,
+                items=list(tx.items)
+            )
         else:
 
-            grouped_transactions[trans.category] = trans
+            merged_map[key].amount += tx.amount
+            merged_map[key].items.extend(tx.items)
 
+            if tx.description and tx.description != merged_map[key].description:
+                if merged_map[key].description:
+                    merged_map[key].description += f", {tx.description}"
+                else:
+                    merged_map[key].description = tx.description
 
-    analysis_result.transactions = list(grouped_transactions.values())
+    analysis_result.transactions = list(merged_map.values())
     return analysis_result

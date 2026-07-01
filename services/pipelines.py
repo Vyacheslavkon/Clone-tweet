@@ -135,6 +135,131 @@ from rapidocr_onnxruntime import RapidOCR
 
 
 
+# async def async_process_receipt(chat_id: int, db_user_id: int,
+#                                 locale: str, voice_bytes: bytes):
+#
+#     locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
+#
+#     try:
+#         lang = gettext.translation(
+#             domain='messages',
+#             localedir=str(locales_dir),  # gettext требует строку, а не объект Path
+#             languages=[locale],
+#             fallback=True
+#         )
+#     except Exception as e:
+#         logger.error(f"Не удалось загрузить локализацию из {locales_dir}: {e}")
+#         lang = gettext.NullTranslations()  # Фоллбек на оригинальный текст, если файлы не найдены
+#
+#     _ = lang.gettext
+#
+#
+#
+#     bot_session = AiohttpSession()
+#     bot = Bot(
+#         token=os.getenv("BOT_TOKEN"),
+#         session=bot_session,
+#         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+#     )
+#
+#     session = get_isolated_session()
+#     try:
+#
+#         analysis_result: ReceiptListAnalysisSchema = await ai_service.process_voice_message(
+#                     voice_bytes=voice_bytes,
+#                     response_schema=ReceiptListAnalysisSchema,
+#                     locale=locale
+#
+#                 )
+#
+#         if not analysis_result.is_shopping_related:
+#             joke_text = analysis_result.error_message or _("Unable to recognize the purchase amount.")
+#
+#             await bot.send_message(chat_id=chat_id, text=f"❌ {joke_text}")
+#             logger.info("Обработка отменена ИИ для юзера %s. Шутка: %s", db_user_id, joke_text)
+#             return {"status": "cancelled", "message": joke_text}
+#
+#
+#         valid_transactions = [t for t in analysis_result.transactions if t.amount > 0]
+#
+#         analysis_result.transactions = valid_transactions
+#
+#         if not analysis_result.transactions:
+#             await bot.send_message(chat_id=chat_id, text=_("❌ No transactions found to save."))
+#             return {"status": "cancelled", "message": "Empty transactions list"}
+#
+#
+#         final_analysis_result = merge_transactions_by_category(analysis_result)
+#
+#         message_batch_id = str(uuid.uuid4())
+#
+#         await save_receipt_to_db(
+#             session=session,
+#             user_id=db_user_id,
+#             analysis_result=final_analysis_result,
+#             photo_url=None,
+#             batch_id=message_batch_id,
+#             raw_text=analysis_result.model_dump_json()
+#         )
+#
+#
+#         total_receipt_amount = sum(transaction.amount for transaction in analysis_result.transactions)
+#
+#         categories_details = []
+#         for transaction in analysis_result.transactions:
+#
+#             icons = {"food": "🍏", "transport": "🚗", "home": "🏠", "entertainment": "🎉", "health": "💊", "other": "📦"}
+#             icon = icons.get(transaction.category, "💰")
+#
+#             # Локализуем название категории (gettext вернет перевод, если он есть в .mo файле)
+#             localized_category = _(transaction.category)
+#
+#             items_lines = []
+#             for item in transaction.items:
+#                 if item.price > 0:
+#                     items_lines.append(f"  • {item.name}: <b>{item.price}</b>")
+#                 else:
+#                     items_lines.append(f"  • {item.name}")  # Если цена 0.0
+#
+#             items_str = "\n".join(items_lines)
+#             categories_details.append(
+#                 f"{icon} <b>{localized_category}</b>: {transaction.amount}\n{items_str}"
+#             )
+#
+#         report_chunks = [
+#             _("✅ <b>Expenses successfully recorded!</b>\n"),
+#             "\n\n".join(categories_details),
+#             "\n" + "─" * 20,
+#             _("📊 A total of ... have been recorded: <b>{total_amount}</b>").format(total_amount=total_receipt_amount)
+#         ]
+#         msg_text = "\n".join(report_chunks)
+#
+#         localized_button_label = _("❌ cancel appointment")
+#
+#         await bot.send_message(chat_id=chat_id, text=msg_text,
+#                                reply_markup=get_delete_keyboard(batch_id=message_batch_id,
+#                                                                 button_text=localized_button_label))
+#
+#     except openai.OpenAIError as net_err:
+#         logger.warning("Сетевой сбой API OpenAI. Отправляем таску на повтор в Celery.")
+#         await session.rollback()
+#         # Пробрасываем базовый класс, чтобы asyncio.run() выкинул его наружу в таску
+#         raise net_err
+#
+#     except Exception as e:
+#         logger.exception("Error processing check for user {user_id}", user_id=db_user_id)
+#
+#         await session.rollback()
+#
+#         await bot.send_message(
+#             chat_id=chat_id,
+#             text=_("❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again.")
+#         )
+#
+#     finally:
+#         await session.close()
+#         await bot_session.close()
+
 async def async_process_receipt(chat_id: int, db_user_id: int,
                                 locale: str, voice_bytes: bytes):
 
@@ -202,39 +327,88 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             raw_text=analysis_result.model_dump_json()
         )
 
+        income_txs = [t for t in analysis_result.transactions if t.type == "income"]
+        expense_txs = [t for t in analysis_result.transactions if t.type == "expense"]
 
-        total_receipt_amount = sum(transaction.amount for transaction in analysis_result.transactions)
+        total_income = sum(t.amount for t in income_txs)
+        total_expense = sum(t.amount for t in expense_txs)
 
-        categories_details = []
-        for transaction in analysis_result.transactions:
+        # Объединенная мапа иконок (категории доходов и расходов)
+        icons = {
+            # Расходы
+            "food": "🍏", "transport": "🚗", "home": "🏠",
+            "entertainment": "🎉", "health": "💊", "other": "📦",
+            # Доходы
+            "salary": "💼", "bonus": "📈", "gift": "🎁",
+            "deal": "🤝"
+        }
 
-            icons = {"food": "🍏", "transport": "🚗", "home": "🏠", "entertainment": "🎉", "health": "💊", "other": "📦"}
-            icon = icons.get(transaction.category, "💰")
+        report_chunks = [_("✅ <b>Operations successfully recorded!</b>\n")]
 
-            # Локализуем название категории (gettext вернет перевод, если он есть в .mo файле)
-            localized_category = _(transaction.category)
+        # Блок Доходов
+        if income_txs:
+            report_chunks.append(_("💰 <b>Received Income:</b>"))
+            income_details = []
+            for tx in income_txs:
+                icon = icons.get(tx.category, "💵")
+                localized_category = _(tx.category)
 
-            items_lines = []
-            for item in transaction.items:
-                if item.price > 0:
+                # Доходы обычно выводятся без items, но если они есть — покажем
+                items_lines = []
+                for item in tx.items:
                     items_lines.append(f"  • {item.name}: <b>{item.price}</b>")
-                else:
-                    items_lines.append(f"  • {item.name}")  # Если цена 0.0
+                items_str = f"\n" + "\n".join(items_lines) if items_lines else ""
 
-            items_str = "\n".join(items_lines)
-            categories_details.append(
-                f"{icon} <b>{localized_category}</b>: {transaction.amount}\n{items_str}"
-            )
+                desc_str = f" ({tx.description})" if tx.description else ""
+                income_details.append(f"{icon} {localized_category}{desc_str}: <b>+{tx.amount}</b>{items_str}")
 
-        report_chunks = [
-            _("✅ <b>Expenses successfully recorded!</b>\n"),
-            "\n\n".join(categories_details),
-            "\n" + "─" * 20,
-            _("📊 A total of ... have been recorded: <b>{total_amount}</b>").format(total_amount=total_receipt_amount)
-        ]
+            report_chunks.append("\n".join(income_details))
+
+        # Разделитель между блоками, если есть и то, и другое
+        if income_txs and expense_txs:
+            report_chunks.append(" ")
+
+        # Блок Расходов
+        if expense_txs:
+            report_chunks.append(_("📉 <b>Spent Expenses:</b>"))
+            expense_details = []
+            for tx in expense_txs:
+                icon = icons.get(tx.category, "📦")
+                localized_category = _(tx.category)
+
+                items_lines = []
+                for item in tx.items:
+                    if item.price > 0:
+                        items_lines.append(f"  • {item.name}: <b>{item.price}</b>")
+                    else:
+                        items_lines.append(f"  • {item.name}")
+
+                items_str = "\n".join(items_lines)
+                desc_str = f" ({tx.description})" if tx.description else ""
+                expense_details.append(
+                    f"{icon} {localized_category}{desc_str}: <b>-{tx.amount}</b>\n{items_str}"
+                )
+            report_chunks.append("\n".join(expense_details))
+
+        # Итоговая статистика чека/аудио
+        report_chunks.append("\n" + "─" * 20)
+
+        meta_lines = []
+        if total_income > 0:
+            meta_lines.append(_("Total Income: <b>+{total_amount}</b>").format(total_amount=total_income))
+        if total_expense > 0:
+            meta_lines.append(_("Total Expenses: <b>-{total_amount}</b>").format(total_amount=total_expense))
+
+        report_chunks.append("\n".join(meta_lines))
         msg_text = "\n".join(report_chunks)
 
-        localized_button_label = _("❌ cancel appointment")
+        # Динамический выбор текста кнопки отмены в зависимости от содержимого батча
+        if income_txs and not expense_txs:
+            localized_button_label = _("❌ cancel income")
+        elif expense_txs and not income_txs:
+            localized_button_label = _("❌ cancel expense")
+        else:
+            localized_button_label = _("❌ cancel operation")
 
         await bot.send_message(chat_id=chat_id, text=msg_text,
                                reply_markup=get_delete_keyboard(batch_id=message_batch_id,

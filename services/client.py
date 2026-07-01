@@ -76,6 +76,7 @@ class AIService:
     #     # Получаем валидированный Pydantic-объект
     #     return completion.choices[0].message.parsed
 
+
     async def process_receipt(
             self,
             response_schema: Type[BaseModel],
@@ -96,6 +97,7 @@ class AIService:
                 }
             ],
             response_format= response_schema,
+            max_completion_tokens=1024,
             temperature=0.0
         )
 
@@ -109,11 +111,9 @@ class AIService:
             locale: str,
             response_schema: Type[BaseModel],):
 
-        # 1. Оборачиваем байты в файлоподобный объект и задаем имя с правильным расширением
         audio_file = io.BytesIO(voice_bytes)
-        audio_file.name = "voice.ogg"  # Чтобы OpenAI понял формат
+        audio_file.name = "voice.ogg"
 
-        # 2. Мгновенно переводим голос в текст через Whisper
         transcript = await self.client.audio.transcriptions.create(
             model="whisper-1",
             file=audio_file
@@ -123,8 +123,6 @@ class AIService:
         logger.info(f"Распознанный голос: {user_text}")
 
 
-        # 3. Отправляем текст в gpt-4o-mini для структурирования
-        # Используем вашу ГОТОВУЮ ReceiptAnalysisSchema!
         analysis_result = await self.process_receipt(
             text=user_text,
             response_schema=response_schema,

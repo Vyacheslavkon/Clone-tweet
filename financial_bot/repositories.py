@@ -168,41 +168,6 @@ async def get_report_period(
     return res
 
 
-# async def save_receipt_to_db(
-#         session: AsyncSession,
-#         user_id: int,
-#         analysis_result: ReceiptListAnalysisSchema,
-#         photo_url: str,
-#         raw_text: str
-# ):
-#
-#     for group in analysis_result.transactions:
-#         db_transaction = Transactions(
-#             user_id=user_id,
-#             amount=group.amount,
-#             category=group.category,
-#             type="expense",
-#             description=group.description,
-#             text_check=raw_text
-#         )
-#         session.add(db_transaction)
-#         await session.flush()  # Получаем id для One-to-Many
-#
-#         if group.items:
-#             db_items = [
-#                 TransactionItems(
-#                     transaction_id=db_transaction.id,
-#                     name=item.name,
-#                     price=item.price,
-#                     category=group.category
-#                 )
-#                 for item in group.items
-#             ]
-#             session.add_all(db_items)
-#
-#     await session.commit()
-
-# test
 async def save_receipt_to_db(
         session: AsyncSession,
         user_id: int,
@@ -211,34 +176,38 @@ async def save_receipt_to_db(
         raw_text: str,
         batch_id: str
 ):
+    try:
+        for group in analysis_result.transactions:
+            db_transaction = Transactions(
+                user_id=user_id,
+                amount=group.amount,
+                category=group.category,
+                type=group.type,
+                description=group.description,
+                text_check=raw_text,
+                batch_id=batch_id
+            )
+            session.add(db_transaction)
+            await session.flush()  # Получаем id для One-to-Many
 
-    for group in analysis_result.transactions:
-        db_transaction = Transactions(
-            user_id=user_id,
-            amount=group.amount,
-            category=group.category,
-            type="expense",
-            description=group.description,
-            text_check=raw_text,
-            batch_id=batch_id
-        )
-        session.add(db_transaction)
-        await session.flush()  # Получаем id для One-to-Many
+            if group.type == "expense" and group.items:
+                db_items = [
+                    TransactionItems(
+                        transaction_id=db_transaction.id,
+                        name=item.name,
+                        price=item.price,
+                        category=group.category
+                    )
+                    for item in group.items
+                ]
+                session.add_all(db_items)
 
-        if group.items:
-            db_items = [
-                TransactionItems(
-                    transaction_id=db_transaction.id,
-                    name=item.name,
-                    price=item.price,
-                    category=group.category
-                )
-                for item in group.items
-            ]
-            session.add_all(db_items)
+        await session.commit()
 
-    await session.commit()
+    except Exception as e:
 
+        await session.rollback()
+        logger.error(f"Error saving batch {batch_id} to DB: {e}", exc_info=True)
 
 async def delete_check(session: AsyncSession, batch_id: str):
     stmt_select = select(Transactions).where(Transactions.batch_id == batch_id)
