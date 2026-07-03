@@ -29,7 +29,7 @@ class AIService:
         completion = await self.client.beta.chat.completions.parse(
             model=self.model,
             messages=[
-                # Инструкции и правила отдаем в системный промт
+
                 {
                     "role": "system",
                     "content": system_prompt
@@ -120,7 +120,7 @@ class AIService:
         )
 
         user_text = transcript.text
-        logger.info(f"Распознанный голос: {user_text}")
+        logger.info(f"Recognized voice: {user_text}")
 
 
         analysis_result = await self.process_receipt(

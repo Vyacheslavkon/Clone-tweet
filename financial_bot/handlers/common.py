@@ -49,7 +49,7 @@ async def cmd_start(message: Message, session: AsyncSession):
         )
 
 
-@router.message(I18nTextFilter("Cancel"))
+@router.message(I18nTextFilter("cancel"))
 @router.callback_query(F.data == "cancel")
 async def cancel_handler(event: Union[Message, CallbackQuery], state: FSMContext):
 

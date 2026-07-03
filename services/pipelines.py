@@ -274,7 +274,7 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
         )
     except Exception as e:
         logger.error(f"Не удалось загрузить локализацию из {locales_dir}: {e}")
-        lang = gettext.NullTranslations()  # Фоллбек на оригинальный текст, если файлы не найдены
+        lang = gettext.NullTranslations()
 
     _ = lang.gettext
 
@@ -301,7 +301,7 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             joke_text = analysis_result.error_message or _("Unable to recognize the purchase amount.")
 
             await bot.send_message(chat_id=chat_id, text=f"❌ {joke_text}")
-            logger.info("Обработка отменена ИИ для юзера %s. Шутка: %s", db_user_id, joke_text)
+            logger.info("Processing cancelled by AI for user %s. Joke: %s", db_user_id, joke_text)
             return {"status": "cancelled", "message": joke_text}
 
 
@@ -333,19 +333,28 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
         total_income = sum(t.amount for t in income_txs)
         total_expense = sum(t.amount for t in expense_txs)
 
-        # Объединенная мапа иконок (категории доходов и расходов)
+        # icons = {
+        #
+        #     "food": "🍏", "transport": "🚗", "home": "🏠",
+        #     "entertainment": "🎉", "health": "💊", "other": "📦",
+        #
+        #     "salary": "💼", "bonus": "📈", "gift": "🎁",
+        #     "deal": "🤝"
+        # }
+
+        # test for translate
         icons = {
-            # Расходы
+
             "food": "🍏", "transport": "🚗", "home": "🏠",
             "entertainment": "🎉", "health": "💊", "other": "📦",
-            # Доходы
+
             "salary": "💼", "bonus": "📈", "gift": "🎁",
             "deal": "🤝"
         }
 
+
         report_chunks = [_("✅ <b>Operations successfully recorded!</b>\n")]
 
-        # Блок Доходов
         if income_txs:
             report_chunks.append(_("💰 <b>Received Income:</b>"))
             income_details = []
@@ -364,11 +373,9 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
 
             report_chunks.append("\n".join(income_details))
 
-        # Разделитель между блоками, если есть и то, и другое
         if income_txs and expense_txs:
             report_chunks.append(" ")
 
-        # Блок Расходов
         if expense_txs:
             report_chunks.append(_("📉 <b>Spent Expenses:</b>"))
             expense_details = []
@@ -383,14 +390,18 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
                     else:
                         items_lines.append(f"  • {item.name}")
 
+                # items_str = "\n".join(items_lines)
+                # desc_str = f" ({tx.description})" if tx.description else ""
+                # expense_details.append(
+                #     f"{icon} {localized_category}{desc_str}: <b>-{tx.amount}</b>\n{items_str}"
+                # )
                 items_str = "\n".join(items_lines)
-                desc_str = f" ({tx.description})" if tx.description else ""
-                expense_details.append(
-                    f"{icon} {localized_category}{desc_str}: <b>-{tx.amount}</b>\n{items_str}"
-                )
+                desc_str = " ({description})".format(description=tx.description) if tx.description else ""
+                expense_details.append(_("{icon} {category}{desc}: <b>-{amount}</b>\n{items}")
+                                       .format(icon=icon, category=localized_category,
+                                               amount=tx.amount, desc=desc_str, items=items_str))
             report_chunks.append("\n".join(expense_details))
 
-        # Итоговая статистика чека/аудио
         report_chunks.append("\n" + "─" * 20)
 
         meta_lines = []
@@ -402,7 +413,6 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
         report_chunks.append("\n".join(meta_lines))
         msg_text = "\n".join(report_chunks)
 
-        # Динамический выбор текста кнопки отмены в зависимости от содержимого батча
         if income_txs and not expense_txs:
             localized_button_label = _("❌ cancel income")
         elif expense_txs and not income_txs:
@@ -415,9 +425,9 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
                                                                 button_text=localized_button_label))
 
     except openai.OpenAIError as net_err:
-        logger.warning("Сетевой сбой API OpenAI. Отправляем таску на повтор в Celery.")
+        logger.warning("OpenAI API network failure. Retrying the task in Celery.")
         await session.rollback()
-        # Пробрасываем базовый класс, чтобы asyncio.run() выкинул его наружу в таску
+
         raise net_err
 
     except Exception as e:

@@ -92,11 +92,8 @@ async def handle_voice_receipt(message: Message, session: AsyncSession ):
     waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
 
     try:
-        # 2. Получаем объект голосового сообщения
         voice = message.voice
 
-        # Защита: ограничим длину аудио (например, не больше 30 секунд),
-        # чтобы пользователи не наговаривали аудиокниги
         if voice.duration > 35:
             await waiting_msg.edit_text(
                 _("❌ The voice message is too long. Please dictate a shorter message (up to 30 seconds).."))
@@ -115,7 +112,7 @@ async def handle_voice_receipt(message: Message, session: AsyncSession ):
 
         process_expense_task.delay(
             chat_id=message.chat.id,
-            db_user_id=user.id,  # или как у вас в коде называется id пользователя
+            db_user_id=user.id,
             locale=user.language_code,
             voice_bytes=voice_bytes
         )
@@ -129,7 +126,7 @@ async def handle_voice_receipt(message: Message, session: AsyncSession ):
         )
 
     except Exception as e:
-        logger.error(f"Ошибка при скачивании голосового сообщения: {e}", exc_info=True)
+        logger.error(f"Error downloading voice message: {e}", exc_info=True)
         await waiting_msg.edit_text(_("❌ Unable to process the voice message. Please try again."),
                                     reply_markup=get_main_menu())
 
@@ -140,7 +137,7 @@ async def handle_text_message(message: Message, session: AsyncSession):
 
     user = await get_user_by_id(session, message.from_user.id)
 
-    waiting_msg = await message.answer("🧠 I am analyzing your expenses...")
+    waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
 
 
 
@@ -158,11 +155,6 @@ async def handle_text_message(message: Message, session: AsyncSession):
 
 @ai_router.callback_query(DeleteTransactionCallback.filter())
 async def delete_batch_handler(callback: CallbackQuery, callback_data: DeleteTransactionCallback, session: AsyncSession):
-
-
-    # Логируем для отладки в консоль, чтобы увидеть, долетает ли клик
-    print(f"Clicked Cancel for batch_id: {callback_data.batch_id}")
-
 
     result = await delete_check(session, callback_data.batch_id)
     if result:

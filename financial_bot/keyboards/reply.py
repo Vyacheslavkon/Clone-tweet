@@ -37,7 +37,7 @@ def request_ai():
         KeyboardButton(text=_("weekly data analysis")),
         KeyboardButton(text=_("monthly data analysis"))
     )
-    builder.row(KeyboardButton(text=_("check")))
+    #builder.row(KeyboardButton(text=_("check")))
     builder.row(KeyboardButton(text=_("data entry")))
 
     builder.row(KeyboardButton(text=_("cancel")))

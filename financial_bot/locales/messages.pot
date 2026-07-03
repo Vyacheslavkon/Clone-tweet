@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-06-08 21:58+1000\n"
+"POT-Creation-Date: 2026-07-03 21:28+1000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -77,16 +77,49 @@ msgstr ""
 msgid "You don't have a planned budget set! Set a basic planned budget first."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:26
+#: financial_bot/handlers/ai_consultant.py:30
 msgid "Please, select request!"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:32
+#: financial_bot/handlers/ai_consultant.py:36
 msgid "Sorry, you need a PRO subscription to use AI."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:38
+#: financial_bot/handlers/ai_consultant.py:43
 msgid "Please send me a photo of the receipt!"
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:84
+msgid "Please tell us or write about your purchases!"
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:92
+#: financial_bot/handlers/ai_consultant.py:140
+msgid "🧠 I am analyzing your expenses..."
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:99
+msgid ""
+"❌ The voice message is too long. Please dictate a shorter message (up to "
+"30 seconds).."
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:123
+msgid ""
+"⏳ Background analysis started. I’ll send the result in a couple of "
+"seconds; in the meantime, you can continue working:"
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:130
+msgid "❌ Unable to process the voice message. Please try again."
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:161
+msgid "❌ The record has been cancelled and removed from the database."
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:163
+msgid "Record not found."
 msgstr ""
 
 #: financial_bot/handlers/common.py:38
@@ -145,11 +178,11 @@ msgstr ""
 msgid "please, select period"
 msgstr ""
 
-#: financial_bot/handlers/reports.py:48 financial_bot/keyboards/inline.py:81
+#: financial_bot/handlers/reports.py:48 financial_bot/keyboards/inline.py:83
 msgid "day"
 msgstr ""
 
-#: financial_bot/handlers/reports.py:67 financial_bot/keyboards/inline.py:83
+#: financial_bot/handlers/reports.py:67 financial_bot/keyboards/inline.py:85
 #: financial_bot/tasks/scheduled.py:33
 msgid "week"
 msgstr ""
@@ -302,75 +335,75 @@ msgstr ""
 msgid "December"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:8
+#: financial_bot/keyboards/inline.py:10
 msgid "Cancel"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:14
+#: financial_bot/keyboards/inline.py:16
 msgid "Back"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:20
+#: financial_bot/keyboards/inline.py:22
 msgid "Income"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:21
+#: financial_bot/keyboards/inline.py:23
 msgid "Expense"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:35
+#: financial_bot/keyboards/inline.py:37
 msgid "Salary"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:35
+#: financial_bot/keyboards/inline.py:37
 msgid "Bonus"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:35
+#: financial_bot/keyboards/inline.py:37
 msgid "Gift"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:35
+#: financial_bot/keyboards/inline.py:37
 msgid "Deal"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:35 financial_bot/keyboards/inline.py:43
+#: financial_bot/keyboards/inline.py:37 financial_bot/keyboards/inline.py:45
 msgid "Other"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:38
+#: financial_bot/keyboards/inline.py:40
 msgid "Food"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:39
+#: financial_bot/keyboards/inline.py:41
 msgid "Home"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:40
+#: financial_bot/keyboards/inline.py:42
 msgid "Entertainment"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:41
+#: financial_bot/keyboards/inline.py:43
 msgid "Transport"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:42
+#: financial_bot/keyboards/inline.py:44
 msgid "Health"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:65
+#: financial_bot/keyboards/inline.py:67
 msgid "Skip description"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:85 financial_bot/tasks/scheduled.py:62
+#: financial_bot/keyboards/inline.py:87 financial_bot/tasks/scheduled.py:62
 msgid "month"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:99
+#: financial_bot/keyboards/inline.py:101
 msgid "last two weeks"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:103
+#: financial_bot/keyboards/inline.py:105
 msgid "arbitrary period"
 msgstr ""
 
@@ -395,7 +428,7 @@ msgid "Settings"
 msgstr ""
 
 #: financial_bot/keyboards/reply.py:17 financial_bot/keyboards/reply.py:29
-#: financial_bot/keyboards/reply.py:42
+#: financial_bot/keyboards/reply.py:43
 msgid "cancel"
 msgstr ""
 
@@ -407,7 +440,62 @@ msgstr ""
 msgid "monthly data analysis"
 msgstr ""
 
-#: financial_bot/keyboards/reply.py:40
-msgid "check"
+#: financial_bot/keyboards/reply.py:41
+msgid "data entry"
+msgstr ""
+
+#: services/pipelines.py:301
+msgid "Unable to recognize the purchase amount."
+msgstr ""
+
+#: services/pipelines.py:313
+msgid "❌ No transactions found to save."
+msgstr ""
+
+#: services/pipelines.py:356
+msgid "✅ <b>Operations successfully recorded!</b>\n"
+msgstr ""
+
+#: services/pipelines.py:359
+msgid "💰 <b>Received Income:</b>"
+msgstr ""
+
+#: services/pipelines.py:380
+msgid "📉 <b>Spent Expenses:</b>"
+msgstr ""
+
+#: services/pipelines.py:400
+#, python-brace-format
+msgid ""
+"{icon} {category}{desc}: <b>-{amount}</b>\n"
+"{items}"
+msgstr ""
+
+#: services/pipelines.py:409
+#, python-brace-format
+msgid "Total Income: <b>+{total_amount}</b>"
+msgstr ""
+
+#: services/pipelines.py:411
+#, python-brace-format
+msgid "Total Expenses: <b>-{total_amount}</b>"
+msgstr ""
+
+#: services/pipelines.py:417
+msgid "❌ cancel income"
+msgstr ""
+
+#: services/pipelines.py:419
+msgid "❌ cancel expense"
+msgstr ""
+
+#: services/pipelines.py:421
+msgid "❌ cancel operation"
+msgstr ""
+
+#: services/pipelines.py:440
+msgid ""
+"❌ Unfortunately, we couldn't recognize your receipt. Please make sure the"
+" photo is clear and try again."
 msgstr ""
 
