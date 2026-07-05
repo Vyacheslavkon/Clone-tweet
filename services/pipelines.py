@@ -333,16 +333,7 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
         total_income = sum(t.amount for t in income_txs)
         total_expense = sum(t.amount for t in expense_txs)
 
-        # icons = {
-        #
-        #     "food": "🍏", "transport": "🚗", "home": "🏠",
-        #     "entertainment": "🎉", "health": "💊", "other": "📦",
-        #
-        #     "salary": "💼", "bonus": "📈", "gift": "🎁",
-        #     "deal": "🤝"
-        # }
 
-        # test for translate
         icons = {
 
             "food": "🍏", "transport": "🚗", "home": "🏠",
@@ -360,7 +351,9 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             income_details = []
             for tx in income_txs:
                 icon = icons.get(tx.category, "💵")
-                localized_category = _(tx.category)
+                category = tx.description.capitalize()
+                #localized_category = _(tx.category)
+                localized_category = _(category)
 
                 # Доходы обычно выводятся без items, но если они есть — покажем
                 items_lines = []
@@ -368,8 +361,11 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
                     items_lines.append(f"  • {item.name}: <b>{item.price}</b>")
                 items_str = f"\n" + "\n".join(items_lines) if items_lines else ""
 
-                desc_str = f" ({tx.description})" if tx.description else ""
-                income_details.append(f"{icon} {localized_category}{desc_str}: <b>+{tx.amount}</b>{items_str}")
+                # desc_str = f" ({tx.description})" if tx.description else ""
+                # income_details.append(f"{icon} {localized_category}{desc_str}: <b>+{tx.amount}</b>{items_str}")
+
+                #desc_str = f" ({tx.description})" if tx.description else ""
+                income_details.append(f"{icon} {localized_category}: <b>+{tx.amount}</b>{items_str}")
 
             report_chunks.append("\n".join(income_details))
 
@@ -381,7 +377,9 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             expense_details = []
             for tx in expense_txs:
                 icon = icons.get(tx.category, "📦")
-                localized_category = _(tx.category)
+                category = tx.category.capitalize()
+                #localized_category = _(tx.category)
+                localized_category = _(category)
 
                 items_lines = []
                 for item in tx.items:

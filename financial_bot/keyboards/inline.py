@@ -31,34 +31,67 @@ def get_type():
     return builder.as_markup()
 
 
+# def get_category(type_transaction: str):
+#
+#     if type_transaction == "income":
+#         categories = [_("Salary"), _("Bonus"), _("Gift"), _("Deal"), _("Other")]
+#     else:
+#         categories = [
+#             _("Food"),
+#             _("Home"),
+#             _("Entertainment"),
+#             _("Transport"),
+#             _("Health"),
+#             _("Other"),
+#         ]
+#     builder = InlineKeyboardBuilder()
+#
+#     for cat in categories:
+#         builder.add(
+#             InlineKeyboardButton(text=_(cat), callback_data=f"cat_{cat.lower()}")
+#         )
+#     builder.adjust(2)
+#
+#     back_builder = get_back_kb()
+#     cancel_builder = cancel()
+#     builder.attach(back_builder)
+#     builder.attach(cancel_builder)
+#
+#     return builder.as_markup()
+
+
 def get_category(type_transaction: str):
 
     if type_transaction == "income":
-        categories = [_("Salary"), _("Bonus"), _("Gift"), _("Deal"), _("Other")]
+        categories = {
+            "salary": _("Salary"),
+            "bonus": _("Bonus"),
+            "gift": _("Gift"),
+            "deal": _("Deal"),
+            "other": _("Other")
+        }
     else:
-        categories = [
-            _("Food"),
-            _("Home"),
-            _("Entertainment"),
-            _("Transport"),
-            _("Health"),
-            _("Other"),
-        ]
+        categories = {
+            "food": _("Food"),
+            "home": _("Home"),
+            "entertainment": _("Entertainment"),
+            "transport": _("Transport"),
+            "health": _("Health"),
+            "other": _("Other")
+        }
+
     builder = InlineKeyboardBuilder()
 
-    for cat in categories:
+    for slug, label in categories.items():
         builder.add(
-            InlineKeyboardButton(text=_(cat), callback_data=f"cat_{cat.lower()}")
+            InlineKeyboardButton(text=label, callback_data=f"cat_{slug}")
         )
-    builder.adjust(2)
 
-    back_builder = get_back_kb()
-    cancel_builder = cancel()
-    builder.attach(back_builder)
-    builder.attach(cancel_builder)
+    builder.adjust(2)
+    builder.attach(get_back_kb())
+    builder.attach(cancel())
 
     return builder.as_markup()
-
 
 def get_description():
     builder = InlineKeyboardBuilder()
