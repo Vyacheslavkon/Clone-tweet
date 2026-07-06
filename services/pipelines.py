@@ -388,16 +388,12 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
                     else:
                         items_lines.append(f"  • {item.name}")
 
-                # items_str = "\n".join(items_lines)
-                # desc_str = f" ({tx.description})" if tx.description else ""
-                # expense_details.append(
-                #     f"{icon} {localized_category}{desc_str}: <b>-{tx.amount}</b>\n{items_str}"
-                # )
+
                 items_str = "\n".join(items_lines)
-                desc_str = " ({description})".format(description=tx.description) if tx.description else ""
-                expense_details.append(_("{icon} {category}{desc}: <b>-{amount}</b>\n{items}")
+
+                expense_details.append(_("{icon} {category}: <b>-{amount}</b>\n{items}")
                                        .format(icon=icon, category=localized_category,
-                                               amount=tx.amount, desc=desc_str, items=items_str))
+                                               amount=tx.amount, items=items_str))
             report_chunks.append("\n".join(expense_details))
 
         report_chunks.append("\n" + "─" * 20)
