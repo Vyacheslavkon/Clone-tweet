@@ -207,7 +207,8 @@ async def save_receipt_to_db(
     except Exception as e:
 
         await session.rollback()
-        logger.error(f"Error saving batch {batch_id} to DB: {e}", exc_info=True)
+        #logger.error(f"Error saving batch {batch_id} to DB: {e}", exc_info=True)
+        logger.error("Error saving batch {batch_id} to DB: {error}", batch_id=batch_id, error=str(e), exc_info=True)
 
 async def delete_check(session: AsyncSession, batch_id: str):
     stmt_select = select(Transactions).where(Transactions.batch_id == batch_id)

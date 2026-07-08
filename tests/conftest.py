@@ -60,7 +60,7 @@ async def test_redis():
 
 
 @pytest.fixture(scope="function")
-async def test_session_for_cel_task():
+async def test_session_for_pipeline():
 
     async with test_engine.connect() as connection:
         transaction = await connection.begin()

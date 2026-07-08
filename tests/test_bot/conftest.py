@@ -18,6 +18,8 @@ from financial_bot.handlers.transactions import router_tr
 from financial_bot.middlewares import SessionMiddleware
 from financial_bot.repositories import add_data_for_user, add_transaction, create_user
 from financial_bot.schemas import AddData, CreateUser
+from services.celery_app import app as celery_app
+from services.client import ai_service
 
 current_file_path = Path(__file__).resolve()
 base_dir = current_file_path.parent.parent.parent
@@ -166,50 +168,35 @@ async def budget(test_session, test_user):
     return new_obg
 
 
-# @pytest.fixture
-# def mock_openai_client(mocker):
-#     """Мок для нового асинхронного клиента OpenAI SDK"""
-#     mock_client = MagicMock()
-#
-#     # Мокаем Whisper (Audio)
-#     mock_client.audio = MagicMock()
-#     mock_client.audio.transcriptions = MagicMock()
-#     mock_client.audio.transcriptions.create = AsyncMock()
-#
-#     # Мокаем Chat Completions (GPT)
-#     mock_client.chat = MagicMock()
-#     mock_client.chat.completions = MagicMock()
-#     mock_client.chat.completions.create = AsyncMock()
-#
-#     # Подменяем инициализацию клиента в нашем модуле
-#     # (Замени apps.ai.services на твой реальный путь импорта)
-#     mocker.patch("services.client.AIService", return_value=mock_client)
-#     return mock_client
-
 @pytest.fixture
 def mock_ai_service(mocker):
-    """Мокаем ai_service, возвращающий Pydantic-схему"""
-    mock_service = AsyncMock()
-    mocker.patch("services.client.ai_service", mock_service)
-    return mock_service
+    mock_method = AsyncMock()
+
+    mocker.patch.object(ai_service, "process_voice_message", mock_method)
+
+    # Возвращаем сам мок-метод в тест
+    return mock_method
+
 
 
 @pytest.fixture(autouse=True)
-def patch_pipeline_dependencies(mocker, test_session, mock_bot):
-    """
-    Автоматически подменяет создание сессии и бота внутри модуля таски.
-    Это связывает код пайплайна с нашими тестовыми фикстурами.
-    """
-    # 1. Перехватываем вызов get_isolated_session() и возвращаем нашу тестовую сессию
-    # ВАЖНО: Мы подменяем метод close и rollback на пустышки (AsyncMock),
-    # чтобы пайплайн своими try-finally блоками не закрыл НАШУ тестовую сессию раньше времени,
-    # иначе pytest не сможет сделать итоговый rollback транзакции.
-    original_close = test_session.close
-    test_session.close = AsyncMock()
+def patch_pipeline_dependencies(mocker, test_session_for_pipeline, mock_bot):
 
-    mocker.patch("services.utils_pipelines.get_isolated_session", return_value=test_session)
 
-    # 2. Перехватываем инициализацию Bot(...) внутри пайплайна
-    mocker.patch("services.pipelines.Bot", return_value=mock_bot)
+    original_close = test_session_for_pipeline.close
+    original_rollback = test_session_for_pipeline.rollback
 
-    return test_session
+    test_session_for_pipeline.close = AsyncMock()
+    test_session_for_pipeline.rollback = AsyncMock()
+
+    mocker.patch("services.pipelines.get_isolated_session",
+                 return_value=test_session_for_pipeline)
+
+    mocker.patch("services.pipelines.Bot", return_value=mock_bot) # maybe bot
+
+    yield test_session_for_pipeline
+
+    test_session_for_pipeline.close = original_close
+    test_session_for_pipeline.rollback = original_rollback
+
+
