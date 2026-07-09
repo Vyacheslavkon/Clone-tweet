@@ -30,13 +30,21 @@ def process_receipt_task(chat_id: int, db_user_id: int, locale: str, image_bytes
 def process_expense_task(self,chat_id: int, db_user_id: int, locale: str, voice_bytes: bytes):
 
     try:
-        asyncio.run(async_process_receipt(chat_id, db_user_id, locale, voice_bytes))
+        result = asyncio.run(async_process_receipt(chat_id, db_user_id, locale, voice_bytes))
+
+        logger.info("Successfully finished process_expense_task for user_id={user_id}", user_id=db_user_id)
+        return result
 
     except openai.OpenAIError as exc:
+
+        current_retry = self.request.retries + 1
+
         logger.warning(
-            f"OpenAI API failure (request ID in the log above)."
-            f"Retry attempt {self.request.retries + 1}/3. Error: {exc}"
+            "OpenAI API failure. Retry attempt {retry}/3. Error: {error_msg}",
+            retry=current_retry,
+            error_msg=str(exc)
         )
+
         # Рассчитываем экспоненциальную задержку: 2с, 4с, 8с...
         countdown = 2 ** self.request.retries
 
@@ -44,5 +52,5 @@ def process_expense_task(self,chat_id: int, db_user_id: int, locale: str, voice_
         raise self.retry(exc=exc, countdown=countdown)
 
     except Exception as e:
-        logger.error(f"Critical unhandled error in the task: {e}")
+        logger.error("Critical unhandled error in the task: {error}", error=e)
         raise e

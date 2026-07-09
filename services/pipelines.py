@@ -273,7 +273,11 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             fallback=True
         )
     except Exception as e:
-        logger.error(f"Не удалось загрузить локализацию из {locales_dir}: {e}")
+        logger.error("Не удалось загрузить локализацию из {locales}: {error}",
+                                            locales=locales_dir,
+                                            error=e
+                     )
+
         lang = gettext.NullTranslations()
 
     _ = lang.gettext

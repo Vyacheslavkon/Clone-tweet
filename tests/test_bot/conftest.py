@@ -2,8 +2,9 @@ import copy
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import openai
 import pytest
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
@@ -20,6 +21,7 @@ from financial_bot.repositories import add_data_for_user, add_transaction, creat
 from financial_bot.schemas import AddData, CreateUser
 from services.celery_app import app as celery_app
 from services.client import ai_service
+from services.schemas import ReceiptItemSchema, ReceiptAnalysisSchema, ReceiptListAnalysisSchema
 
 current_file_path = Path(__file__).resolve()
 base_dir = current_file_path.parent.parent.parent
@@ -50,6 +52,33 @@ async def test_user(test_session):
     await test_session.refresh(user_db_obj)
 
     return user_db_obj
+
+@pytest.fixture
+async def user_for_pipeline(test_session_for_pipeline):
+
+    user_data = CreateUser(tg_id=12345, language_code="ru", first_name="TestUser")
+    db_user = await create_user(test_session_for_pipeline, user_data)
+    await test_session_for_pipeline.flush()
+
+    return db_user
+
+@pytest.fixture
+async def fake_analysis():
+    fake_item = ReceiptItemSchema(name="Кофе", price=250.0)
+    fake_tx = ReceiptAnalysisSchema(
+        amount=250.0,
+        category="food",
+        type="expense",
+        description="кофейня",
+        items=[fake_item]
+    )
+    fake_analysis = ReceiptListAnalysisSchema(
+        is_shopping_related=True,
+        transactions=[fake_tx],
+        error_message=None
+    )
+
+    return fake_analysis
 
 
 @pytest.fixture
@@ -200,3 +229,17 @@ def patch_pipeline_dependencies(mocker, test_session_for_pipeline, mock_bot):
     test_session_for_pipeline.rollback = original_rollback
 
 
+@pytest.fixture
+async def mock_pipelines():
+
+    expected_output = {"status": "success", "extracted_amount": 500.0}
+
+    # Мокаем асинхронный пайплайн
+    with patch("financial_bot.ai.tasks.async_process_receipt", new_callable=AsyncMock) as mock_pipeline_suc:
+        mock_pipeline_suc.return_value = expected_output
+
+    with patch("financial_bot.ai.tasks.async_process_receipt", new_callable=AsyncMock) as mock_pipeline_er:
+        # Имитируем падение OpenAI API
+        mock_pipeline_er.side_effect = openai.OpenAIError("Rate limit exceeded")
+
+    return mock_pipeline_suc, mock_pipeline_er
