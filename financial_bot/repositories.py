@@ -214,7 +214,8 @@ async def delete_check(session: AsyncSession, batch_id: str):
     stmt_select = select(Transactions).where(Transactions.batch_id == batch_id)
     list_transactions = await session.execute(stmt_select)
 
-    if len(list_transactions.all()) > 0:
+    #if len(list_transactions.all()) > 0:
+    if list_transactions.scalar() is not None:
         stmt = delete(Transactions).where(Transactions.batch_id == batch_id)
         await session.execute(stmt)
         await session.commit()

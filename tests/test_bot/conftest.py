@@ -1,4 +1,5 @@
 import copy
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
@@ -17,7 +18,7 @@ from financial_bot.handlers.history import history_rout
 from financial_bot.handlers.reports import report_rout
 from financial_bot.handlers.transactions import router_tr
 from financial_bot.middlewares import SessionMiddleware
-from financial_bot.repositories import add_data_for_user, add_transaction, create_user
+from financial_bot.repositories import add_data_for_user, add_transaction, create_user, save_receipt_to_db
 from financial_bot.schemas import AddData, CreateUser
 from services.celery_app import app as celery_app
 from services.client import ai_service
@@ -52,6 +53,7 @@ async def test_user(test_session):
     await test_session.refresh(user_db_obj)
 
     return user_db_obj
+
 
 @pytest.fixture
 async def user_for_pipeline(test_session_for_pipeline):
@@ -230,16 +232,55 @@ def patch_pipeline_dependencies(mocker, test_session_for_pipeline, mock_bot):
 
 
 @pytest.fixture
-async def mock_pipelines():
+async def data_transaction_ai(test_session_for_pipeline):
 
-    expected_output = {"status": "success", "extracted_amount": 500.0}
+    mock_analysis_result = ReceiptListAnalysisSchema(
+        is_shopping_related=True,
+        error_message=None,
+        transactions=[
+            ReceiptAnalysisSchema(
+                type="expense",
+                category="food",
+                amount=250.0,
+                description="food",
+                items=[
+                    ReceiptItemSchema(name="Молоко", price=150.0),
+                    ReceiptItemSchema(name="Хлеб", price=100.0)
+                ]
+            )
+        ]
+    )
 
-    # Мокаем асинхронный пайплайн
-    with patch("financial_bot.ai.tasks.async_process_receipt", new_callable=AsyncMock) as mock_pipeline_suc:
-        mock_pipeline_suc.return_value = expected_output
+    return mock_analysis_result
 
-    with patch("financial_bot.ai.tasks.async_process_receipt", new_callable=AsyncMock) as mock_pipeline_er:
-        # Имитируем падение OpenAI API
-        mock_pipeline_er.side_effect = openai.OpenAIError("Rate limit exceeded")
 
-    return mock_pipeline_suc, mock_pipeline_er
+@pytest.fixture
+async def data_for_merge_by_cat():
+    raw_data = ReceiptListAnalysisSchema(
+        is_shopping_related=True,
+        error_message=None,
+        transactions=[
+            ReceiptAnalysisSchema(
+                type="expense",
+                category="food",
+                amount=150.0,
+                description="Супермаркет",
+                items=[ReceiptItemSchema(name="Молоко", price=150.0)]
+            ),
+            ReceiptAnalysisSchema(
+                type="expense",
+                category="food",
+                amount=50.0,
+                description="Рынок",
+                items=[ReceiptItemSchema(name="Хлеб", price=50.0)]
+            ),
+            ReceiptAnalysisSchema(
+                type="expense",
+                category="transport",
+                amount=300.0,
+                description="Такси",
+                items=[]
+            )
+        ]
+    )
+    return raw_data

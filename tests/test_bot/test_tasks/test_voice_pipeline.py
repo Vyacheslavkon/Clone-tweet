@@ -4,18 +4,21 @@ import pytest
 import openai
 import uuid
 import asyncio
+
 from unittest.mock import MagicMock, AsyncMock, patch
 from celery.exceptions import Retry, MaxRetriesExceededError
 from sqlalchemy import select, func
 from sqlalchemy.util import await_only
 
-from financial_bot.repositories import create_user
+from financial_bot.repositories import create_user, save_receipt_to_db, delete_check
 from financial_bot.schemas import CreateUser
 from financial_bot.tasks.ai import process_expense_task
 from services.schemas import ReceiptListAnalysisSchema, ReceiptAnalysisSchema, ReceiptItemSchema
-from financial_bot.models import Transactions, UserBot
+from financial_bot.models import Transactions, UserBot, TransactionItems
 from services.pipelines import async_process_receipt
 from services.celery_app import app as celery_app
+from services.utils_pipelines import merge_transactions_by_category
+
 
 async def test_process_expense_task_writes_to_real_db(mock_ai_service, mock_bot,
                                                       test_session_for_pipeline,
@@ -135,7 +138,8 @@ def test_process_expense_task_network_error_rolls_back_db():
         assert result.failed()
 
 
-async def test_process_expense_task_garbage_audio_sends_joke_and_no_db_write(test_session_for_pipeline):
+def test_process_expense_task_garbage_audio_sends_joke_and_no_db_write(test_session_for_pipeline,
+                                                                             mock_bot):
 
     celery_app.conf.task_always_eager = True
     celery_app.conf.task_eager_propagates = True
@@ -146,12 +150,17 @@ async def test_process_expense_task_garbage_audio_sends_joke_and_no_db_write(tes
         transactions=[]
     )
 
-    # 3. Подменяем сессию воркера на нашу тестовую сессию из фикстуры,
-    # мокаем ИИ и мокаем отправку сообщений ботом (например, bot.send_message)
+    joke_message = "Красиво поёшь! Но где тут траты? Давай ближе к делу."
+    mock_bot.close = AsyncMock()
+
+
     with patch("services.utils_pipelines.get_isolated_session", return_value=test_session_for_pipeline), \
             patch("services.client.ai_service.process_voice_message", new_callable=AsyncMock,
                   return_value=mock_ai_response), \
-            patch("services.pipelines.async_process_receipt.Bot.send_message", new_callable=AsyncMock) as mock_send_message:
+            patch("aiogram.client.session.aiohttp.AiohttpSession.close", new_callable=AsyncMock), \
+            patch("services.pipelines.save_receipt_to_db", new_callable=AsyncMock) as mock_save_db, \
+            patch("services.pipelines.Bot", return_value=mock_bot):
+
 
         result = process_expense_task.delay(
             chat_id=12345,
@@ -160,21 +169,75 @@ async def test_process_expense_task_garbage_audio_sends_joke_and_no_db_write(tes
             voice_bytes=b"garbage_audio_bytes"
         )
 
-        # 5. ПРОВЕРКИ
-
-        # Задача должна завершиться успешно (без ретраев)
         assert result.successful()
 
-        # Бот должен отправить пользователю именно ту шутку, которую сгенерировал ИИ
-        mock_send_message.assert_called_once_with(
+        mock_bot.send_message.assert_awaited_once_with(
             chat_id=12345,
-            text="Красиво поёшь! Но где тут траты? Давай ближе к делу."
+            text=f"❌ {joke_message}"
         )
 
-        # Проверяем, что в базе данных не появилось транзакций для этого пользователя
-        # (Замените названия таблиц/колонок на ваши реальные)
-        query = select(func.count()).select_from(Transactions).where(Transactions.user_id == 42)
-        db_result = await test_session_for_pipeline.execute(query)
-        transactions_count = db_result.scalar()
+        mock_save_db.assert_not_called()
 
-        assert transactions_count == 0
+
+async def test_delete_check_idempotency_on_double_click(test_session_for_pipeline,
+                                                        user_for_pipeline,
+                                                        data_transaction_ai):
+
+    test_batch_id = str(uuid.uuid4())
+
+    await save_receipt_to_db(
+        session=test_session_for_pipeline,
+        user_id=user_for_pipeline.id,
+        analysis_result=data_transaction_ai,
+        photo_url="http://fake.url",
+        raw_text=data_transaction_ai.model_dump_json(),
+        batch_id=test_batch_id
+    )
+
+    tx_count_before = await test_session_for_pipeline.scalar(
+        select(func.count()).select_from(Transactions).where(Transactions.batch_id == test_batch_id)
+    )
+    assert tx_count_before == 1, "The test transaction was not saved to the database!"
+
+
+    first_click = await delete_check(batch_id=test_batch_id, session=test_session_for_pipeline)
+
+    assert first_click is True, "The first call to delete_check must return True."
+
+    tx_exists = await test_session_for_pipeline.scalar(
+        select(Transactions).where(Transactions.batch_id == test_batch_id)
+    )
+    assert tx_exists is None, "The transaction remained in the Transactions table after deletion!"
+
+    items_count = await test_session_for_pipeline.scalar(
+        select(func.count()).select_from(TransactionItems).where(TransactionItems.category == "food")
+
+    )
+    assert items_count == 0, "The receipt items (TransactionItems) were not deleted from the database!"
+
+    second_click = await delete_check(batch_id=test_batch_id, session=test_session_for_pipeline)
+
+    assert second_click is False, "The second call to delete_check should return False (already deleted)."
+
+
+def test_merge_transactions_by_category_logic(data_for_merge_by_cat):
+
+
+    processed_data = merge_transactions_by_category(data_for_merge_by_cat)
+
+    assert len(processed_data.transactions) == 2
+
+    food_tx = next(t for t in processed_data.transactions if t.category == "food")
+    transport_tx = next(t for t in processed_data.transactions if t.category == "transport")
+
+
+    assert food_tx.amount == 200.0, "The total expenditure for the 'food' category has been aggregated incorrectly."
+    assert transport_tx.amount == 300.0
+
+    assert food_tx.description == "Супермаркет, Рынок", "The category descriptions did not merge correctly."
+
+    # Проверка Товаров: Массивы items должны объединиться
+    assert len(food_tx.items) == 2, "Items from different receipts were not combined into a single category"
+    names = [item.name for item in food_tx.items]
+    assert "Молоко" in names
+    assert "Хлеб" in names

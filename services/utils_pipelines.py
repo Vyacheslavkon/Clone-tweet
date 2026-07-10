@@ -329,5 +329,9 @@ def merge_transactions_by_category(analysis_result: ReceiptListAnalysisSchema) -
                 else:
                     merged_map[key].description = tx.description
 
-    analysis_result.transactions = list(merged_map.values())
-    return analysis_result
+    # analysis_result.transactions = list(merged_map.values())
+    # return analysis_result
+
+    new_result = analysis_result.model_copy(deep=True)
+    new_result.transactions = list(merged_map.values())
+    return new_result
