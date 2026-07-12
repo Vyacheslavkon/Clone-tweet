@@ -1,10 +1,10 @@
 from aiogram import Bot
-from aiogram.utils.i18n import I18n
 from aiogram.exceptions import TelegramForbiddenError
+from aiogram.utils.i18n import I18n
+from aiogram.utils.i18n import gettext as _
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from loguru import logger
 from sqlalchemy.ext.asyncio import async_sessionmaker
-from aiogram.utils.i18n import gettext as _
 
 from financial_bot.handlers.utils import (
     formatters,
@@ -12,10 +12,10 @@ from financial_bot.handlers.utils import (
     get_week_boundaries,
 )
 from financial_bot.repositories import (
+    blocked_user,
     get_all_users,
     get_planned_goals,
     get_report_period,
-    blocked_user,
 )
 
 
@@ -37,13 +37,18 @@ async def send_weekly_stats(bot: Bot, session_pool: async_sessionmaker, i18n: I1
                     )
 
                 except TelegramForbiddenError:
-                    logger.warning("USer {user_id} blocked the bot. disable the mailing list.", user_id=user.tg_id)
+                    logger.warning(
+                        "USer {user_id} blocked the bot. disable the mailing list.",
+                        user_id=user.tg_id,
+                    )
                     await blocked_user(session, user.tg_id)
 
                 except Exception as e:  # noqa
 
                     logger.error(
-                        "Не удалось отправить отчет {user_id}: {error}", all_users_id=user.tg_id, error=e
+                        "Не удалось отправить отчет {user_id}: {error}",
+                        all_users_id=user.tg_id,
+                        error=e,
                     )
 
 
@@ -66,7 +71,10 @@ async def send_monthly_stats(bot: Bot, session_pool: async_sessionmaker, i18n: I
                     )
 
                 except TelegramForbiddenError:
-                    logger.warning("USer {user_id} blocked the bot. disable the mailing list.", user_id=user.tg_id)
+                    logger.warning(
+                        "USer {user_id} blocked the bot. disable the mailing list.",
+                        user_id=user.tg_id,
+                    )
                     await blocked_user(session, user.tg_id)
 
                 except Exception as e:  # noqa

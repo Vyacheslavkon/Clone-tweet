@@ -3,13 +3,14 @@ from decimal import Decimal
 
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
-from sqlalchemy import func, select, delete
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.exceptions import UserNotFoundError
-from financial_bot.models import Transactions, UserBot, TransactionItems
+from financial_bot.models import TransactionItems, Transactions, UserBot
 from financial_bot.schemas import AddData, CreateUser, Plan
-from services.schemas import ReceiptAnalysisSchema, ReceiptListAnalysisSchema
+from services.schemas import ReceiptListAnalysisSchema
+
 
 async def create_user(session: AsyncSession, data: CreateUser):
 
@@ -26,7 +27,7 @@ async def create_user(session: AsyncSession, data: CreateUser):
 
 async def get_all_users(session: AsyncSession) -> list[UserBot]:
 
-    query = select(UserBot).where(UserBot.is_active == True)
+    query = select(UserBot).where(UserBot.is_active)  # delete is_active == true
     result = await session.execute(query)
 
     return list(result.scalars().all())
@@ -49,7 +50,9 @@ async def blocked_user(session: AsyncSession, user_tg_id: int):
         await session.commit()
 
     else:
-        error_message = _(f"The user with the id {user_tg_id} was not found in the system.")
+        error_message = _(
+            f"The user with the id {user_tg_id} was not found in the system."
+        )
         logger.error(error_message)
         raise UserNotFoundError(error_message)
 
@@ -169,12 +172,12 @@ async def get_report_period(
 
 
 async def save_receipt_to_db(
-        session: AsyncSession,
-        user_id: int,
-        analysis_result: ReceiptListAnalysisSchema,
-        photo_url: str,
-        raw_text: str,
-        batch_id: str
+    session: AsyncSession,
+    user_id: int,
+    analysis_result: ReceiptListAnalysisSchema,
+    photo_url: str,
+    raw_text: str,
+    batch_id: str,
 ):
     try:
         for group in analysis_result.transactions:
@@ -185,7 +188,7 @@ async def save_receipt_to_db(
                 type=group.type,
                 description=group.description,
                 text_check=raw_text,
-                batch_id=batch_id
+                batch_id=batch_id,
             )
             session.add(db_transaction)
             await session.flush()  # Получаем id для One-to-Many
@@ -196,7 +199,7 @@ async def save_receipt_to_db(
                         transaction_id=db_transaction.id,
                         name=item.name,
                         price=item.price,
-                        category=group.category
+                        category=group.category,
                     )
                     for item in group.items
                 ]
@@ -204,17 +207,23 @@ async def save_receipt_to_db(
 
         await session.commit()
 
-    except Exception as e:
+    except Exception as e:  # noqa: PIE786
 
         await session.rollback()
-        #logger.error(f"Error saving batch {batch_id} to DB: {e}", exc_info=True)
-        logger.error("Error saving batch {batch_id} to DB: {error}", batch_id=batch_id, error=str(e), exc_info=True)
+        # logger.error(f"Error saving batch {batch_id} to DB: {e}", exc_info=True)
+        logger.error(
+            "Error saving batch {batch_id} to DB: {error}",
+            batch_id=batch_id,
+            error=str(e),
+            exc_info=True,
+        )
+
 
 async def delete_check(session: AsyncSession, batch_id: str):
     stmt_select = select(Transactions).where(Transactions.batch_id == batch_id)
     list_transactions = await session.execute(stmt_select)
 
-    #if len(list_transactions.all()) > 0:
+    # if len(list_transactions.all()) > 0:
     if list_transactions.scalar() is not None:
         stmt = delete(Transactions).where(Transactions.batch_id == batch_id)
         await session.execute(stmt)
@@ -223,4 +232,3 @@ async def delete_check(session: AsyncSession, batch_id: str):
 
     else:
         return False
-

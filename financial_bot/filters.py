@@ -1,10 +1,11 @@
 from aiogram.filters import BaseFilter, Filter
+from aiogram.filters.callback_data import CallbackData
 from aiogram.types import Message
 from aiogram.utils.i18n import gettext as _
-from aiogram.filters.callback_data import CallbackData
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.repositories import get_user_by_id
+
 
 class I18nTextFilter(BaseFilter):
     def __init__(self, key: str):

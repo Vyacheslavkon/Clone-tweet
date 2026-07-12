@@ -2,8 +2,8 @@ import calendar
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 
-from aiogram.utils.i18n import gettext as _
 from aiogram.utils.i18n import get_i18n
+from aiogram.utils.i18n import gettext as _
 
 from financial_bot.schemas import Plan
 
@@ -95,16 +95,15 @@ def formatters(data: list, period_name: str, plan: Plan | None = None) -> str:
             if row.type == "income":
                 translated_category = _(row.category.capitalize())
                 income_total += row.total
-                income_details += (_("  • {category}: {formated_amount}\n")
-                                   .format(category=translated_category,
-                                           formated_amount=formated_amount))
+                income_details += _("  • {category}: {formated_amount}\n").format(
+                    category=translated_category, formated_amount=formated_amount
+                )
             else:
                 translated_category = _(row.category.capitalize())
                 expense_total += row.total
-                expense_details += (_("  • {category}: {formated_amount}\n")
-                                   .format(category=translated_category,
-                                           formated_amount=formated_amount))
-
+                expense_details += _("  • {category}: {formated_amount}\n").format(
+                    category=translated_category, formated_amount=formated_amount
+                )
 
         total_inc_str = f"{income_total:,.2f}".replace(",", " ")
         total_exp_str = f"{expense_total:,.2f}".replace(",", " ")
@@ -227,7 +226,6 @@ def get_month_name(number: int) -> str:
     ]
 
     return month_rus[number]
-
 
 
 def _safe_gettext(text: str) -> str:

@@ -1,7 +1,11 @@
 from typing import Union
 
 from aiogram import F, Router, html
-from aiogram.exceptions import TelegramAPIError, TelegramBadRequest, TelegramForbiddenError
+from aiogram.exceptions import (
+    TelegramAPIError,
+    TelegramBadRequest,
+    TelegramForbiddenError,
+)
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ErrorEvent, Message
@@ -13,7 +17,6 @@ from financial_bot.filters import I18nTextFilter
 from financial_bot.keyboards.reply import get_main_menu
 from financial_bot.repositories import create_user, get_user_by_id
 from financial_bot.schemas import CreateUser
-from financial_bot.handlers.utils import _safe_gettext
 
 router = Router()
 
@@ -95,7 +98,9 @@ async def global_error_handler(event: ErrorEvent, admin_id: int):
 
     if isinstance(event.exception, TelegramForbiddenError):
         logger.warning(
-            f"Bot was blocked by user (ID: {event.update.message.from_user.id if event.update.message else 'Unknown'})")
+            "Bot was blocked by user (ID: %s)",
+            event.update.message.from_user.id if event.update.message else "Unknown",
+        )
         return True
 
     try:
@@ -108,8 +113,8 @@ async def global_error_handler(event: ErrorEvent, admin_id: int):
 
     except TelegramAPIError as e:
         logger.error(
-            _("General Telegram API error when notifying admin: {error}", error=e
-        ))
+            _("General Telegram API error when notifying admin: {error}", error=e)
+        )
 
     try:
         text = _("⚠️ An error occurred. I've already reported it to the developer.")

@@ -68,7 +68,7 @@ def get_category(type_transaction: str):
             "bonus": _("Bonus"),
             "gift": _("Gift"),
             "deal": _("Deal"),
-            "other": _("Other")
+            "other": _("Other"),
         }
     else:
         categories = {
@@ -77,21 +77,20 @@ def get_category(type_transaction: str):
             "entertainment": _("Entertainment"),
             "transport": _("Transport"),
             "health": _("Health"),
-            "other": _("Other")
+            "other": _("Other"),
         }
 
     builder = InlineKeyboardBuilder()
 
     for slug, label in categories.items():
-        builder.add(
-            InlineKeyboardButton(text=label, callback_data=f"cat_{slug}")
-        )
+        builder.add(InlineKeyboardButton(text=label, callback_data=f"cat_{slug}"))
 
     builder.adjust(2)
     builder.attach(get_back_kb())
     builder.attach(cancel())
 
     return builder.as_markup()
+
 
 def get_description():
     builder = InlineKeyboardBuilder()
@@ -148,7 +147,6 @@ def report_history():
 def get_delete_keyboard(batch_id: str, button_text: str):
     builder = InlineKeyboardBuilder()
     builder.button(
-        text=button_text,
-        callback_data=DeleteTransactionCallback( batch_id= batch_id)
+        text=button_text, callback_data=DeleteTransactionCallback(batch_id=batch_id)
     )
     return builder.as_markup()

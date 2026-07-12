@@ -13,7 +13,6 @@ from sqlalchemy import (
     String,
     Text,
     func,
-
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -62,32 +61,6 @@ class UserBot(Base):
     last_request_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
-# class Transactions(Base):
-#
-#     __tablename__ = "transactions"
-#
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     user_id: Mapped[int] = mapped_column(
-#         ForeignKey("users_bot.id", ondelete="CASCADE"), index=True
-#     )
-#     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
-#     type: Mapped[str] = mapped_column(String(10))
-#     category: Mapped[str] = mapped_column(String(50), index=True)
-#     description: Mapped[str | None] = mapped_column(String(255))
-#     receipt_photo_url: Mapped[str | None] = mapped_column(Text)
-#     text_check: Mapped[str | None] = mapped_column(Text)
-#     created_at: Mapped[datetime] = mapped_column(
-#         DateTime(timezone=True),
-#         default=lambda: datetime.now(timezone.utc),
-#         server_default=func.now(),
-#         index=True,
-#     )
-#
-#     items: Mapped[List["TransactionItems"]] = relationship(
-#         back_populates="transaction", cascade="all, delete-orphan"
-#     )
-
-#test
 class Transactions(Base):
 
     __tablename__ = "transactions"
@@ -125,7 +98,8 @@ class TransactionItems(Base):
     )
     name: Mapped[str] = mapped_column(String(150))
     price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
-    category: Mapped[Optional[str]] = mapped_column(String(50))  # Категория конкретного товара от ИИ
-
+    category: Mapped[Optional[str]] = mapped_column(
+        String(50)
+    )  # Категория конкретного товара от ИИ
 
     transaction: Mapped["Transactions"] = relationship(back_populates="items")

@@ -1,30 +1,23 @@
-import os
 import base64
 import io
+import os
 import re
 from collections import defaultdict
 
-from loguru import logger
-from PIL import Image, ImageEnhance, ImageOps
 from dotenv import load_dotenv
-from collections import defaultdict
-
-
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from PIL import Image, ImageEnhance, ImageOps
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from services.schemas import ReceiptAnalysisSchema, ReceiptListAnalysisSchema
+
 load_dotenv()
 
 POSTGRES_ASYNC_URL = os.getenv("DATABASE_URL_DOCKER")
 
 
 def get_isolated_session() -> AsyncSession:
-    engine = create_async_engine(
-        POSTGRES_ASYNC_URL,
-        echo=False,
-        poolclass=NullPool
-    )
+    engine = create_async_engine(POSTGRES_ASYNC_URL, echo=False, poolclass=NullPool)
 
     session_maker = async_sessionmaker(bind=engine, expire_on_commit=False)
     return session_maker()
@@ -42,7 +35,7 @@ def merge_ocr_blocks_to_text(rapid_results, y_threshold: int = 12) -> str:
 
         # 🔥 ДОБАВЛЕНО: Удаляем китайские/японские/корейские иероглифы (весь блок CJK)
         # Они больше всего ломают мозг модели gpt-4o-mini
-        text = re.sub(r'[\u4e00-\u9fff]+', '', text)
+        text = re.sub(r"[\u4e00-\u9fff]+", "", text)
         # Убираем лишние двойные пробелы, которые могли остаться после удаления
         text = " ".join(text.split())
 
@@ -69,13 +62,11 @@ def merge_ocr_blocks_to_text(rapid_results, y_threshold: int = 12) -> str:
             final_lines.append(line_text)
 
     return "\n".join(final_lines)
+
+
 #
 # import re
 # from collections import defaultdict
-
-
-
-
 
 
 # import re
@@ -191,25 +182,42 @@ def process_receipt_to_base64(file_io: io.BytesIO) -> str:
 
         # 6. Сохраняем в JPEG с хорошим качеством
         output_buffer = io.BytesIO()
-        img.save(output_buffer, format="JPEG", quality=85)  # 85 - стандарт золотого сечения вес/качество
+        img.save(
+            output_buffer, format="JPEG", quality=85
+        )  # 85 - стандарт золотого сечения вес/качество
         processed_bytes = output_buffer.getvalue()
 
-    base64_image = base64.b64encode(processed_bytes).decode('utf-8')
+    base64_image = base64.b64encode(processed_bytes).decode("utf-8")
     return f"data:image/jpeg;base64,{base64_image}"
 
 
-import re
-
-# Словарь посимвольной визуальной замены (Leet-speak / Транслит)
 LEET_MAP = {
-    'b': 'б', 'M': 'м', 'a': 'а', 'r': 'р', 'P': 'р', 'W': 'и',
-    '6': 'б', '5': 'б', 'O': 'о', 'x': 'х', 'e': 'е', 'H': 'н',
-    'O': 'о', 'B': 'в', '4': 'ч', 'E': 'е', 'K': 'к', 'c': 'с',
-    'k': 'к', 'y': 'у', 'e': 'е', 'n': 'н', 'p': 'п', 'M': 'м',
-    'O': 'о', 'n': 'н', 'u': 'и', '3': 'з', 'S': 'с', 'T': 'т'
+    "b": "б",
+    "M": "м",
+    "a": "а",
+    "r": "р",
+    "P": "р",
+    "W": "и",
+    "6": "б",
+    "5": "б",
+    "x": "х",
+    "e": "е",
+    "H": "н",
+    "O": "о",
+    "B": "в",
+    "4": "ч",
+    "E": "е",
+    "K": "к",
+    "c": "с",
+    "k": "к",
+    "y": "у",
+    "n": "н",
+    "p": "п",
+    "u": "и",
+    "3": "з",
+    "S": "с",
+    "T": "т",
 }
-
-import re
 
 
 def decode_visual_translit(text: str) -> str:
@@ -218,43 +226,53 @@ def decode_visual_translit(text: str) -> str:
 
     # Шаг 1. Безопасная замена букв (буквы на буквы не ломают цены!)
     # Этот шаг можно делать глобально по всему тексту
-    letter_map = str.maketrans({
-        'A': 'А', 'a': 'а',
-        'B': 'В',
-        'C': 'С', 'c': 'с',
-        'E': 'Е', 'e': 'е',
-        'H': 'Н',
-        'K': 'К', 'k': 'к',
-        'M': 'М',
-        'O': 'О', 'o': 'о',
-        'P': 'Р', 'p': 'р',
-        'T': 'Т', 't': 'т',
-        'X': 'Х', 'x': 'х',
-        'y': 'у',
-        'r': 'г',
-        'u': 'и',
-        'n': 'н',
-        'b': 'б',
-    })
+    letter_map = str.maketrans(
+        {
+            "A": "А",
+            "a": "а",
+            "B": "В",
+            "C": "С",
+            "c": "с",
+            "E": "Е",
+            "e": "е",
+            "H": "Н",
+            "K": "К",
+            "k": "к",
+            "M": "М",
+            "O": "О",
+            "o": "о",
+            "P": "Р",
+            "p": "р",
+            "T": "Т",
+            "t": "т",
+            "X": "Х",
+            "x": "х",
+            "y": "у",
+            "r": "г",
+            "u": "и",
+            "n": "н",
+            "b": "б",
+        }
+    )
     decoded = text.translate(letter_map)
 
     # Шаг 2. Контекстная замена ЦИФР на БУКВЫ (Магия регулярных выражений)
     # Мы заменяем цифры только если они граничат с буквами (латинскими или русскими)
 
     # 4 -> ч (если рядом буквы, например, 'KACCOBb4EK' -> 'КАССОВЫЧЕК')
-    decoded = re.sub(r'(?<=[a-zA-Zа-яА-Я])4|4(?=[a-zA-Zа-яА-Я])', 'ч', decoded)
+    decoded = re.sub(r"(?<=[a-zA-Zа-яА-Я])4|4(?=[a-zA-Zа-яА-Я])", "ч", decoded)
 
     # 3 -> з (например, '0326309T.eneHuS' -> 'Т.еленеш')
-    decoded = re.sub(r'(?<=[a-zA-Zа-яА-Я])3|3(?=[a-zA-Zа-яА-Я])', 'з', decoded)
+    decoded = re.sub(r"(?<=[a-zA-Zа-яА-Я])3|3(?=[a-zA-Zа-яА-Я])", "з", decoded)
 
     # 5 -> б (например, 'CaM5ePW' -> 'Самбери')
-    decoded = re.sub(r'(?<=[a-zA-Zа-яА-Я])5|5(?=[a-zA-Zа-яА-Я])', 'б', decoded)
+    decoded = re.sub(r"(?<=[a-zA-Zа-яА-Я])5|5(?=[a-zA-Zа-яА-Я])", "б", decoded)
 
     # 6 -> б или ь (в зависимости от контекста, чаще 'б' в именах собственных)
-    decoded = re.sub(r'(?<=[a-zA-Zа-яА-Я])6|6(?=[a-zA-Zа-яА-Я])', 'б', decoded)
+    decoded = re.sub(r"(?<=[a-zA-Zа-яА-Я])6|6(?=[a-zA-Zа-яА-Я])", "б", decoded)
 
     # 8 -> я (очень частая ошибка OCR в конце слов, например, 'MoHaCTbIPCka8' -> 'Монастырская')
-    decoded = re.sub(r'(?<=[a-zA-Zа-яА-Я])8|8(?=[a-zA-Zа-яА-Я])', 'я', decoded)
+    decoded = re.sub(r"(?<=[a-zA-Zа-яА-Я])8|8(?=[a-zA-Zа-яА-Я])", "я", decoded)
 
     # Шаг 3. Точечные исправления известных брендов и шума
     replacements = {
@@ -302,7 +320,9 @@ def decode_visual_translit(text: str) -> str:
 #     return analysis_result
 
 
-def merge_transactions_by_category(analysis_result: ReceiptListAnalysisSchema) -> ReceiptListAnalysisSchema:
+def merge_transactions_by_category(
+    analysis_result: ReceiptListAnalysisSchema,
+) -> ReceiptListAnalysisSchema:
 
     merged_map = {}
 
@@ -316,7 +336,7 @@ def merge_transactions_by_category(analysis_result: ReceiptListAnalysisSchema) -
                 category=tx.category,
                 amount=tx.amount,
                 description=tx.description,
-                items=list(tx.items)
+                items=list(tx.items),
             )
         else:
 

@@ -1,7 +1,8 @@
 import os
-from dotenv import load_dotenv
+
 from celery import Celery
 from celery.signals import after_setup_logger
+from dotenv import load_dotenv
 
 from logger_config import setup_logging
 
@@ -17,7 +18,6 @@ app = Celery(
     include=["financial_bot.tasks.ai"],
 )
 
-# Дополнительные настройки ( сериализация и т.д.)
 app.conf.update(
     task_serializer="json",
     accept_content=["json"],

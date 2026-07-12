@@ -1,38 +1,34 @@
-import os
-import io
 import gettext
-import tempfile
-import logging
+import os
 import uuid
-import openai
+from pathlib import Path
 
+import openai
+from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
-from aiogram import Bot
 from loguru import logger
-from pathlib import Path
 
-from services.client import ai_service
-from services.schemas import ReceiptAnalysisSchema, ReceiptListAnalysisSchema
-from financial_bot.repositories import save_receipt_to_db
-from services.utils_pipelines import get_isolated_session, merge_transactions_by_category
 from financial_bot.keyboards.inline import get_delete_keyboard
-from rapidocr_onnxruntime import RapidOCR
+from financial_bot.repositories import save_receipt_to_db
+from services.client import ai_service
+from services.schemas import ReceiptListAnalysisSchema
+from services.utils_pipelines import (
+    get_isolated_session,
+    merge_transactions_by_category,
+)
 
 # for check.
 
-#ocr = RapidOCR()
-    # det_model_path="/application/ocr_models/ch_PP-OCRv4_det_infer.onnx",
-    #
-    # # Указываем модель распознавания текста (latin)
-    # rec_model_path="/application/ocr_models/ch_PP-OCRv4_rec_infer.onnx",
-    #
-    # # Путь к словарю символов
-    # rec_keys_path="/application/ocr_models/multilingual_dict.txt",
-
-
-
+# ocr = RapidOCR()
+# det_model_path="/application/ocr_models/ch_PP-OCRv4_det_infer.onnx",
+#
+# # Указываем модель распознавания текста (latin)
+# rec_model_path="/application/ocr_models/ch_PP-OCRv4_rec_infer.onnx",
+#
+# # Путь к словарю символов
+# rec_keys_path="/application/ocr_models/multilingual_dict.txt",
 
 
 # logging.getLogger("ppocr").setLevel(logging.WARNING)
@@ -132,7 +128,6 @@ from rapidocr_onnxruntime import RapidOCR
 #     finally:
 #         await session.close()
 #         await bot_session.close()
-
 
 
 # async def async_process_receipt(chat_id: int, db_user_id: int,
@@ -260,63 +255,71 @@ from rapidocr_onnxruntime import RapidOCR
 #         await session.close()
 #         await bot_session.close()
 
-async def async_process_receipt(chat_id: int, db_user_id: int,
-                                locale: str, voice_bytes: bytes):
+
+async def async_process_receipt(
+    chat_id: int, db_user_id: int, locale: str, voice_bytes: bytes
+):
 
     locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
 
     try:
         lang = gettext.translation(
-            domain='messages',
+            domain="messages",
             localedir=str(locales_dir),  # gettext требует строку, а не объект Path
             languages=[locale],
-            fallback=True
+            fallback=True,
         )
-    except Exception as e:
-        logger.error("Не удалось загрузить локализацию из {locales}: {error}",
-                                            locales=locales_dir,
-                                            error=e
-                     )
+    except Exception as e:  # noqa: PIE786
+        logger.error(
+            "Не удалось загрузить локализацию из {locales}: {error}",
+            locales=locales_dir,
+            error=e,
+        )
 
         lang = gettext.NullTranslations()
 
     _ = lang.gettext
 
-
-
     bot_session = AiohttpSession()
     bot = Bot(
         token=os.getenv("BOT_TOKEN"),
         session=bot_session,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
 
     session = get_isolated_session()
     try:
 
-        analysis_result: ReceiptListAnalysisSchema = await ai_service.process_voice_message(
-                    voice_bytes=voice_bytes,
-                    response_schema=ReceiptListAnalysisSchema,
-                    locale=locale
-
-                )
+        analysis_result: ReceiptListAnalysisSchema = (
+            await ai_service.process_voice_message(
+                voice_bytes=voice_bytes,
+                response_schema=ReceiptListAnalysisSchema,
+                locale=locale,
+            )
+        )
 
         if not analysis_result.is_shopping_related:
-            joke_text = analysis_result.error_message or _("Unable to recognize the purchase amount.")
+            joke_text = analysis_result.error_message or _(
+                "Unable to recognize the purchase amount."
+            )
 
             await bot.send_message(chat_id=chat_id, text=f"❌ {joke_text}")
-            logger.info("Processing cancelled by AI for user %s. Joke: %s", db_user_id, joke_text)
+            logger.info(
+                "Processing cancelled by AI for user %s. Joke: %s",
+                db_user_id,
+                joke_text,
+            )
             return {"status": "cancelled", "message": joke_text}
-
 
         valid_transactions = [t for t in analysis_result.transactions if t.amount > 0]
 
         analysis_result.transactions = valid_transactions
 
         if not analysis_result.transactions:
-            await bot.send_message(chat_id=chat_id, text=_("❌ No transactions found to save."))
+            await bot.send_message(
+                chat_id=chat_id, text=_("❌ No transactions found to save.")
+            )
             return {"status": "cancelled", "message": "Empty transactions list"}
-
 
         final_analysis_result = merge_transactions_by_category(analysis_result)
 
@@ -329,7 +332,6 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             photo_url=None,
             raw_text=analysis_result.model_dump_json(),
             batch_id=message_batch_id,
-
         )
 
         income_txs = [t for t in analysis_result.transactions if t.type == "income"]
@@ -338,16 +340,18 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
         total_income = sum(t.amount for t in income_txs)
         total_expense = sum(t.amount for t in expense_txs)
 
-
         icons = {
-
-            "food": "🍏", "transport": "🚗", "home": "🏠",
-            "entertainment": "🎉", "health": "💊", "other": "📦",
-
-            "salary": "💼", "bonus": "📈", "gift": "🎁",
-            "deal": "🤝"
+            "food": "🍏",
+            "transport": "🚗",
+            "home": "🏠",
+            "entertainment": "🎉",
+            "health": "💊",
+            "other": "📦",
+            "salary": "💼",
+            "bonus": "📈",
+            "gift": "🎁",
+            "deal": "🤝",
         }
-
 
         report_chunks = [_("✅ <b>Operations successfully recorded!</b>\n")]
 
@@ -357,20 +361,20 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             for tx in income_txs:
                 icon = icons.get(tx.category, "💵")
                 category = tx.description.capitalize()
-                #localized_category = _(tx.category)
                 localized_category = _(category)
 
-                # Доходы обычно выводятся без items, но если они есть — покажем
                 items_lines = []
                 for item in tx.items:
                     items_lines.append(f"  • {item.name}: <b>{item.price}</b>")
-                items_str = f"\n" + "\n".join(items_lines) if items_lines else ""
+                items_str = "\n" + "\n".join(items_lines) if items_lines else ""
 
                 # desc_str = f" ({tx.description})" if tx.description else ""
                 # income_details.append(f"{icon} {localized_category}{desc_str}: <b>+{tx.amount}</b>{items_str}")
 
-                #desc_str = f" ({tx.description})" if tx.description else ""
-                income_details.append(f"{icon} {localized_category}: <b>+{tx.amount}</b>{items_str}")
+                # desc_str = f" ({tx.description})" if tx.description else ""
+                income_details.append(
+                    f"{icon} {localized_category}: <b>+{tx.amount}</b>{items_str}"
+                )
 
             report_chunks.append("\n".join(income_details))
 
@@ -383,7 +387,7 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
             for tx in expense_txs:
                 icon = icons.get(tx.category, "📦")
                 category = tx.category.capitalize()
-                #localized_category = _(tx.category)
+                # localized_category = _(tx.category)
                 localized_category = _(category)
 
                 items_lines = []
@@ -393,21 +397,33 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
                     else:
                         items_lines.append(f"  • {item.name}")
 
-
                 items_str = "\n".join(items_lines)
 
-                expense_details.append(_("{icon} {category}: <b>-{amount}</b>\n{items}")
-                                       .format(icon=icon, category=localized_category,
-                                               amount=tx.amount, items=items_str))
+                expense_details.append(
+                    _("{icon} {category}: <b>-{amount}</b>\n{items}").format(
+                        icon=icon,
+                        category=localized_category,
+                        amount=tx.amount,
+                        items=items_str,
+                    )
+                )
             report_chunks.append("\n".join(expense_details))
 
         report_chunks.append("\n" + "─" * 20)
 
         meta_lines = []
         if total_income > 0:
-            meta_lines.append(_("Total Income: <b>+{total_amount}</b>").format(total_amount=total_income))
+            meta_lines.append(
+                _("Total Income: <b>+{total_amount}</b>").format(
+                    total_amount=total_income
+                )
+            )
         if total_expense > 0:
-            meta_lines.append(_("Total Expenses: <b>-{total_amount}</b>").format(total_amount=total_expense))
+            meta_lines.append(
+                _("Total Expenses: <b>-{total_amount}</b>").format(
+                    total_amount=total_expense
+                )
+            )
 
         report_chunks.append("\n".join(meta_lines))
         msg_text = "\n".join(report_chunks)
@@ -419,9 +435,13 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
         else:
             localized_button_label = _("❌ cancel operation")
 
-        await bot.send_message(chat_id=chat_id, text=msg_text,
-                               reply_markup=get_delete_keyboard(batch_id=message_batch_id,
-                                                                button_text=localized_button_label))
+        await bot.send_message(
+            chat_id=chat_id,
+            text=msg_text,
+            reply_markup=get_delete_keyboard(
+                batch_id=message_batch_id, button_text=localized_button_label
+            ),
+        )
 
     except openai.OpenAIError as net_err:
         logger.warning("OpenAI API network failure. Retrying the task in Celery.")
@@ -429,18 +449,20 @@ async def async_process_receipt(chat_id: int, db_user_id: int,
 
         raise net_err
 
-    except Exception as e:
-        logger.exception("Error processing check for user {user_id}", user_id=db_user_id)
+    except Exception:  # noqa: PIE786
+        logger.exception(
+            "Error processing check for user {user_id}", user_id=db_user_id
+        )
 
         await session.rollback()
 
         await bot.send_message(
             chat_id=chat_id,
-            text=_("❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again.")
+            text=_(
+                "❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again."
+            ),
         )
 
     finally:
         await session.close()
         await bot_session.close()
-
-

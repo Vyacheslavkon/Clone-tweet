@@ -1,11 +1,9 @@
 import copy
-import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 
-import openai
 import pytest
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
@@ -18,11 +16,18 @@ from financial_bot.handlers.history import history_rout
 from financial_bot.handlers.reports import report_rout
 from financial_bot.handlers.transactions import router_tr
 from financial_bot.middlewares import SessionMiddleware
-from financial_bot.repositories import add_data_for_user, add_transaction, create_user, save_receipt_to_db
+from financial_bot.repositories import (
+    add_data_for_user,
+    add_transaction,
+    create_user,
+)
 from financial_bot.schemas import AddData, CreateUser
-from services.celery_app import app as celery_app
 from services.client import ai_service
-from services.schemas import ReceiptItemSchema, ReceiptAnalysisSchema, ReceiptListAnalysisSchema
+from services.schemas import (
+    ReceiptAnalysisSchema,
+    ReceiptItemSchema,
+    ReceiptListAnalysisSchema,
+)
 
 current_file_path = Path(__file__).resolve()
 base_dir = current_file_path.parent.parent.parent
@@ -64,6 +69,7 @@ async def user_for_pipeline(test_session_for_pipeline):
 
     return db_user
 
+
 @pytest.fixture
 async def fake_analysis():
     fake_item = ReceiptItemSchema(name="Кофе", price=250.0)
@@ -72,15 +78,12 @@ async def fake_analysis():
         category="food",
         type="expense",
         description="кофейня",
-        items=[fake_item]
-    )
-    fake_analysis = ReceiptListAnalysisSchema(
-        is_shopping_related=True,
-        transactions=[fake_tx],
-        error_message=None
+        items=[fake_item],
     )
 
-    return fake_analysis
+    return ReceiptListAnalysisSchema(
+        is_shopping_related=True, transactions=[fake_tx], error_message=None
+    )
 
 
 @pytest.fixture
@@ -209,10 +212,8 @@ def mock_ai_service(mocker):
     return mock_method
 
 
-
 @pytest.fixture(autouse=True)
 def patch_pipeline_dependencies(mocker, test_session_for_pipeline, mock_bot):
-
 
     original_close = test_session_for_pipeline.close
     original_rollback = test_session_for_pipeline.rollback
@@ -220,10 +221,12 @@ def patch_pipeline_dependencies(mocker, test_session_for_pipeline, mock_bot):
     test_session_for_pipeline.close = AsyncMock()
     test_session_for_pipeline.rollback = AsyncMock()
 
-    mocker.patch("services.pipelines.get_isolated_session",
-                 return_value=test_session_for_pipeline)
+    mocker.patch(
+        "services.pipelines.get_isolated_session",
+        return_value=test_session_for_pipeline,
+    )
 
-    mocker.patch("services.pipelines.Bot", return_value=mock_bot) # maybe bot
+    mocker.patch("services.pipelines.Bot", return_value=mock_bot)  # maybe bot
 
     yield test_session_for_pipeline
 
@@ -234,7 +237,7 @@ def patch_pipeline_dependencies(mocker, test_session_for_pipeline, mock_bot):
 @pytest.fixture
 async def data_transaction_ai(test_session_for_pipeline):
 
-    mock_analysis_result = ReceiptListAnalysisSchema(
+    return ReceiptListAnalysisSchema(
         is_shopping_related=True,
         error_message=None,
         transactions=[
@@ -245,18 +248,16 @@ async def data_transaction_ai(test_session_for_pipeline):
                 description="food",
                 items=[
                     ReceiptItemSchema(name="Молоко", price=150.0),
-                    ReceiptItemSchema(name="Хлеб", price=100.0)
-                ]
+                    ReceiptItemSchema(name="Хлеб", price=100.0),
+                ],
             )
-        ]
+        ],
     )
-
-    return mock_analysis_result
 
 
 @pytest.fixture
 async def data_for_merge_by_cat():
-    raw_data = ReceiptListAnalysisSchema(
+    return ReceiptListAnalysisSchema(
         is_shopping_related=True,
         error_message=None,
         transactions=[
@@ -265,22 +266,21 @@ async def data_for_merge_by_cat():
                 category="food",
                 amount=150.0,
                 description="Супермаркет",
-                items=[ReceiptItemSchema(name="Молоко", price=150.0)]
+                items=[ReceiptItemSchema(name="Молоко", price=150.0)],
             ),
             ReceiptAnalysisSchema(
                 type="expense",
                 category="food",
                 amount=50.0,
                 description="Рынок",
-                items=[ReceiptItemSchema(name="Хлеб", price=50.0)]
+                items=[ReceiptItemSchema(name="Хлеб", price=50.0)],
             ),
             ReceiptAnalysisSchema(
                 type="expense",
                 category="transport",
                 amount=300.0,
                 description="Такси",
-                items=[]
-            )
-        ]
+                items=[],
+            ),
+        ],
     )
-    return raw_data

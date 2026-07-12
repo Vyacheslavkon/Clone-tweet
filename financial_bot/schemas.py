@@ -47,6 +47,3 @@ class Plan:
     monthly_budget: Optional[Decimal] = None
     budget_remind_percent: Optional[int] = None
     savings_goal: Optional[Decimal] = None
-
-
-

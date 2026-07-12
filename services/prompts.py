@@ -1,4 +1,3 @@
-
 def get_system_prompt(locale: str):
 
     categories = ["food", "transport", "home", "entertainment", "health", "other"]
@@ -23,7 +22,7 @@ def get_system_prompt(locale: str):
 
     3. ПРАВИЛА КАТЕГОРИЗАЦИИ:
        - Для поля `category` ты должен использовать ТОЛЬКО категории из следующего списка:
-       - {categories} 
+       - {categories}
        - Если товар сложно отнести к конкретной категории, используй "other".
 
     4. Локализация (Целевой язык: {locale}):
@@ -32,9 +31,6 @@ def get_system_prompt(locale: str):
 
     Заполни структуру строго согласно ReceiptAnalysisSchema с нулевой креативностью.
     """.format(locale=locale, categories=categories)
-
-
-
 
 
 # RECEIPT_SYSTEM_PROMPT = f"""
@@ -56,7 +52,6 @@ ADVISOR_SYSTEM_PROMPT = (
     "Ты — профессиональный финансовый советник в Telegram-боте.\n"
     "Твоя задача — проанализировать текстовый отчет о тратах пользователя и дать 3-4 КОРРЕКТНЫХ, "
     "ПРАКТИЧНЫХ и персонализированных совета по экономии и управлению бюджетом.\n\n"
-
     "ПРАВИЛА:\n"
     "1. Будь вежливым, но говори прямо. Избегай банальных советов вроде 'меньше покупайте'.\n"
     "2. Обращай внимание на категории-паразиты (например, слишком много мелких трат на кофе, фастфуд или такси).\n"
@@ -68,7 +63,14 @@ ADVISOR_SYSTEM_PROMPT = (
 
 
 def get_voice_message(locale: str) -> str:
-    categories_expense = ["food", "transport", "home", "entertainment", "health", "other"]
+    categories_expense = [
+        "food",
+        "transport",
+        "home",
+        "entertainment",
+        "health",
+        "other",
+    ]
     categories_exp_str = ", ".join(categories_expense)
 
     categories_income = ["Salary", "Bonus", "Gift", "Deal", "Other"]
@@ -85,13 +87,13 @@ def get_voice_message(locale: str) -> str:
 Поле 'category' для транзакций с типом 'income' должно строго принимать ОДНО из следующих значений В НИЖНЕМ РЕГИСТРЕ: [{categories_income}]. Писать 'Salary' или 'Other' СТРОГО ЗАПРЕЩЕНО! Только 'salary' или 'other'!
 
 ГЛАВНОЕ ПРАВИЛО РАЗДЕЛЕНИЯ НА КАТЕГОРИИ:
-Если пользователь говорит о товарах из разных категорий в одном сообщении, ты ОБЯЗАН разделить их на отдельные транзакции внутри списка 'transactions'. 
+Если пользователь говорит о товарах из разных категорий в одном сообщении, ты ОБЯЗАН разделить их на отдельные транзакции внутри списка 'transactions'.
 Поле 'category' для транзакций с типом 'expense' должно строго принимать ОДНО из следующих значений В НИЖНЕМ РЕГИСТРЕ: [{categories_placeholder}]. Писать 'Food' или 'FoodCategory' СТРОГО ЗАПРЕЩЕНО! Только 'food'!
 3. Для обозначения суммы категории используй имя поля 'amount' внутри транзакции. Не пиши 'total_amount'.
 4. СТРОГО ЗАПРЕЩЕНО добавлять поле 'currency' или любые другие поля, не описанные в ReceiptListAnalysisSchema.
 
 ПРАВИЛА ДЛЯ МАРКЕРОВ ЗНАКА (ПЛЮС / МИНУС):
-1. Слово "плюс" или знак "+" перед числом (например: "плюс 3000", "+500 рублей") — это СТРОГИЙ ИНДИКАТОР ДОХОДА (type: "income"). 
+1. Слово "плюс" или знак "+" перед числом (например: "плюс 3000", "+500 рублей") — это СТРОГИЙ ИНДИКАТОР ДОХОДА (type: "income").
    - Если источник не назван, установи 'category': 'other'".
 2. Слово "минус" или знак "-" перед числом (например: "минус 2000", "-150р") — это СТРОГИЙ ИНДИКАТОР РАСХОДА (type: "expense").
    - Если категория/товар не названы, установи 'category': 'other', а в поле 'description' и в имя единственного товара в 'items' запиши "Прочие расходы".
@@ -139,6 +141,6 @@ def get_voice_message(locale: str) -> str:
 
     return prompt_template.format(
         categories_placeholder=categories_exp_str,
-        categories_income= categories_inc_str,
-        locale_placeholder=locale
+        categories_income=categories_inc_str,
+        locale_placeholder=locale,
     )

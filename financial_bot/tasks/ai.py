@@ -1,4 +1,5 @@
 import asyncio
+
 import openai
 from dotenv import load_dotenv
 from loguru import logger
@@ -11,9 +12,10 @@ load_dotenv()
 celery_app = app
 
 
-
 @celery_app.task(name="financial_bot.ai.process_receipt_task", rate_limit="2/s")
-def process_receipt_task(chat_id: int, db_user_id: int, locale: str, image_bytes: bytes):
+def process_receipt_task(
+    chat_id: int, db_user_id: int, locale: str, image_bytes: bytes
+):
 
     asyncio.run(async_process_receipt(chat_id, db_user_id, locale, image_bytes))
 
@@ -24,15 +26,20 @@ def process_receipt_task(chat_id: int, db_user_id: int, locale: str, image_bytes
 #     asyncio.run(async_process_receipt(chat_id, db_user_id, locale, voice_bytes))
 
 
-@celery_app.task(name="financial_bot.ai.process_expense_task",
-                 bind=True,
-                 max_retries=3)
-def process_expense_task(self,chat_id: int, db_user_id: int, locale: str, voice_bytes: bytes):
+@celery_app.task(name="financial_bot.ai.process_expense_task", bind=True, max_retries=3)
+def process_expense_task(
+    self, chat_id: int, db_user_id: int, locale: str, voice_bytes: bytes
+):
 
     try:
-        result = asyncio.run(async_process_receipt(chat_id, db_user_id, locale, voice_bytes))
+        result = asyncio.run(
+            async_process_receipt(chat_id, db_user_id, locale, voice_bytes)
+        )
 
-        logger.info("Successfully finished process_expense_task for user_id={user_id}", user_id=db_user_id)
+        logger.info(
+            "Successfully finished process_expense_task for user_id={user_id}",
+            user_id=db_user_id,
+        )
         return result
 
     except openai.OpenAIError as exc:
@@ -42,11 +49,11 @@ def process_expense_task(self,chat_id: int, db_user_id: int, locale: str, voice_
         logger.warning(
             "OpenAI API failure. Retry attempt {retry}/3. Error: {error_msg}",
             retry=current_retry,
-            error_msg=str(exc)
+            error_msg=str(exc),
         )
 
         # Рассчитываем экспоненциальную задержку: 2с, 4с, 8с...
-        countdown = 2 ** self.request.retries
+        countdown = 2**self.request.retries
 
         # Передаем self.retry, он сам корректно перезапустит таску в Celery
         raise self.retry(exc=exc, countdown=countdown)
