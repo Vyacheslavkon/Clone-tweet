@@ -17,6 +17,8 @@ POSTGRES_ASYNC_URL = os.getenv("DATABASE_URL_DOCKER")
 
 
 def get_isolated_session() -> AsyncSession:
+
+    assert POSTGRES_ASYNC_URL is not None, "DATABASE_URL environment variable is not set"
     engine = create_async_engine(POSTGRES_ASYNC_URL, echo=False, poolclass=NullPool)
 
     session_maker = async_sessionmaker(bind=engine, expire_on_commit=False)
@@ -27,7 +29,7 @@ def merge_ocr_blocks_to_text(rapid_results, y_threshold: int = 12) -> str:
     if not rapid_results:
         return ""
 
-    lines_dict = defaultdict(list)
+    lines_dict: defaultdict[float, list[tuple[float, str]]] = defaultdict(list)
 
     for line in rapid_results:
         cords = line[0]
@@ -146,6 +148,8 @@ def merge_ocr_blocks_to_text(rapid_results, y_threshold: int = 12) -> str:
 
 
 def process_receipt_to_base64(file_io: io.BytesIO) -> str:
+
+    img: Image.Image
     with Image.open(file_io) as img:
         # 1. Конвертируем в RGB (если вдруг пришел PNG в RGBA, убираем альфа-канал)
         if img.mode in ("RGBA", "P"):
@@ -324,7 +328,8 @@ def merge_transactions_by_category(
     analysis_result: ReceiptListAnalysisSchema,
 ) -> ReceiptListAnalysisSchema:
 
-    merged_map = {}
+    #merged_map = {}
+    merged_map: dict[tuple[str, str], ReceiptAnalysisSchema] = {}
 
     for tx in analysis_result.transactions:
         key = (tx.type, tx.category)
@@ -344,13 +349,12 @@ def merge_transactions_by_category(
             merged_map[key].items.extend(tx.items)
 
             if tx.description and tx.description != merged_map[key].description:
-                if merged_map[key].description:
-                    merged_map[key].description += f", {tx.description}"
+                current_desc = merged_map[key].description
+                if current_desc:
+                    merged_map[key].description = f"{current_desc}, {tx.description}"
                 else:
                     merged_map[key].description = tx.description
 
-    # analysis_result.transactions = list(merged_map.values())
-    # return analysis_result
 
     new_result = analysis_result.model_copy(deep=True)
     new_result.transactions = list(merged_map.values())
