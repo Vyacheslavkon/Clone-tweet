@@ -64,6 +64,7 @@ jobs:
           TEST_ADMIN: 19891989
           OPENAI_API_KEY: fake_test_key_for_ci
           BOT_TOKEN: 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ
+          OPENAI_BASE_URL: fake_test_url_for_ci
         run: |
           mkdir -p media
           pytest
