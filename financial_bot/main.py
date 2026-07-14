@@ -10,6 +10,7 @@ from redis.asyncio import Redis
 from core.config import TOKEN_BOT
 from core.database import async_session
 from financial_bot.handlers.adding_data import router_data
+from financial_bot.handlers.ai_consultant import ai_router
 from financial_bot.handlers.common import router
 from financial_bot.handlers.fallback import router_fallback
 from financial_bot.handlers.history import history_rout
@@ -35,11 +36,19 @@ async def main():
     setup_logging()
     bot = Bot(token=TOKEN_BOT)
     dp = Dispatcher(storage=storage)
+    # await bot.delete_webhook(drop_pending_updates=True)
     session_pool = async_session
     scheduler = setup_scheduler(bot, session_pool, i18n)
     dp["admin_id"] = int(os.getenv("ADMIN_ID", 0))
+    # ai_service = AIService(
+    #         api_key=settings.OPENAI_API_KEY,
+    #         base_url=settings.OPENAI_BASE_URL,
+    #         model="gpt-4o-mini"
+    #     )
+    # dp["ai_service"] = ai_service
     dp.message.outer_middleware(SessionMiddleware(session_pool))
     dp.callback_query.outer_middleware(SessionMiddleware(session_pool))
+    dp.errors.middleware(SimpleI18nMiddleware(i18n))
     dp.message.middleware(MyI18nMiddleware(i18n=i18n))
     dp.update.outer_middleware(SimpleI18nMiddleware(i18n))
     dp.update.outer_middleware(UserActivityMiddleware())
@@ -48,6 +57,7 @@ async def main():
     dp.include_router(router_data)
     dp.include_router(report_rout)
     dp.include_router(history_rout)
+    dp.include_router(ai_router)
     dp.include_router(router_fallback)
 
     try:

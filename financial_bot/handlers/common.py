@@ -1,7 +1,11 @@
 from typing import Union
 
 from aiogram import F, Router, html
-from aiogram.exceptions import TelegramAPIError, TelegramBadRequest
+from aiogram.exceptions import (
+    TelegramAPIError,
+    TelegramBadRequest,
+    TelegramForbiddenError,
+)
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ErrorEvent, Message
@@ -48,7 +52,7 @@ async def cmd_start(message: Message, session: AsyncSession):
         )
 
 
-@router.message(I18nTextFilter("Cancel"))
+@router.message(I18nTextFilter("cancel"))
 @router.callback_query(F.data == "cancel")
 async def cancel_handler(event: Union[Message, CallbackQuery], state: FSMContext):
 
@@ -92,17 +96,30 @@ async def global_error_handler(event: ErrorEvent, admin_id: int):
         f"🔗 <a href='{user_link}'>Перейти к профилю пользователя</a>"
     )
 
+    if isinstance(event.exception, TelegramForbiddenError):
+        user_id: int | None = None
+
+        if (
+            (update := event.update)
+            and (msg := update.message)
+            and (user := msg.from_user)
+        ):
+            user_id = user.id
+
+        logger.warning("Bot was blocked by user (ID: %s)", user_id)
+        return True
+
     try:
         if event.update.bot is not None:
             await event.update.bot.send_message(
                 chat_id=admin_id, text=admin_msg, parse_mode="HTML"
             )
     except TelegramBadRequest as e:
-        logger.error(_("HTML parsing or message length error: {error}"), error=e)
+        logger.error(_("HTML parsing or message length error: {error}", error=e))
 
     except TelegramAPIError as e:
         logger.error(
-            _("General Telegram API error when notifying admin: {error}"), error=e
+            _("General Telegram API error when notifying admin: {error}", error=e)
         )
 
     try:

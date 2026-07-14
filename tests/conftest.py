@@ -57,3 +57,14 @@ async def test_redis():
     yield redis
     await redis.flushdb()
     await redis.aclose()
+
+
+@pytest.fixture(scope="function")
+async def test_session_for_pipeline():
+
+    async with test_engine.connect() as connection:
+        transaction = await connection.begin()
+        async with AsyncSession(bind=connection, expire_on_commit=False) as session:
+            yield session
+            await session.close()
+        await transaction.rollback()

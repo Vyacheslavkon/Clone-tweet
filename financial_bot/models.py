@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import List, Optional
 
 from sqlalchemy import (
     BigInteger,
@@ -13,7 +14,7 @@ from sqlalchemy import (
     Text,
     func,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.database import Base
 
@@ -80,3 +81,25 @@ class Transactions(Base):
         server_default=func.now(),
         index=True,
     )
+
+    items: Mapped[List["TransactionItems"]] = relationship(
+        back_populates="transaction", cascade="all, delete-orphan"
+    )
+    batch_id: Mapped[str] = mapped_column(String(36), index=True, nullable=True)
+
+
+class TransactionItems(Base):
+
+    __tablename__ = "transaction_items"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    transaction_id: Mapped[int] = mapped_column(
+        ForeignKey("transactions.id", ondelete="CASCADE"), index=True
+    )
+    name: Mapped[str] = mapped_column(String(150))
+    price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    category: Mapped[Optional[str]] = mapped_column(
+        String(50)
+    )  # Категория конкретного товара от ИИ
+
+    transaction: Mapped["Transactions"] = relationship(back_populates="items")

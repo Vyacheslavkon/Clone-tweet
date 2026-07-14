@@ -69,6 +69,7 @@ services:
       - ./financial_bot:/application/financial_bot
       - ./migrations:/application/migrations
       - ./alembic.ini:/application/alembic.ini
+      - ./services:/application/services
       - ./pytest.ini:/application/pytest.ini
       - ./requirement.txt:/application/requirement.txt
       - ./tests:/application/tests
@@ -172,10 +173,12 @@ services:
       - ./migrations:/application/migrations
       - ./alembic.ini:/application/alembic.ini
       - ./core:/application/core
+      - ./services:/application/services
       - ./${LOG_PATH:-./logs}:/application/logs
       - ./logger_config.py:/application/logger_config.py
+      - ./ocr_models:/application/ocr_models
 
-    command: celery -A core.celery_app:app worker --loglevel=info
+    command: celery -A services.celery_app:app worker --loglevel=info
     depends_on:
       - redis
       - db
@@ -183,7 +186,6 @@ services:
       - PYTHONPATH=/application
       - PYTHONUNBUFFERED=1
       - LOG_FILENAME=worker.log
-      - REDIS_URL=${CELERY_BROKER_URL}
       - DATABASE_URL=${DATABASE_URL_DOCKER}
 
     env_file:
@@ -199,3 +201,4 @@ networks:
 
 volumes:
   db-data:
+  paddle_models:
