@@ -97,10 +97,16 @@ async def global_error_handler(event: ErrorEvent, admin_id: int):
     )
 
     if isinstance(event.exception, TelegramForbiddenError):
-        logger.warning(
-            "Bot was blocked by user (ID: %s)",
-            event.update.message.from_user.id if event.update.message else "Unknown",
-        )
+        user_id: int | None = None
+
+        if (
+            (update := event.update)
+            and (msg := update.message)
+            and (user := msg.from_user)
+        ):
+            user_id = user.id
+
+        logger.warning("Bot was blocked by user (ID: %s)", user_id)
         return True
 
     try:

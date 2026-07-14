@@ -18,7 +18,9 @@ POSTGRES_ASYNC_URL = os.getenv("DATABASE_URL_DOCKER")
 
 def get_isolated_session() -> AsyncSession:
 
-    assert POSTGRES_ASYNC_URL is not None, "DATABASE_URL environment variable is not set"
+    assert (
+        POSTGRES_ASYNC_URL is not None
+    ), "DATABASE_URL environment variable is not set"
     engine = create_async_engine(POSTGRES_ASYNC_URL, echo=False, poolclass=NullPool)
 
     session_maker = async_sessionmaker(bind=engine, expire_on_commit=False)
@@ -328,7 +330,7 @@ def merge_transactions_by_category(
     analysis_result: ReceiptListAnalysisSchema,
 ) -> ReceiptListAnalysisSchema:
 
-    #merged_map = {}
+    # merged_map = {}
     merged_map: dict[tuple[str, str], ReceiptAnalysisSchema] = {}
 
     for tx in analysis_result.transactions:
@@ -354,7 +356,6 @@ def merge_transactions_by_category(
                     merged_map[key].description = f"{current_desc}, {tx.description}"
                 else:
                     merged_map[key].description = tx.description
-
 
     new_result = analysis_result.model_copy(deep=True)
     new_result.transactions = list(merged_map.values())

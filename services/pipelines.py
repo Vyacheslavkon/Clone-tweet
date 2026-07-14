@@ -280,9 +280,13 @@ async def async_process_receipt(
 
     _ = lang.gettext
 
+    token = os.getenv("BOT_TOKEN")
+    if not token:
+        raise ValueError("The BOT_TOKEN environment variable is not set!")
+
     bot_session = AiohttpSession()
     bot = Bot(
-        token=os.getenv("BOT_TOKEN"),
+        token=token,
         session=bot_session,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
@@ -360,7 +364,8 @@ async def async_process_receipt(
             income_details = []
             for tx in income_txs:
                 icon = icons.get(tx.category, "💵")
-                category = tx.description.capitalize()
+                description = tx.description or ""
+                category = description.capitalize()
                 localized_category = _(category)
 
                 items_lines = []

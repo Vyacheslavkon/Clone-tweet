@@ -17,6 +17,10 @@ class I18nTextFilter(BaseFilter):
 
 class IsProUserFilter(Filter):
     async def __call__(self, message: Message, session: AsyncSession) -> bool:
+
+        if not message.from_user:
+            return False
+
         user = await get_user_by_id(session, message.from_user.id)
         return user is not None and user.subscription_type == "pro"
 

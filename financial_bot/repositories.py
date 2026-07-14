@@ -175,9 +175,9 @@ async def save_receipt_to_db(
     session: AsyncSession,
     user_id: int,
     analysis_result: ReceiptListAnalysisSchema,
-    photo_url: str,
     raw_text: str,
     batch_id: str,
+    photo_url: str | None = None,
 ):
     try:
         for group in analysis_result.transactions:

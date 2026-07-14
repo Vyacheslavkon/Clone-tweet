@@ -45,6 +45,8 @@ async def waiting_check(message: Message, state: FSMContext):
 async def handle_receipt_photo(
     message: Message, state: FSMContext, session: AsyncSession
 ):
+    if not message.from_user:
+        return
 
     user = await get_user_by_id(session, message.from_user.id)
 
@@ -53,6 +55,10 @@ async def handle_receipt_photo(
         return
 
     user_locale = user.language_code
+
+    if not message.photo:
+        return
+
     photo = message.photo[-1]
 
     # 2. Запрашиваем инфо о файле СРАЗУ в основном цикле бота (to improve productivity)
@@ -60,6 +66,10 @@ async def handle_receipt_photo(
     # telegram_file_path = file_info.file_path
 
     file_in_io = io.BytesIO()
+
+    if not message.bot:
+        return
+
     await message.bot.download(photo, destination=file_in_io)
     file_bytes = file_in_io.getvalue()
 
@@ -88,12 +98,22 @@ async def waiting_purchases(message: Message, state: FSMContext):
 
 @ai_router.message(F.voice)
 async def handle_voice_receipt(message: Message, session: AsyncSession):
+    if not message.from_user:
+        return
+
     user = await get_user_by_id(session, message.from_user.id)
+
+    if not user:
+        await message.answer(_("User not found. Please enter /start."))
+        return
 
     waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
 
     try:
         voice = message.voice
+
+        if not voice or not message.bot:
+            return
 
         if voice.duration > 35:
             await waiting_msg.edit_text(
@@ -106,6 +126,13 @@ async def handle_voice_receipt(message: Message, session: AsyncSession):
         file_info = await message.bot.get_file(voice.file_id)
 
         file_buffer = io.BytesIO()
+
+        if not file_info.file_path:
+            await message.answer(
+                "Unfortunately, it was not possible to obtain the path for downloading the file."
+            )
+            return
+
         await message.bot.download_file(file_info.file_path, file_buffer)
 
         voice_bytes = file_buffer.getvalue()
@@ -138,8 +165,14 @@ async def handle_voice_receipt(message: Message, session: AsyncSession):
 
 @ai_router.message(F.text)
 async def handle_text_message(message: Message, session: AsyncSession):
+    if not message.from_user:
+        return
 
     user = await get_user_by_id(session, message.from_user.id)
+
+    if not user:
+        await message.answer(_("User not found. Please enter /start."))
+        return
 
     waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
 
@@ -152,9 +185,10 @@ async def handle_text_message(message: Message, session: AsyncSession):
         text=text,
     )
 
-    await message.bot.delete_message(
-        chat_id=message.chat.id, message_id=waiting_msg.message_id
-    )
+    if message.bot:
+        await message.bot.delete_message(
+            chat_id=message.chat.id, message_id=waiting_msg.message_id
+        )
 
 
 @ai_router.callback_query(DeleteTransactionCallback.filter())
@@ -166,10 +200,12 @@ async def delete_batch_handler(
 
     result = await delete_check(session, callback_data.batch_id)
     if result:
-        await callback.message.edit_text(
-            _("❌ The record has been cancelled and removed from the database.")
-        )
+        if isinstance(callback.message, Message):
+            await callback.message.edit_text(
+                _("❌ The record has been cancelled and removed from the database.")
+            )
     else:
-        await callback.answer(_("Record not found."), show_alert=True)
+        if isinstance(callback.message, Message):
+            await callback.answer(_("Record not found."), show_alert=True)
 
-        await callback.message.edit_reply_markup(reply_markup=None)
+            await callback.message.edit_reply_markup(reply_markup=None)

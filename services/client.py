@@ -13,14 +13,19 @@ load_dotenv()
 
 proxy_api_key = os.getenv("OPENAI_API_KEY")
 if not proxy_api_key:
-    raise ValueError("Critical error: OPENAI_API_KEY must be set in the environment variables.")
+    raise ValueError(
+        "Critical error: OPENAI_API_KEY must be set in the environment variables."
+    )
 
 proxy_base_url = os.getenv("OPENAI_BASE_URL")
 if not proxy_base_url:
-    raise ValueError("Critical error: OPENAI_BASE_URL must be set in the environment variables.")
+    raise ValueError(
+        "Critical error: OPENAI_BASE_URL must be set in the environment variables."
+    )
+
 
 class AIService:
-    T = TypeVar("T", bound=BaseModel) # test
+    T = TypeVar("T", bound=BaseModel)  # test
 
     def __init__(self, api_key: str, base_url: str, model: str = "gpt-4o-mini"):
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url, timeout=60.0)
@@ -29,7 +34,7 @@ class AIService:
     async def analyze_image(
         self,
         image_url: str,
-        #response_schema: Type[BaseModel],
+        # response_schema: Type[BaseModel],
         response_schema: Type[T],
         system_prompt: str,
         user_prompt: str = "Разбери этот чек по позициям согласно схеме.",
