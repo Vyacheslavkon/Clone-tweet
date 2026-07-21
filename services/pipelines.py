@@ -13,7 +13,7 @@ from loguru import logger
 from financial_bot.keyboards.inline import get_delete_keyboard
 from financial_bot.repositories import save_receipt_to_db
 from services.client import ai_service
-from services.schemas import ReceiptListAnalysisSchema
+from services.schemas import ReceiptListAnalysisSchema, AIAnalysisResponse
 from services.utils_pipelines import (
     get_isolated_session,
     merge_transactions_by_category,
@@ -471,3 +471,54 @@ async def async_process_receipt(
     finally:
         await session.close()
         await bot_session.close()
+
+
+
+
+async def process_analysis_expense(
+        locale: str,
+        data: dict,
+        chat_id: int,
+):
+
+    locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
+
+    try:
+        lang = gettext.translation(
+            domain="messages",
+            localedir=str(locales_dir),  # gettext требует строку, а не объект Path
+            languages=[locale],
+            fallback=True,
+        )
+    except Exception as e:  # noqa: PIE786
+        logger.error(
+            "Не удалось загрузить локализацию из {locales}: {error}",
+            locales=locales_dir,
+            error=e,
+        )
+
+        lang = gettext.NullTranslations()
+
+    _ = lang.gettext
+
+    token = os.getenv("BOT_TOKEN")
+    if not token:
+        raise ValueError("The BOT_TOKEN environment variable is not set!")
+
+    bot_session = AiohttpSession()
+    bot = Bot(
+        token=token,
+        session=bot_session,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
+
+    # try:
+    #
+    #     analysis_result: AIAnalysisResponse = (
+    #         await ai_service.analysis_expense(
+    #             summary_data=data,
+    #             response_schema=AIAnalysisResponse,
+    #             locale=locale,
+    #         )
+    #     )
+

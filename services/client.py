@@ -7,7 +7,7 @@ from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from services.prompts import get_voice_message
+from services.prompts import get_voice_message, SYSTEM_PROMPT_ANALYSIS
 
 load_dotenv()
 
@@ -127,6 +127,50 @@ class AIService:
         return await self.process_receipt(
             text=user_text, response_schema=response_schema, locale=locale
         )
+
+    async def analysis_expense(self, response_schema: Type[BaseModel],
+                               user_id: int,
+                               summary_data: dict)-> dict:
+
+        if not summary_data:
+            return {"error": "no_data"}
+
+        # 1. Формируем текстовое представление категорий
+        categories_block = "\n".join([
+            f"- {cat['category']}: {cat['amount']} руб. ({cat['count']} шт.)"
+            for cat in summary_data.get("categories", [])
+        ])
+
+        # 2. ДОБАВЛЯЕМ ДАННЫЕ ИЗ ТАБЛИЦЫ ITEMS (transaction_items)
+        # Формируем блок топ-товаров для семантического анализа моделью
+        items_block = "\n".join([
+            f"- {item['name']} | Сумма: {item['total_amount']} руб. | Кол-во: {item['count']} шт. | Категория в БД: {item['category']}"
+            for item in summary_data.get("top_items", [])
+        ])
+
+        # 3. Собираем единый контекст пользователя
+        user_context = f"""
+        Период анализа: {summary_data['days_period']} дней.
+        Всего потрачено: {summary_data['total_amount']} руб. за {summary_data['total_count']} транзакций.
+
+        === РАСПРЕДЕЛЕНИЕ ПО КАТЕГОРИЯМ В БД ===
+        {categories_block}
+
+        === ТОП КОНКРЕТНЫХ ТОВАРОВ ИЗ ЧЕКОВ (ДЛЯ АНАЛИЗА ВАЖНОСТИ) ===
+        {items_block}
+        """
+
+        completion = self.client.beta.chat.completions.parse(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT_ANALYSIS},
+                {"role": "user", "content": user_context}
+            ],
+            response_format=response_schema,
+            temperature=0.7
+        )
+        # Возвращаем dict, готовый для сериализации в Redis/PostgreSQL
+        return completion.choices[0].message.parsed.model_dump()
 
 
 ai_service = AIService(api_key=proxy_api_key, base_url=proxy_base_url)

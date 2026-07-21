@@ -110,3 +110,24 @@ class ReceiptListAnalysisSchema(BaseModel):
     transactions: List[ReceiptAnalysisSchema] = Field(
         default=[], description="Список транзакций, разделенных строго по категориям"
     )
+
+
+class AnalyzedItem(BaseModel):
+    name: str = Field(description="Название товара из чека")
+    original_category: str = Field(description="Категория из БД бота (food, home, health и т.д.)")
+    expense_type: str = Field(
+        description="Строго один из вариантов: 'essential' (жизненно важно: лекарства, аренда, базовые продукты) или 'discretionary' (необязательно: рестораны, такси комфорт, развлечения, подписки)"
+    )
+
+class TargetRecommendation(BaseModel):
+    target_item_or_category: str = Field(description="Название конкретного товара или категории для оптимизации")
+    reason: str = Field(description="Аргументированный совет, почему и как можно оптимизировать (без банальностей)")
+    potential_saving: float = Field(description="Сколько примерно можно сэкономить, если оптимизировать этот пункт")
+
+
+class AIAnalysisResponse(BaseModel):
+    summary: str = Field(description="Общий анализ финансового поведения за период (до 3 предложений)")
+    # ИИ сначала распределяет переданные товары по типам важности
+    classified_items: List[AnalyzedItem] = Field(description="Классификация топ-товаров пользователя по типу важности")
+    # Рекомендации строятся ТОЛЬКО на основе discretionary-расходов
+    recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов ПО ГИБКИМ РАСХОДАМ")

@@ -209,3 +209,56 @@ async def delete_batch_handler(
             await callback.answer(_("Record not found."), show_alert=True)
 
             await callback.message.edit_reply_markup(reply_markup=None)
+
+
+
+
+# @router.callback_query(F.data == "get_ai_analytics")
+# async def handle_analytics_request(callback: CallbackQuery, session: AsyncSession):
+#     await callback.answer()
+#
+#     # 1. Загружаем данные из БД
+#     summary_data = await get_user_expense_summary(session, callback.from_user.id)
+#
+#     if not summary_data:
+#         await callback.message.answer("У вас пока недостаточно транзакций для анализа. Добавьте больше чеков! 🧾")
+#         return
+#
+#     status_msg = await callback.message.answer(
+#         "🤖 *ИИ анализирует структуру ваших расходов...* \nЭто займет пару секунд.")
+#
+#     # 2. Триггерим Celery таску
+#     task = generate_ai_analytics.delay(callback.from_user.id, summary_data)
+#
+#     # 3. Асинхронный пуллинг статуса задачи (в реальном продакшене лучше делать через webhook/event, но для MVP пуллинг внутри задачи aiogram вполне ок)
+#     for _ in range(15):
+#         await asyncio.sleep(1)
+#         async_result = AsyncResult(task.id, app=celery_app)
+#
+#         if async_result.ready():
+#             result = async_result.result
+#             if "error" in result:
+#                 await status_msg.edit_text("❌ Не удалось построить аналитику. Попробуйте позже.")
+#                 return
+#
+#             # Форматируем красивый вывод
+#             response_text = (
+#                 f"📊 *Финансовый отчет за {summary_data['days_period']} дней*\n\n"
+#                 f"🎯 *Резюме:* {result['summary']}\n\n"
+#                 f"📈 *Тренды:* \n"
+#             )
+#             for trend in result['trends']:
+#                 emoji = "⚠️" if trend['trend_type'] == "критический_расход" else "✅"
+#                 response_text += f"{emoji} `{trend['category']}`: {trend['analysis']}\n"
+#
+#             response_text += f"\n💡 *Рекомендации:* \n"
+#             for rec in result['recommendations']:
+#                 response_text += f"• {rec}\n"
+#
+#             response_text += f"\n💵 *Потенциал экономии:* ~{result['saving_potential']} руб."
+#
+#             await status_msg.edit_text(response_text, parse_mode="Markdown")
+#             return
+#
+#     await status_msg.edit_text(
+#         "⏳ Расчет занял слишком много времени. Результат будет доступен в главном меню чуть позже.")

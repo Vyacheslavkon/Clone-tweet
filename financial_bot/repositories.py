@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 from aiogram.utils.i18n import gettext as _
@@ -232,3 +232,75 @@ async def delete_check(session: AsyncSession, batch_id: str):
 
     else:
         return False
+
+
+async def get_user_expense_summary(session: AsyncSession, user_id: int, days: int = 30) -> dict:
+    start_date = datetime.now(timezone.utc) - timedelta(days=days)
+
+    total_stmt = (
+        select(
+            func.sum(Transactions.amount).label("total_amount"),
+            func.count(Transactions.id).label("total_count")
+        )
+        .where(Transactions.user_id == user_id, Transactions.created_at >= start_date)
+    )
+    total_res = await session.execute(total_stmt)
+    total_data = total_res.first()
+
+    if not total_data or total_data.total_amount is None:
+        return {}
+
+    cat_stmt = (
+        select(
+            Transactions.category,
+            func.sum(Transactions.amount).label("cat_amount"),
+            func.count(Transactions.id).label("cat_count")
+        )
+        .where(Transactions.user_id == user_id, Transactions.created_at >= start_date)
+        .group_by(Transactions.category)
+        .order_by(func.sum(Transactions.amount).desc())
+    )
+    cat_res = await session.execute(cat_stmt)
+
+    categories = [
+        {
+            "category": row.category,
+            "amount": float(row.cat_amount),
+            "count": row.cat_count
+        }
+        for row in cat_res.all()
+    ]
+
+
+    items_stmt = (
+        select(
+            TransactionItems.name,
+            func.sum(TransactionItems.price).label("item_total_amount"),
+            func.count(TransactionItems.id).label("item_count"),
+            Transactions.category.label("associated_category")
+        )
+        .join(Transactions, TransactionItems.transaction_id == Transactions.id)
+        .where(Transactions.user_id == user_id, Transactions.created_at >= start_date)
+        .group_by(TransactionItems.name, Transactions.category)
+        .order_by(func.sum(TransactionItems.price).desc())
+        .limit(10)
+    )
+    items_res = await session.execute(items_stmt)
+
+    top_items = [
+        {
+            "name": row.name,
+            "total_amount": float(row.item_total_amount),
+            "count": row.item_count,
+            "category": row.associated_category
+        }
+        for row in items_res.all()
+    ]
+
+    return {
+        "total_amount": float(total_data.total_amount),
+        "total_count": total_data.total_count,
+        "categories": categories,  # Из старого запроса
+        "top_items": top_items,  # Наша конкретика!
+        "days_period": days
+    }
