@@ -8,6 +8,7 @@ from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
+from aiogram.exceptions import TelegramAPIError
 from loguru import logger
 
 from financial_bot.keyboards.inline import get_delete_keyboard
@@ -17,6 +18,7 @@ from services.schemas import ReceiptListAnalysisSchema, AIAnalysisResponse
 from services.utils_pipelines import (
     get_isolated_session,
     merge_transactions_by_category,
+    CATEGORY_TITLES
 )
 
 # for check.
@@ -512,13 +514,78 @@ async def process_analysis_expense(
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
 
-    # try:
-    #
-    #     analysis_result: AIAnalysisResponse = (
-    #         await ai_service.analysis_expense(
-    #             summary_data=data,
-    #             response_schema=AIAnalysisResponse,
-    #             locale=locale,
-    #         )
-    #     )
+    try:
 
+        analysis_result: AIAnalysisResponse = (
+            await ai_service.analysis_expense(
+                summary_data=data,
+                response_schema=AIAnalysisResponse,
+                locale=locale,
+            )
+        )
+
+        lines = [
+            _("📊 <b>Financial analysis of expenses</b>\n"),
+            "{summary}\n".format(summary=analysis_result.summary),
+            _("🎯 <b>Categorizing top expenses by importance:</b>")
+        ]
+
+        essentials = [item for item in analysis_result.classified_items if item.expense_type == "essential"]
+        discretionary = [item for item in analysis_result.classified_items if item.expense_type == "discretionary"]
+
+        if essentials:
+            lines.append(_("\n🟢 <u>Necessary :</u>"))
+            for item in essentials:
+                cat = CATEGORY_TITLES.get(item.original_category, "📦 {org_cat}".format(org_cat=item.original_category))
+
+                lines.append(" • <b>{el}</b> ({cat})".format(el=item.name,
+                                                                    cat=cat))
+
+        if discretionary:
+            lines.append(_("\n🟡 <u>Secondary :</u>"))
+            for item in discretionary:
+                cat = CATEGORY_TITLES.get(item.original_category, f"📦 {item.original_category}")
+                lines.append(" • <b>{el}</b> ({cat})".format(el=item.name, cat=cat))
+
+        if analysis_result.recommendations:
+            lines.append(_("\n💡 <b>Optimization recommendations:</b>"))
+            for i, rec in enumerate(analysis_result.recommendations, 1):
+                lines.append(
+                    "\n{num}. <b>{target}</b>\n"
+                    "└ {reason}\n"
+                    "└ <i>{saving_label}: ~{saving:,.0f} руб.</i>".format(
+                        num=i,
+                        target=rec.target_item_or_category,
+                        reason=rec.reason,
+                        saving_label=_("Possible savings"),
+                        saving=rec.potential_saving
+                    )
+                )
+
+        msg_text = "\n".join(lines)
+
+        await bot.send_message(
+            chat_id=chat_id,
+            text=msg_text,
+            parse_mode=ParseMode.HTML
+        )
+
+    except TelegramAPIError as tg_err:
+        logger.error("Ошибка отправки аналитики в Telegram для chat_id {}: {}".format(chat_id, tg_err))
+
+
+    except Exception as e: # noqa
+        logger.exception("Критическая ошибка при генерации AI-аналитики для chat_id {}".format(chat_id))
+
+
+        try:
+
+            error_msg = _("❌ <b>An error occurred while generating the report.</b>\nPlease try again later.")
+
+            await bot.send_message(
+                chat_id=chat_id,
+                text=error_msg,
+                parse_mode=ParseMode.HTML
+            )
+        except Exception as send_err:
+            logger.error("Не удалось отправить сообщение об ошибке пользователю: {}".format(send_err))

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, time
 from decimal import Decimal
 
 from aiogram.utils.i18n import gettext as _
@@ -234,15 +234,36 @@ async def delete_check(session: AsyncSession, batch_id: str):
         return False
 
 
-async def get_user_expense_summary(session: AsyncSession, user_id: int, days: int = 30) -> dict:
-    start_date = datetime.now(timezone.utc) - timedelta(days=days)
+async def get_user_expense_summary(session: AsyncSession, user_id: int, days: int) -> dict:
+
+
+    now = datetime.now(timezone.utc)
+    end_date = datetime.combine(now.date(), time.max).replace(tzinfo=timezone.utc)
+
+
+
+    if days == 7:
+        start_of_week = now.date() - timedelta(days=now.weekday())
+        start_date = datetime.combine(start_of_week, time.min)
+
+    elif days == 30:
+        start_of_month = now.date().replace(day=1)
+        start_date = datetime.combine(start_of_month, time.min)
+
+
+    else:
+
+        start_date = datetime.combine(now.date() - timedelta(days=days), time.min).replace(tzinfo=timezone.utc)
+
+    start_date = start_date.replace(tzinfo=timezone.utc)
+
 
     total_stmt = (
         select(
             func.sum(Transactions.amount).label("total_amount"),
             func.count(Transactions.id).label("total_count")
         )
-        .where(Transactions.user_id == user_id, Transactions.created_at >= start_date)
+        .where(Transactions.user_id == user_id, Transactions.created_at.between(start_date, end_date))
     )
     total_res = await session.execute(total_stmt)
     total_data = total_res.first()
@@ -256,7 +277,7 @@ async def get_user_expense_summary(session: AsyncSession, user_id: int, days: in
             func.sum(Transactions.amount).label("cat_amount"),
             func.count(Transactions.id).label("cat_count")
         )
-        .where(Transactions.user_id == user_id, Transactions.created_at >= start_date)
+        .where(Transactions.user_id == user_id, Transactions.created_at.between(start_date, end_date))
         .group_by(Transactions.category)
         .order_by(func.sum(Transactions.amount).desc())
     )
@@ -280,7 +301,7 @@ async def get_user_expense_summary(session: AsyncSession, user_id: int, days: in
             Transactions.category.label("associated_category")
         )
         .join(Transactions, TransactionItems.transaction_id == Transactions.id)
-        .where(Transactions.user_id == user_id, Transactions.created_at >= start_date)
+        .where(Transactions.user_id == user_id, Transactions.created_at.between(start_date, end_date))
         .group_by(TransactionItems.name, Transactions.category)
         .order_by(func.sum(TransactionItems.price).desc())
         .limit(10)

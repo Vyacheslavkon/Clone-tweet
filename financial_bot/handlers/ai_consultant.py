@@ -13,11 +13,11 @@ from financial_bot.filters import (
     IsProUserFilter,
 )
 from financial_bot.keyboards.reply import get_main_menu, request_ai
-from financial_bot.repositories import delete_check, get_user_by_id
+from financial_bot.repositories import delete_check, get_user_by_id, get_user_expense_summary
 
 # from financial_bot.tasks.ai import process_ai_request
 from financial_bot.states.ai_states import AIState
-from financial_bot.tasks.ai import process_expense_task, process_receipt_task
+from financial_bot.tasks.ai import process_expense_task, process_receipt_task, process_analysis_expense_task
 
 ai_router = Router()
 
@@ -163,32 +163,32 @@ async def handle_voice_receipt(message: Message, session: AsyncSession):
         )
 
 
-@ai_router.message(F.text)
-async def handle_text_message(message: Message, session: AsyncSession):
-    if not message.from_user:
-        return
-
-    user = await get_user_by_id(session, message.from_user.id)
-
-    if not user:
-        await message.answer(_("User not found. Please enter /start."))
-        return
-
-    waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
-
-    text = message.text
-
-    process_expense_task.delay(
-        chat_id=message.chat.id,
-        db_user_id=user.id,  # или как у вас в коде называется id пользователя
-        locale=user.language_code,
-        text=text,
-    )
-
-    if message.bot:
-        await message.bot.delete_message(
-            chat_id=message.chat.id, message_id=waiting_msg.message_id
-        )
+# @ai_router.message(F.text)
+# async def handle_text_message(message: Message, session: AsyncSession):
+#     if not message.from_user:
+#         return
+#
+#     user = await get_user_by_id(session, message.from_user.id)
+#
+#     if not user:
+#         await message.answer(_("User not found. Please enter /start."))
+#         return
+#
+#     waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
+#
+#     text = message.text
+#
+#     process_expense_task.delay(
+#         chat_id=message.chat.id,
+#         db_user_id=user.id,  # или как у вас в коде называется id пользователя
+#         locale=user.language_code,
+#         text=text,
+#     )
+#
+#     if message.bot:
+#         await message.bot.delete_message(
+#             chat_id=message.chat.id, message_id=waiting_msg.message_id
+#         )
 
 
 @ai_router.callback_query(DeleteTransactionCallback.filter())
@@ -213,52 +213,56 @@ async def delete_batch_handler(
 
 
 
-# @router.callback_query(F.data == "get_ai_analytics")
-# async def handle_analytics_request(callback: CallbackQuery, session: AsyncSession):
-#     await callback.answer()
+@ai_router.message(F.text)
+async def handle_analytics_request(message: Message, session: AsyncSession):
+
+    if not message.from_user:
+        return
+
+    user = await get_user_by_id(session, message.from_user.id)
+
+    if not user:
+        await message.answer(_("User not found. Please enter /start."))
+        return
+
+    weekly_text = _("weekly data analysis")
+    monthly_text = _("monthly data analysis")
+
+    days_mapping = {
+        weekly_text: 7,
+        monthly_text: 30
+    }
+
+    user_text = message.text
+
+    days = days_mapping[user_text]
+
+    summary_data = await get_user_expense_summary(session, user.id, days)
+
+    if not summary_data:
+        await message.answer(_("You don't have enough transactions for analysis yet. We need more data! 🧾"))
+        return
+
+
+
+    process_analysis_expense_task.delay(
+        chat_id=message.chat.id,
+        locale=user.language_code,
+        data=summary_data,
+        user_id=user.id,
+    )
+
+    await message.answer(
+        _("🤖 *AI is analyzing your spending patterns...* \nThis will take a couple of seconds."))
+
+
+
+# # Вычисляем, сколько реальных дней попало в выборку
+# days_in_period = (end_date - start_date).days + 1
 #
-#     # 1. Загружаем данные из БД
-#     summary_data = await get_user_expense_summary(session, callback.from_user.id)
-#
-#     if not summary_data:
-#         await callback.message.answer("У вас пока недостаточно транзакций для анализа. Добавьте больше чеков! 🧾")
-#         return
-#
-#     status_msg = await callback.message.answer(
-#         "🤖 *ИИ анализирует структуру ваших расходов...* \nЭто займет пару секунд.")
-#
-#     # 2. Триггерим Celery таску
-#     task = generate_ai_analytics.delay(callback.from_user.id, summary_data)
-#
-#     # 3. Асинхронный пуллинг статуса задачи (в реальном продакшене лучше делать через webhook/event, но для MVP пуллинг внутри задачи aiogram вполне ок)
-#     for _ in range(15):
-#         await asyncio.sleep(1)
-#         async_result = AsyncResult(task.id, app=celery_app)
-#
-#         if async_result.ready():
-#             result = async_result.result
-#             if "error" in result:
-#                 await status_msg.edit_text("❌ Не удалось построить аналитику. Попробуйте позже.")
-#                 return
-#
-#             # Форматируем красивый вывод
-#             response_text = (
-#                 f"📊 *Финансовый отчет за {summary_data['days_period']} дней*\n\n"
-#                 f"🎯 *Резюме:* {result['summary']}\n\n"
-#                 f"📈 *Тренды:* \n"
-#             )
-#             for trend in result['trends']:
-#                 emoji = "⚠️" if trend['trend_type'] == "критический_расход" else "✅"
-#                 response_text += f"{emoji} `{trend['category']}`: {trend['analysis']}\n"
-#
-#             response_text += f"\n💡 *Рекомендации:* \n"
-#             for rec in result['recommendations']:
-#                 response_text += f"• {rec}\n"
-#
-#             response_text += f"\n💵 *Потенциал экономии:* ~{result['saving_potential']} руб."
-#
-#             await status_msg.edit_text(response_text, parse_mode="Markdown")
-#             return
-#
-#     await status_msg.edit_text(
-#         "⏳ Расчет занял слишком много времени. Результат будет доступен в главном меню чуть позже.")
+# # Если это анализ месяца, но сегодня только 1 или 2 число:
+# if days == 30 and days_in_period < 3:
+#     await message.answer(
+#         _("Предупреждение: В текущем месяце прошло всего {days} дня. "
+#           "Данных может быть недостаточно для точного ИИ-анализа.").format(days=days_in_period)
+#     )

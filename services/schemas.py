@@ -127,7 +127,5 @@ class TargetRecommendation(BaseModel):
 
 class AIAnalysisResponse(BaseModel):
     summary: str = Field(description="Общий анализ финансового поведения за период (до 3 предложений)")
-    # ИИ сначала распределяет переданные товары по типам важности
     classified_items: List[AnalyzedItem] = Field(description="Классификация топ-товаров пользователя по типу важности")
-    # Рекомендации строятся ТОЛЬКО на основе discretionary-расходов
     recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов ПО ГИБКИМ РАСХОДАМ")
