@@ -520,7 +520,7 @@ async def process_analysis_expense(
             await ai_service.analysis_expense(
                 summary_data=data,
                 response_schema=AIAnalysisResponse,
-                locale=locale,
+
             )
         )
 

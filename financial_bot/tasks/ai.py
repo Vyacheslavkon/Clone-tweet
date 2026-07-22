@@ -71,7 +71,7 @@ def process_analysis_expense_task(
 
     try:
         result = asyncio.run(
-            process_analysis_expense(chat_id, locale, data)
+            process_analysis_expense(locale, data, chat_id)
         )
 
         logger.info(

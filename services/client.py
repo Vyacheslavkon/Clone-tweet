@@ -129,7 +129,7 @@ class AIService:
         )
 
     async def analysis_expense(self, response_schema: Type[BaseModel],
-                               user_id: int,
+
                                summary_data: dict)-> dict:
 
         if not summary_data:
@@ -160,7 +160,7 @@ class AIService:
         {items_block}
         """
 
-        completion = self.client.beta.chat.completions.parse(
+        completion = await self.client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT_ANALYSIS},
@@ -170,7 +170,7 @@ class AIService:
             temperature=0.7
         )
         # Возвращаем dict, готовый для сериализации в Redis/PostgreSQL
-        return completion.choices[0].message.parsed.model_dump()
+        return completion.choices[0].message.parsed
 
 
 ai_service = AIService(api_key=proxy_api_key, base_url=proxy_base_url)
