@@ -6,6 +6,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime, timezone
 
 from financial_bot.filters import (
     DeleteTransactionCallback,
@@ -236,6 +237,27 @@ async def handle_analytics_request(message: Message, session: AsyncSession):
     user_text = message.text
 
     days = days_mapping[user_text]
+    now = datetime.now(timezone.utc)
+
+    if days == 7:
+        days_passed = now.weekday() + 1
+        if days_passed < 3:
+            await message.answer(
+                _("📊 *Current week is too fresh!* \n"
+                  "We can only analyze the week starting from Wednesday, when enough spendings accumulate. "
+                  "Please check back later! 🗓")
+            )
+            return
+
+    elif days == 30:
+        days_passed = now.day
+        if days_passed < 10:
+            await message.answer(
+                _("📈 *Too early for a monthly report!* \n"
+                  "A reliable monthly analysis requires at least 10 days of data (available from the 10th). "
+                  "Right now, try checking your weekly analytics instead! 📅")
+            )
+            return
 
     summary_data = await get_user_expense_summary(session, user.id, days)
 
@@ -243,6 +265,15 @@ async def handle_analytics_request(message: Message, session: AsyncSession):
         await message.answer(_("You don't have enough transactions for analysis yet. We need more data! 🧾"))
         return
 
+    min_items_required = 5 if days == 7 else 12  # Для недели хватит 5 покупок, для месяца нужно хотя бы 12
+
+    if not summary_data or summary_data.get("total_count", 0) < min_items_required:
+        await message.answer(
+            _("🧾 *Not enough data for deep analysis!* \n"
+              "You have too few expenses logged for this period. "
+              "Keep logging your expenditures via voice, and I will prepare a smart audit soon! 🤖")
+        )
+        return
 
 
     process_analysis_expense_task.delay(
@@ -256,13 +287,3 @@ async def handle_analytics_request(message: Message, session: AsyncSession):
         _("🤖 *AI is analyzing your spending patterns...* \nThis will take a couple of seconds."))
 
 
-
-# # Вычисляем, сколько реальных дней попало в выборку
-# days_in_period = (end_date - start_date).days + 1
-#
-# # Если это анализ месяца, но сегодня только 1 или 2 число:
-# if days == 30 and days_in_period < 3:
-#     await message.answer(
-#         _("Предупреждение: В текущем месяце прошло всего {days} дня. "
-#           "Данных может быть недостаточно для точного ИИ-анализа.").format(days=days_in_period)
-#     )
