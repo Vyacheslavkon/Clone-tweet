@@ -281,6 +281,8 @@ async def handle_analytics_request(message: Message, session: AsyncSession):
         locale=user.language_code,
         data=summary_data,
         user_id=user.id,
+        days=days,
+        actual_days=summary_data["days_period"]
     )
 
     await message.answer(

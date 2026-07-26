@@ -481,6 +481,8 @@ async def process_analysis_expense(
         locale: str,
         data: dict,
         chat_id: int,
+        days: int,
+        actual_days: int
 ):
 
     locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
@@ -520,6 +522,8 @@ async def process_analysis_expense(
             await ai_service.analysis_expense(
                 summary_data=data,
                 response_schema=AIAnalysisResponse,
+                days=days,
+                actual_days=actual_days
 
             )
         )
@@ -553,7 +557,7 @@ async def process_analysis_expense(
                 lines.append(
                     "\n{num}. <b>{target}</b>\n"
                     "└ {reason}\n"
-                    "└ <i>{saving_label}: ~{saving:,.0f} руб.</i>".format(
+                    "└ <i>{saving_label}: {saving}</i>".format(
                         num=i,
                         target=rec.target_item_or_category,
                         reason=rec.reason,

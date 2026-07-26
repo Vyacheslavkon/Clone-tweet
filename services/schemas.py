@@ -122,10 +122,16 @@ class AnalyzedItem(BaseModel):
 class TargetRecommendation(BaseModel):
     target_item_or_category: str = Field(description="Название конкретного товара или категории для оптимизации")
     reason: str = Field(description="Аргументированный совет, почему и как можно оптимизировать (без банальностей)")
-    potential_saving: float = Field(description="Сколько примерно можно сэкономить, если оптимизировать этот пункт")
-
+    #potential_saving: float = Field(description="Сколько примерно можно сэкономить, если оптимизировать этот пункт")
+    potential_saving: str = Field(
+        description="Оценка потенциала экономии в свободной форме (например: 'Около 1500 руб в месяц, если сократить частоту до 2 раз в неделю' или 'До 20% от текущих трат на эту позицию')")
 
 class AIAnalysisResponse(BaseModel):
-    summary: str = Field(description="Общий анализ финансового поведения за период (до 3 предложений)")
+    #summary: str = Field(description="Общий анализ финансового поведения за период (до 3 предложений)")
+    summary: str = Field(
+        description="Глубокий аудит финансового поведения за указанный период (до 4 предложений). "
+                    "ВАЖНО: Если ты упоминаешь общую сумму расходов, ты обязан продублировать её "
+                    "строго в том виде, в котором она передана в 'user_context', без округлений!"
+    )
     classified_items: List[AnalyzedItem] = Field(description="Классификация топ-товаров пользователя по типу важности")
     recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов ПО ГИБКИМ РАСХОДАМ")

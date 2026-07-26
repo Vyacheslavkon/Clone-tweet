@@ -327,35 +327,141 @@ async def get_user_expense_summary(session: AsyncSession, user_id: int, days: in
     }
 
 # analysis code!!!
+# async def get_test_user_expense_summary(session: AsyncSession, user_id: int, days: int) -> dict:
+#     if not isinstance(days, int) or days is None:
+#         days = 30
+#
+#     now = datetime.now(timezone.utc)
+#     end_date = datetime.combine(now.date(), time.max).replace(tzinfo=timezone.utc)
+#
+#     if days == 7:
+#         start_of_week = now.date() - timedelta(days=now.weekday())
+#         start_date = datetime.combine(start_of_week, time.min)
+#         actual_days = (end_date.date() - start_of_week).days + 1
+#
+#     elif days == 30:
+#         start_of_month = now.date().replace(day=1)
+#         start_date = datetime.combine(start_of_month, time.min)
+#         actual_days = (end_date.date() - start_of_month).days + 1
+#
+#     else:
+#         start_date = datetime.combine(now.date() - timedelta(days=days), time.min)
+#         actual_days = days
+#
+#     start_date = start_date.replace(tzinfo=timezone.utc)
+#
+#     total_stmt = (
+#         select(
+#             func.sum(Transactions.amount).label("total_amount"),
+#             func.count(Transactions.id).label("total_count")
+#         )
+#         .where(
+#             Transactions.user_id == user_id,
+#             Transactions.created_at >= start_date,
+#             Transactions.created_at < end_date
+#         ))
+#
+#
+#     total_res = await session.execute(total_stmt)
+#     total_data = total_res.first()
+#
+#     if not total_data or total_data.total_amount is None:
+#         return {}
+#
+#     cat_stmt = (
+#         select(
+#             Transactions.category,
+#             func.sum(Transactions.amount).label("cat_amount"),
+#             func.count(Transactions.id).label("cat_count")
+#         )
+#         .where(
+#             Transactions.user_id == user_id,
+#             Transactions.created_at >= start_date,
+#             Transactions.created_at < end_date
+#         )
+#         .group_by(Transactions.category)
+#         .order_by(func.sum(Transactions.amount).desc())
+#     )
+#
+#     cat_res = await session.execute(cat_stmt)
+#     categories = [{"category": row.category, "amount": float(row.cat_amount), "count": row.cat_count} for row in cat_res.all()]
+#
+#     # ДИНАМИЧЕСКАЯ НАСТРОЙКА ТОП-ТОВАРОВ ДЛЯ РАЗДЕЛЕНИЯ КОНТЕКСТА
+#     if days == 7:
+#         # Текущая неделя: ищем самые дорогие разовые покупки за эти дни
+#         order_by_clause = desc(func.sum(TransactionItems.price))
+#         items_limit = 10
+#     else:
+#         # Текущий месяц: ищем повторяющиеся паттерны/ритуалы с 1-го числа (по count)
+#         order_by_clause = desc(func.count(TransactionItems.id))
+#         items_limit = 20  # Расширяем лимит, чтобы захватить мелкие системные траты
+#
+#
+#     items_stmt = (
+#         select(
+#             TransactionItems.name,
+#             func.sum(TransactionItems.price).label("item_total_amount"),
+#             func.count(TransactionItems.id).label("item_count"),
+#             Transactions.category.label("associated_category")
+#         )
+#         .join(Transactions, TransactionItems.transaction_id == Transactions.id)
+#         .where(
+#             Transactions.user_id == user_id,
+#             Transactions.created_at >= start_date,
+#             Transactions.created_at < end_date
+#         )
+#         .group_by(TransactionItems.name, Transactions.category)
+#         .order_by(order_by_clause)
+#         .limit(items_limit)
+#     )
+#     items_res = await session.execute(items_stmt)
+#
+#     top_items = [
+#         {
+#             "name": row.name,
+#             "total_amount": float(row.item_total_amount),
+#             "count": row.item_count,
+#             "category": row.associated_category
+#         }
+#         for row in items_res.all()
+#     ]
+#
+#     return {
+#         "total_amount": float(total_data.total_amount),
+#         "total_count": total_data.total_count,
+#         "categories": categories,
+#         "top_items": top_items,
+#         "days_period": actual_days
+#     }
+
+
 async def get_test_user_expense_summary(session: AsyncSession, user_id: int, days: int) -> dict:
-    if not isinstance(days, int) or days is None:
-        days = 30
+    days = int(days)
 
+    # Так как в модели DateTime(timezone=True), создаем строгие UTC границы
     now = datetime.now(timezone.utc)
-    end_date = datetime.combine(now.date(), time.max).replace(tzinfo=timezone.utc)
+    end_date = now
 
-    # СТРОГИЕ КАЛЕНДАРНЫЕ ГРАНИЦЫ (Без захвата прошлых периодов)
     if days == 7:
-        # Текущая неделя: строго с понедельника текущей недели
         start_of_week = now.date() - timedelta(days=now.weekday())
-        start_date = datetime.combine(start_of_week, time.min)
+        start_date = datetime.combine(start_of_week, time.min, tzinfo=timezone.utc)
+        actual_days = (end_date.date() - start_of_week).days + 1
     elif days == 30:
-        # Текущий месяц: строго с 1-го числа текущего месяца
         start_of_month = now.date().replace(day=1)
-        start_date = datetime.combine(start_of_month, time.min)
+        start_date = datetime.combine(start_of_month, time.min, tzinfo=timezone.utc)
+        actual_days = (end_date.date() - start_of_month).days + 1
     else:
-        # Резервный вариант, если передано другое число
-        start_date = datetime.combine(now.date() - timedelta(days=days), time.min)
+        start_date = datetime.combine(now.date() - timedelta(days=days), time.min, tzinfo=timezone.utc)
+        actual_days = days
 
-    start_date = start_date.replace(tzinfo=timezone.utc)
-
-    # [Блоки total_stmt и cat_stmt остаются без изменений...]
-    total_stmt = (
-        select(
-            func.sum(Transactions.amount).label("total_amount"),
-            func.count(Transactions.id).label("total_count")
-        )
-        .where(Transactions.user_id == user_id, Transactions.created_at.between(start_date, end_date))
+    # 1. ЗАПРОС ОБЩИХ ДАННЫХ
+    total_stmt = select(
+        func.sum(Transactions.amount).label("total_amount"),
+        func.count(Transactions.id).label("total_count")
+    ).where(
+        Transactions.user_id == user_id,
+        Transactions.created_at >= start_date,
+        Transactions.created_at < end_date
     )
     total_res = await session.execute(total_stmt)
     total_data = total_res.first()
@@ -363,30 +469,25 @@ async def get_test_user_expense_summary(session: AsyncSession, user_id: int, day
     if not total_data or total_data.total_amount is None:
         return {}
 
-    cat_stmt = (
-        select(
-            Transactions.category,
-            func.sum(Transactions.amount).label("cat_amount"),
-            func.count(Transactions.id).label("cat_count")
-        )
-        .where(Transactions.user_id == user_id, Transactions.created_at.between(start_date, end_date))
-        .group_by(Transactions.category)
-        .order_by(func.sum(Transactions.amount).desc())
-    )
+    # 2. ЗАПРОС КАТЕГОРИЙ
+    cat_stmt = select(
+        Transactions.category,
+        func.sum(Transactions.amount).label("cat_amount"),
+        func.count(Transactions.id).label("cat_count")
+    ).where(
+        Transactions.user_id == user_id,
+        Transactions.created_at >= start_date,
+        Transactions.created_at < end_date
+    ).group_by(Transactions.category).order_by(func.sum(Transactions.amount).desc())
+
     cat_res = await session.execute(cat_stmt)
-    categories = [{"category": row.category, "amount": float(row.cat_amount), "count": row.cat_count} for row in cat_res.all()]
+    categories = [
+        {"category": row.category, "amount": float(row.cat_amount), "count": row.cat_count}
+        for row in cat_res.all()
+    ]
 
-    # ДИНАМИЧЕСКАЯ НАСТРОЙКА ТОП-ТОВАРОВ ДЛЯ РАЗДЕЛЕНИЯ КОНТЕКСТА
-    if days == 7:
-        # Текущая неделя: ищем самые дорогие разовые покупки за эти дни
-        order_by_clause = desc(func.sum(TransactionItems.price))
-        items_limit = 10
-    else:
-        # Текущий месяц: ищем повторяющиеся паттерны/ритуалы с 1-го числа (по count)
-        order_by_clause = desc(func.count(TransactionItems.id))
-        items_limit = 20  # Расширяем лимит, чтобы захватить мелкие системные траты
-
-    items_stmt = (
+    # 3. ДИНАМИЧЕСКИЙ ЗАПРОС ТОВАРОВ (РАЗДЕЛЯЕМ КОНТЕКСТ)
+    base_items_query = (
         select(
             TransactionItems.name,
             func.sum(TransactionItems.price).label("item_total_amount"),
@@ -394,13 +495,28 @@ async def get_test_user_expense_summary(session: AsyncSession, user_id: int, day
             Transactions.category.label("associated_category")
         )
         .join(Transactions, TransactionItems.transaction_id == Transactions.id)
-        .where(Transactions.user_id == user_id, Transactions.created_at.between(start_date, end_date))
+        .where(
+            Transactions.user_id == user_id,
+            Transactions.created_at >= start_date,
+            Transactions.created_at < end_date
+        )
         .group_by(TransactionItems.name, Transactions.category)
-        .order_by(order_by_clause)  # Применяем динамическую сортировку
-        .limit(items_limit)         # Применяем динамический лимит
     )
-    items_res = await session.execute(items_stmt)
 
+    if days == 7:
+        # НЕДЕЛЯ: Сортируем по сумме (самые дорогие разовые покупки)
+        items_stmt = base_items_query.order_by(desc(func.sum(TransactionItems.price))).limit(10)
+    else:
+        # МЕСЯЦ: Ищем паттерны. Добавляем HAVING count > 1, чтобы отсечь разовые крупные покупки (типа Подарка)
+        # и заставить модель смотреть только на системные траты (кофе, супермаркеты, сигареты, такси)
+        items_stmt = (
+            base_items_query
+            .having(func.count(TransactionItems.id) > 1)  # Жесткий фильтр системности!
+            .order_by(desc(func.count(TransactionItems.id)))
+            .limit(20)
+        )
+
+    items_res = await session.execute(items_stmt)
     top_items = [
         {
             "name": row.name,
@@ -411,10 +527,24 @@ async def get_test_user_expense_summary(session: AsyncSession, user_id: int, day
         for row in items_res.all()
     ]
 
+    # Если для месяца из-за фильтра HAVING count > 1 список пуст, делаем фоллбек без HAVING
+    if not top_items and days == 30:
+        items_stmt_fallback = base_items_query.order_by(desc(func.count(TransactionItems.id))).limit(20)
+        items_res_fallback = await session.execute(items_stmt_fallback)
+        top_items = [
+            {
+                "name": row.name,
+                "total_amount": float(row.item_total_amount),
+                "count": row.item_count,
+                "category": row.associated_category
+            }
+            for row in items_res_fallback.all()
+        ]
+
     return {
         "total_amount": float(total_data.total_amount),
         "total_count": total_data.total_count,
         "categories": categories,
         "top_items": top_items,
-        "days_period": days  # Передаем маркер периода
+        "days_period": actual_days
     }

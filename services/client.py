@@ -7,8 +7,7 @@ from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from services.prompts import get_voice_message, SYSTEM_PROMPT_ANALYSIS
-
+from services.prompts import get_voice_message, SYSTEM_PROMPT_ANALYSIS, get_analysis_expense
 load_dotenv()
 
 proxy_api_key = os.getenv("OPENAI_API_KEY")
@@ -130,7 +129,9 @@ class AIService:
 
     async def analysis_expense(self, response_schema: Type[BaseModel],
 
-                               summary_data: dict)-> dict:
+                               summary_data: dict,
+                               days: int,
+                               actual_days: int)-> dict:
 
         if not summary_data:
             return {"error": "no_data"}
@@ -148,22 +149,24 @@ class AIService:
             for item in summary_data.get("top_items", [])
         ])
 
-        # 3. Собираем единый контекст пользователя
         user_context = f"""
         Период анализа: {summary_data['days_period']} дней.
-        Всего потрачено: {summary_data['total_amount']} руб. за {summary_data['total_count']} транзакций.
-
+        Всего потрачено: {summary_data['total_amount']} руб. (Используй это число как финальное и неизменное).
+        Количество транзакций: {summary_data['total_count']}.
+        
         === РАСПРЕДЕЛЕНИЕ ПО КАТЕГОРИЯМ В БД ===
         {categories_block}
 
         === ТОП КОНКРЕТНЫХ ТОВАРОВ ИЗ ЧЕКОВ (ДЛЯ АНАЛИЗА ВАЖНОСТИ) ===
         {items_block}
+        
+        В отчете используй только указанные выше цифры. Не округляй их и не пытайся пересчитать общую сумму самостоятельно.
         """
 
         completion = await self.client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT_ANALYSIS},
+                {"role": "system", "content": get_analysis_expense(days, actual_days)},
                 {"role": "user", "content": user_context}
             ],
             response_format=response_schema,

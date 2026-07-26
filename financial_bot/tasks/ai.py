@@ -66,12 +66,12 @@ def process_expense_task(
 
 @celery_app.task(name="financial_bot.ai.process_analysis_expense_task", bind=True, max_retries=3)
 def process_analysis_expense_task(
-    self, chat_id: int,  locale: str, data: dict, user_id: int
+    self, chat_id: int,  locale: str, data: dict, user_id: int, days: int, actual_days: int
 ):
 
     try:
         result = asyncio.run(
-            process_analysis_expense(locale, data, chat_id)
+            process_analysis_expense(locale, data, chat_id, days, actual_days)
         )
 
         logger.info(
