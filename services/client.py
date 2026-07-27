@@ -7,7 +7,7 @@ from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from services.prompts import get_voice_message, SYSTEM_PROMPT_ANALYSIS, get_analysis_expense
+from services.prompts import get_voice_message, get_analysis_expense, get_test_analysis_expense
 load_dotenv()
 
 proxy_api_key = os.getenv("OPENAI_API_KEY")
@@ -136,37 +136,62 @@ class AIService:
         if not summary_data:
             return {"error": "no_data"}
 
-        # 1. Формируем текстовое представление категорий
+        # categories_block = "\n".join([
+        #     f"- {cat['category']}: {cat['amount']} руб. ({cat['count']} шт.)"
+        #     for cat in summary_data.get("categories", [])
+        # ])
+        #
+        #
+        # items_block = "\n".join([
+        #     f"- {item['name']} | Сумма: {item['total_amount']} руб. | Кол-во: {item['count']} шт. | Категория в БД: {item['category']}"
+        #     for item in summary_data.get("top_items", [])
+        # ])
+        #
+        # user_context = f"""
+        # Период анализа: {summary_data['days_period']} дней.
+        # Всего потрачено: {summary_data['total_amount']} руб. (Используй это число как финальное и неизменное).
+        # Количество транзакций: {summary_data['total_count']}.
+        #
+        # === РАСПРЕДЕЛЕНИЕ ПО КАТЕГОРИЯМ В БД ===
+        # {categories_block}
+        #
+        # === ТОП КОНКРЕТНЫХ ТОВАРОВ ИЗ ЧЕКОВ (ДЛЯ АНАЛИЗА ВАЖНОСТИ) ===
+        # {items_block}
+        #
+        # В отчете используй только указанные выше цифры. Не округляй их и не пытайся пересчитать общую сумму самостоятельно.
+        # """
+
+        # 1. Формируем текстовое представление категорий (Оставляем как есть)
         categories_block = "\n".join([
             f"- {cat['category']}: {cat['amount']} руб. ({cat['count']} шт.)"
             for cat in summary_data.get("categories", [])
         ])
 
-        # 2. ДОБАВЛЯЕМ ДАННЫЕ ИЗ ТАБЛИЦЫ ITEMS (transaction_items)
-        # Формируем блок топ-товаров для семантического анализа моделью
+        # 2. ДОБАВЛЯЕМ ДАННЫЕ ИЗ ТАБЛИЦЫ ITEMS (Исправлено под сырой хронологический поток)
         items_block = "\n".join([
-            f"- {item['name']} | Сумма: {item['total_amount']} руб. | Кол-во: {item['count']} шт. | Категория в БД: {item['category']}"
+            f"- Дата: {item['date']} | {item['name']} | Цена: {item['total_amount']} руб. | Категория в БД: {item['category']}"
             for item in summary_data.get("top_items", [])
         ])
 
         user_context = f"""
-        Период анализа: {summary_data['days_period']} дней.
-        Всего потрачено: {summary_data['total_amount']} руб. (Используй это число как финальное и неизменное).
-        Количество транзакций: {summary_data['total_count']}.
-        
-        === РАСПРЕДЕЛЕНИЕ ПО КАТЕГОРИЯМ В БД ===
-        {categories_block}
+           Период анализа: {summary_data['days_period']} дней.
+           Всего потрачено: {summary_data['total_amount']} руб. (Используй это число как финальное и неизменное в поле общего итога).
+           Количество транзакций: {summary_data['total_count']}.
 
-        === ТОП КОНКРЕТНЫХ ТОВАРОВ ИЗ ЧЕКОВ (ДЛЯ АНАЛИЗА ВАЖНОСТИ) ===
-        {items_block}
-        
-        В отчете используй только указанные выше цифры. Не округляй их и не пытайся пересчитать общую сумму самостоятельно.
-        """
+           === РАСПРЕДЕЛЕНИЕ ПО КАТЕГОРИЯМ В БД ===
+           {categories_block}
+
+           === ХРОНОЛОГИЧЕСКИЙ ПОТОК ПОКУПОК ИЗ ЧЕКОВ (СГРУППИРУЙ СЕМАНТИЧЕСКИ САМОСТОЯТЕЛЬНО) ===
+           {items_block}
+
+           В отчете используй только указанные выше цифры. Не округляй их и не пытайся пересчитать общую сумму расходов самостоятельно.
+           В тексте отчета запрещено использовать любые HTML теги, кроме <b>, <i>, <code>. Использование тегов с атрибутами (например, class или style) строго табуировано.
+           """
 
         completion = await self.client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": get_analysis_expense(days, actual_days)},
+                {"role": "system", "content": get_test_analysis_expense(days, actual_days)},
                 {"role": "user", "content": user_context}
             ],
             response_format=response_schema,

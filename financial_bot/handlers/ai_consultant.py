@@ -14,7 +14,7 @@ from financial_bot.filters import (
     IsProUserFilter,
 )
 from financial_bot.keyboards.reply import get_main_menu, request_ai
-from financial_bot.repositories import delete_check, get_user_by_id, get_user_expense_summary
+from financial_bot.repositories import delete_check, get_user_by_id, get_user_expense_summary, get_test_user_expense_summary
 
 # from financial_bot.tasks.ai import process_ai_request
 from financial_bot.states.ai_states import AIState
@@ -259,7 +259,7 @@ async def handle_analytics_request(message: Message, session: AsyncSession):
             )
             return
 
-    summary_data = await get_user_expense_summary(session, user.id, days)
+    summary_data = await get_test_user_expense_summary(session, user.id, days)
 
     if not summary_data:
         await message.answer(_("You don't have enough transactions for analysis yet. We need more data! 🧾"))
@@ -267,7 +267,9 @@ async def handle_analytics_request(message: Message, session: AsyncSession):
 
     min_items_required = 5 if days == 7 else 12  # Для недели хватит 5 покупок, для месяца нужно хотя бы 12
 
-    if not summary_data or summary_data.get("total_count", 0) < min_items_required:
+    actual_items_count = len(summary_data.get("top_items", []))
+
+    if actual_items_count < min_items_required:
         await message.answer(
             _("🧾 *Not enough data for deep analysis!* \n"
               "You have too few expenses logged for this period. "

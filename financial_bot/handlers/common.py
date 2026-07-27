@@ -115,7 +115,7 @@ async def global_error_handler(event: ErrorEvent, admin_id: int):
                 chat_id=admin_id, text=admin_msg, parse_mode="HTML"
             )
     except TelegramBadRequest as e:
-        logger.error(_("HTML parsing or message length error: {error}", error=e))
+        logger.error(_("HTML parsing or message length error: {}".format(e) ))
 
     except TelegramAPIError as e:
         logger.error(
