@@ -7,7 +7,9 @@ from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from services.prompts import get_voice_message, get_analysis_expense, get_test_analysis_expense
+from services.prompts import get_voice_message, get_test_analysis_expense, get_test_analysis_financial, \
+    get_tests_analysis_financial
+
 load_dotenv()
 
 proxy_api_key = os.getenv("OPENAI_API_KEY")
@@ -136,38 +138,12 @@ class AIService:
         if not summary_data:
             return {"error": "no_data"}
 
-        # categories_block = "\n".join([
-        #     f"- {cat['category']}: {cat['amount']} руб. ({cat['count']} шт.)"
-        #     for cat in summary_data.get("categories", [])
-        # ])
-        #
-        #
-        # items_block = "\n".join([
-        #     f"- {item['name']} | Сумма: {item['total_amount']} руб. | Кол-во: {item['count']} шт. | Категория в БД: {item['category']}"
-        #     for item in summary_data.get("top_items", [])
-        # ])
-        #
-        # user_context = f"""
-        # Период анализа: {summary_data['days_period']} дней.
-        # Всего потрачено: {summary_data['total_amount']} руб. (Используй это число как финальное и неизменное).
-        # Количество транзакций: {summary_data['total_count']}.
-        #
-        # === РАСПРЕДЕЛЕНИЕ ПО КАТЕГОРИЯМ В БД ===
-        # {categories_block}
-        #
-        # === ТОП КОНКРЕТНЫХ ТОВАРОВ ИЗ ЧЕКОВ (ДЛЯ АНАЛИЗА ВАЖНОСТИ) ===
-        # {items_block}
-        #
-        # В отчете используй только указанные выше цифры. Не округляй их и не пытайся пересчитать общую сумму самостоятельно.
-        # """
 
-        # 1. Формируем текстовое представление категорий (Оставляем как есть)
         categories_block = "\n".join([
             f"- {cat['category']}: {cat['amount']} руб. ({cat['count']} шт.)"
             for cat in summary_data.get("categories", [])
         ])
 
-        # 2. ДОБАВЛЯЕМ ДАННЫЕ ИЗ ТАБЛИЦЫ ITEMS (Исправлено под сырой хронологический поток)
         items_block = "\n".join([
             f"- Дата: {item['date']} | {item['name']} | Цена: {item['total_amount']} руб. | Категория в БД: {item['category']}"
             for item in summary_data.get("top_items", [])
@@ -198,6 +174,78 @@ class AIService:
             temperature=0.7
         )
         # Возвращаем dict, готовый для сериализации в Redis/PostgreSQL
+        return completion.choices[0].message.parsed
+
+
+    async def analysis_financial(
+            self,
+            response_schema: Type[BaseModel],
+            summary_data: dict,
+            days: int,
+            actual_days: int
+    ) -> dict:
+
+        if not summary_data:
+            return {"error": "no_data"}
+
+        # 1. Блок категорий расходов (твой оригинальный)
+        categories_block = "\n".join([
+            f"- {cat['category']}: {cat['amount']} руб. ({cat['count']} шт.)"
+            for cat in summary_data.get("categories", [])
+        ])
+
+        # 2. Блок хронологического потока товаров (твой оригинальный)
+        items_block = "\n".join([
+            f"- Дата: {item['date']} | {item['name']} | Цена: {item['total_amount']} руб. | Категория в БД: {item['category']}"
+            for item in summary_data.get("top_items", [])
+        ])
+
+        # 3. Формируем строку конфигурации пользователя (лимиты и цели), если они заданы
+        config = summary_data.get("user_config", {})
+        currency = config.get("currency", "руб.")
+
+        config_lines = [f"- Валюта пользователя: {currency}"]
+        if config.get("monthly_budget"):
+            config_lines.append(f"- Месячный лимит расходов: {config['monthly_budget']} {currency}")
+            config_lines.append(f"- Процент напоминания о бюджете: {config['budget_remind_percent']}%")
+        if config.get("savings_goal"):
+            config_lines.append(f"- Цель по сбережениям на месяц: {config['savings_goal']} {currency}")
+
+        config_block = "\n".join(config_lines)
+
+        # 4. Обновленный user_context с доходами и балансом
+        user_context = f"""
+           Период анализа: {summary_data['days_period']} дней.
+           Всего получено доходов: {summary_data.get('total_income', 0.0)} {currency}.
+           Всего потрачено расходов: {summary_data['total_amount']} {currency} (Используй это число как финальное и неизменное в поле общего итога).
+           Чистый баланс за период (Доходы - Расходы): {summary_data.get('net_balance', 0.0)} {currency}.
+           Количество расходных транзакций: {summary_data['total_count']}.
+
+           === ФИНАНСОВЫЕ НАСТРОЙКИ И ЦЕЛИ ПОЛЬЗОВАТЕЛЯ ===
+           {config_block}
+
+           === РАСПРЕДЕЛЕНИЕ РАСХОДОВ ПО КАТЕГОРИЯМ В БД ===
+           {categories_block}
+
+           === ХРОНОЛОГИЧЕСКИЙ ПОТОК ПОКУПОК ИЗ ЧЕКОВ (СГРУППИРУЙ СЕМАНТИЧЕСКИ САМОСТОЯТЕЛЬНО) ===
+           {items_block}
+
+           В отчете используй только указанные выше цифры. Не округляй их и не пытайся пересчитать общую сумму расходов, доходов или баланса самостоятельно.
+           В тексте отчета запрещено использовать любые HTML теги, кроме <b>, <i>, <code>. Использование тегов с атрибутами (например, class или style) строго табуировано.
+           """
+
+        # 5. Отправка в OpenAI (подставляем наш новый get_test_analysis_financial промпт)
+        completion = await self.client.beta.chat.completions.parse(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": get_tests_analysis_financial(days)},
+                {"role": "user", "content": user_context}
+            ],
+            response_format=response_schema,
+            temperature=0.3  # Понизил до 0.3 для строгого следования математическим табу
+        )
+
+        # Возвращаем спарсенный Pydantic-объект
         return completion.choices[0].message.parsed
 
 

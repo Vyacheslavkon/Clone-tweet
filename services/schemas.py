@@ -112,6 +112,32 @@ class ReceiptListAnalysisSchema(BaseModel):
     )
 
 
+# class AnalyzedItem(BaseModel):
+#     name: str = Field(description="Название товара из чека")
+#     original_category: str = Field(description="Категория из БД бота (food, home, health и т.д.)")
+#     expense_type: str = Field(
+#         description="Строго один из вариантов: 'essential' (жизненно важно: лекарства, аренда, базовые продукты) или 'discretionary' (необязательно: рестораны, такси комфорт, развлечения, подписки)"
+#     )
+#
+# class TargetRecommendation(BaseModel):
+#     target_item_or_category: str = Field(description="Название конкретного товара или категории для оптимизации")
+#     reason: str = Field(description="Аргументированный совет, почему и как можно оптимизировать (без банальностей)")
+#     #potential_saving: float = Field(description="Сколько примерно можно сэкономить, если оптимизировать этот пункт")
+#     potential_saving: str = Field(
+#         description="Оценка потенциала экономии в свободной форме (например: 'Около 1500 руб в месяц, если сократить частоту до 2 раз в неделю' или 'До 20% от текущих трат на эту позицию')")
+#
+# class AIAnalysisResponse(BaseModel):
+#     #summary: str = Field(description="Общий анализ финансового поведения за период (до 3 предложений)")
+#     summary: str = Field(
+#         description="Глубокий аудит финансового поведения за указанный период (до 4 предложений). "
+#                     "ВАЖНО: Если ты упоминаешь общую сумму расходов, ты обязан продублировать её "
+#                     "строго в том виде, в котором она передана в 'user_context', без округлений!"
+#     )
+#     classified_items: List[AnalyzedItem] = Field(description="Классификация топ-товаров пользователя по типу важности")
+#     recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов ПО ГИБКИМ РАСХОДАМ")
+
+
+
 class AnalyzedItem(BaseModel):
     name: str = Field(description="Название товара из чека")
     original_category: str = Field(description="Категория из БД бота (food, home, health и т.д.)")
@@ -119,19 +145,31 @@ class AnalyzedItem(BaseModel):
         description="Строго один из вариантов: 'essential' (жизненно важно: лекарства, аренда, базовые продукты) или 'discretionary' (необязательно: рестораны, такси комфорт, развлечения, подписки)"
     )
 
+
 class TargetRecommendation(BaseModel):
     target_item_or_category: str = Field(description="Название конкретного товара или категории для оптимизации")
     reason: str = Field(description="Аргументированный совет, почему и как можно оптимизировать (без банальностей)")
-    #potential_saving: float = Field(description="Сколько примерно можно сэкономить, если оптимизировать этот пункт")
     potential_saving: str = Field(
         description="Оценка потенциала экономии в свободной форме (например: 'Около 1500 руб в месяц, если сократить частоту до 2 раз в неделю' или 'До 20% от текущих трат на эту позицию')")
 
+
 class AIAnalysisResponse(BaseModel):
-    #summary: str = Field(description="Общий анализ финансового поведения за период (до 3 предложений)")
     summary: str = Field(
         description="Глубокий аудит финансового поведения за указанный период (до 4 предложений). "
-                    "ВАЖНО: Если ты упоминаешь общую сумму расходов, ты обязан продублировать её "
-                    "строго в том виде, в котором она передана в 'user_context', без округлений!"
+                    "Включи сюда оценку общего баланса (соотношение доходов и расходов). "
+                    "ВАЖНО: Если ты упоминаешь общие суммы расходов, доходов или баланса, ты обязан продублировать их "
+                    "строго в том виде, в котором они переданы в 'user_context', без округлений!"
     )
+
+    # Новые поля для финансового планирования
+    budget_status: str = Field(
+        description="Короткий вердикт по бюджету и целям сбережений. Примеры: 'Идеально укладываетесь в лимит', 'Лимит превышен', 'Цель по сбережениям под угрозой', 'Бюджет не задан'"
+    )
+    budget_usage_percent: Optional[float] = Field(
+        default=None,
+        description="Процент израсходованного месячного бюджета. Рассчитай на основе переданного лимита. Если лимит не задан в 'user_context', верни null."
+
+    )
+
     classified_items: List[AnalyzedItem] = Field(description="Классификация топ-товаров пользователя по типу важности")
     recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов ПО ГИБКИМ РАСХОДАМ")

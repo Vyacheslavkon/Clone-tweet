@@ -60,6 +60,8 @@ class UserBot(Base):
 
     last_request_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
+    transactions = relationship("Transactions", back_populates="user", cascade="all, delete-orphan")
+
 
 class Transactions(Base):
 
@@ -86,6 +88,8 @@ class Transactions(Base):
         back_populates="transaction", cascade="all, delete-orphan"
     )
     batch_id: Mapped[str] = mapped_column(String(36), index=True, nullable=True)
+
+    user = relationship("UserBot", back_populates="transactions")
 
 
 class TransactionItems(Base):

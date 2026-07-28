@@ -3,8 +3,9 @@ from decimal import Decimal
 
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
-from sqlalchemy import delete, func, select, desc
+from sqlalchemy import delete, func, select, desc, and_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from financial_bot.exceptions import UserNotFoundError
 from financial_bot.models import TransactionItems, Transactions, UserBot
@@ -234,7 +235,7 @@ async def delete_check(session: AsyncSession, batch_id: str):
         return False
 
 
-async def get_user_expense_summary(session: AsyncSession, user_id: int, days: int) -> dict:
+async def get_test_user_expense_summary(session: AsyncSession, user_id: int, days: int) -> dict:
 
 
     now = datetime.now(timezone.utc)
@@ -327,112 +328,7 @@ async def get_user_expense_summary(session: AsyncSession, user_id: int, days: in
     }
 
 
-
-# async def get_test_user_expense_summary(session: AsyncSession, user_id: int, days: int) -> dict:
-#     days = int(days)
-#
-#     now = datetime.now(timezone.utc)
-#     end_date = now
-#
-#     if days == 7:
-#         start_of_week = now.date() - timedelta(days=now.weekday())
-#         start_date = datetime.combine(start_of_week, time.min, tzinfo=timezone.utc)
-#         actual_days = (end_date.date() - start_of_week).days + 1
-#
-#     elif days == 30:
-#         start_of_month = now.date().replace(day=1)
-#         start_date = datetime.combine(start_of_month, time.min, tzinfo=timezone.utc)
-#         actual_days = (end_date.date() - start_of_month).days + 1
-#
-#     else:
-#         start_date = datetime.combine(now.date() - timedelta(days=days), time.min, tzinfo=timezone.utc)
-#         actual_days = days
-#
-#     total_stmt = select(
-#         func.coalesce(func.sum(Transactions.amount), 0).label("total_amount"),
-#         func.count(Transactions.id).label("total_count")
-#     ).where(
-#         Transactions.user_id == user_id,
-#         Transactions.type == "expense",
-#         Transactions.created_at >= start_date,
-#         Transactions.created_at < end_date
-#     )
-#
-#     total_res = await session.execute(total_stmt)
-#     row = total_res.fetchone()
-#
-#     if not row or row.total_count == 0:
-#         return {}
-#
-#     db_total_amount = float(row.total_amount)
-#     db_total_count = row.total_count
-#
-#     cat_stmt = select(
-#         Transactions.category,
-#         func.sum(Transactions.amount).label("cat_amount"),
-#         func.count(Transactions.id).label("cat_count")
-#     ).where(
-#         Transactions.user_id == user_id,
-#         Transactions.type == "expense",
-#         Transactions.created_at >= start_date,
-#         Transactions.created_at < end_date
-#     ).group_by(Transactions.category).order_by(func.sum(Transactions.amount).desc())
-#
-#     cat_res = await session.execute(cat_stmt)
-#     categories = [
-#         {"category": row.category, "amount": float(row.cat_amount), "count": row.cat_count}
-#         for row in cat_res.all()
-#     ]
-#
-#     base_items_query = (
-#         select(
-#             TransactionItems.name,
-#             TransactionItems.price.label("item_amount"),
-#             Transactions.category.label("associated_category"),
-#             Transactions.created_at.label("date")
-#         )
-#         .join(Transactions, TransactionItems.transaction_id == Transactions.id)
-#         .where(
-#             Transactions.user_id == user_id,
-#             Transactions.type == "expense",
-#             Transactions.created_at >= start_date,
-#             Transactions.created_at < end_date
-#         )
-#         #.order_by(Transactions.created_at.desc())
-#     )
-#
-#     if days == 7:
-#         items_stmt = base_items_query.order_by(desc(func.sum(TransactionItems.price))).limit(30)
-#
-#     else:
-#         items_stmt = (
-#             base_items_query
-#             .order_by(desc(func.count(TransactionItems.id)))
-#         )
-#
-#     items_res = await session.execute(items_stmt)
-#     top_items = [
-#         {
-#             "name": row.name,
-#             "total_amount": float(row.item_total_amount),
-#             "count": row.item_count,
-#             "category": row.associated_category,
-#             "date": row.date.strftime("%Y-%m-%d")
-#         }
-#         for row in items_res.all()
-#     ]
-#
-#
-#     return {
-#         "total_amount": db_total_amount, #float(total_data.total_amount),
-#         "total_count": db_total_count,  #total_data.total_count,
-#         "categories": categories,
-#         "top_items": top_items,
-#         "days_period": actual_days
-#     }
-
-
-async def get_test_user_expense_summary(session: AsyncSession, user_id: int, days: int) -> dict:
+async def get_user_expense_summary(session: AsyncSession, user_id: int, days: int) -> dict:
     days = int(days)
 
     now = datetime.now(timezone.utc)
@@ -452,13 +348,12 @@ async def get_test_user_expense_summary(session: AsyncSession, user_id: int, day
         start_date = datetime.combine(now.date() - timedelta(days=days), time.min, tzinfo=timezone.utc)
         actual_days = days
 
-    # 1. ЗАПРОС ОБЩИХ ДАННЫХ (Один быстрый проход строго по расходам)
     total_stmt = select(
         func.coalesce(func.sum(Transactions.amount), 0).label("total_amount"),
         func.count(Transactions.id).label("total_count")
     ).where(
         Transactions.user_id == user_id,
-        Transactions.type == "expense",  # Фильтр только расходов
+        Transactions.type == "expense",
         Transactions.created_at >= start_date,
         Transactions.created_at < end_date
     )
@@ -472,7 +367,6 @@ async def get_test_user_expense_summary(session: AsyncSession, user_id: int, day
     db_total_amount = float(row.total_amount)
     db_total_count = row.total_count
 
-    # 2. ЗАПРОС КАТЕГОРИЙ (Группировка по категориям строго для расходов)
     cat_stmt = select(
         Transactions.category,
         func.sum(Transactions.amount).label("cat_amount"),
@@ -490,9 +384,8 @@ async def get_test_user_expense_summary(session: AsyncSession, user_id: int, day
         for r in cat_res.all()
     ]
 
-    # 3. ПОЗИЦИИ ЧЕКОВ (Сырой хронологический поток без GROUP BY на стороне БД)
     if days == 7:
-        # Для недели: берем сырые позиции чеков, отсортированные по цене
+
         items_stmt = (
             select(
                 TransactionItems.name,
@@ -503,15 +396,15 @@ async def get_test_user_expense_summary(session: AsyncSession, user_id: int, day
             .join(Transactions, TransactionItems.transaction_id == Transactions.id)
             .where(
                 Transactions.user_id == user_id,
-                Transactions.type == "expense",  # Фильтр только расходов
+                Transactions.type == "expense",
                 Transactions.created_at >= start_date,
                 Transactions.created_at < end_date
             )
-            .order_by(desc(TransactionItems.price))  # Чистая сортировка без агрегатов
+            .order_by(desc(TransactionItems.price))
             .limit(30)
         )
     else:
-        # Для месяца: отдаем ПОЛНЫЙ хронологический список трат без лимитов
+
         items_stmt = (
             select(
                 TransactionItems.name,
@@ -522,11 +415,11 @@ async def get_test_user_expense_summary(session: AsyncSession, user_id: int, day
             .join(Transactions, TransactionItems.transaction_id == Transactions.id)
             .where(
                 Transactions.user_id == user_id,
-                Transactions.type == "expense",  # Фильтр только расходов
+                Transactions.type == "expense",
                 Transactions.created_at >= start_date,
                 Transactions.created_at < end_date
             )
-            .order_by(Transactions.created_at.desc())  # Сортируем строго по хронологии
+            .order_by(Transactions.created_at.desc())
         )
 
     items_res = await session.execute(items_stmt)
@@ -547,4 +440,154 @@ async def get_test_user_expense_summary(session: AsyncSession, user_id: int, day
         "categories": categories,
         "top_items": top_items,
         "days_period": actual_days
+    }
+
+
+async def get_user_financial_summary(
+    session: AsyncSession,
+    user_id: int,
+    days: int,
+    user_bot: UserBot
+) -> dict:
+    days = int(days)
+
+    now = datetime.now(timezone.utc)
+    end_date = now
+
+    if days == 7:
+        start_of_week = now.date() - timedelta(days=now.weekday())
+        start_date = datetime.combine(start_of_week, time.min, tzinfo=timezone.utc)
+        actual_days = (end_date.date() - start_of_week).days + 1
+
+    elif days == 30:
+        start_of_month = now.date().replace(day=1)
+        start_date = datetime.combine(start_of_month, time.min, tzinfo=timezone.utc)
+        actual_days = (end_date.date() - start_of_month).days + 1
+
+    else:
+        start_date = datetime.combine(now.date() - timedelta(days=days), time.min, tzinfo=timezone.utc)
+        actual_days = days
+
+
+    total_stmt = select(
+        func.coalesce(func.sum(Transactions.amount), 0).label("total_amount"),
+        func.count(Transactions.id).label("total_count")
+    ).where(
+        Transactions.user_id == user_id,
+        Transactions.type == "expense",
+        Transactions.created_at >= start_date,
+        Transactions.created_at < end_date
+    )
+
+
+    total_res = await session.execute(total_stmt)
+    row = total_res.fetchone()
+
+
+    db_total_amount = float(row.total_amount) if row else 0.0
+    db_total_count = row.total_count if row else 0
+
+
+    income_stmt = select(
+        func.coalesce(func.sum(Transactions.amount), 0).label("total_income")
+    ).where(
+        Transactions.user_id == user_id,
+        Transactions.type == "income",
+        Transactions.created_at >= start_date,
+        Transactions.created_at < end_date
+    )
+    income_res = await session.execute(income_stmt)
+    db_total_income = float(income_res.scalar_one_or_none() or 0.0)
+
+
+    cat_stmt = select(
+        Transactions.category,
+        func.sum(Transactions.amount).label("cat_amount"),
+        func.count(Transactions.id).label("cat_count")
+    ).where(
+        Transactions.user_id == user_id,
+        Transactions.type == "expense",
+        Transactions.created_at >= start_date,
+        Transactions.created_at < end_date
+    ).group_by(Transactions.category).order_by(func.sum(Transactions.amount).desc())
+
+
+    cat_res = await session.execute(cat_stmt)
+    categories = [
+        {"category": r.category, "amount": float(r.cat_amount), "count": r.cat_count}
+        for r in cat_res.all()
+    ]
+
+
+    if days == 7:
+        items_stmt = (
+            select(
+                TransactionItems.name,
+                TransactionItems.price.label("item_amount"),
+                Transactions.category.label("associated_category"),
+                Transactions.created_at.label("date")
+            )
+            .join(Transactions, TransactionItems.transaction_id == Transactions.id)
+            .where(
+                Transactions.user_id == user_id,
+                Transactions.type == "expense",
+                Transactions.created_at >= start_date,
+                Transactions.created_at < end_date
+            )
+            .order_by(desc(TransactionItems.price))
+            .limit(30)
+        )
+
+    else:
+        items_stmt = (
+            select(
+                TransactionItems.name,
+                TransactionItems.price.label("item_amount"),
+                Transactions.category.label("associated_category"),
+                Transactions.created_at.label("date")
+            )
+            .join(Transactions, TransactionItems.transaction_id == Transactions.id)
+            .where(
+                Transactions.user_id == user_id,
+                Transactions.type == "expense",
+                Transactions.created_at >= start_date,
+                Transactions.created_at < end_date
+            )
+            .order_by(Transactions.created_at.desc())
+
+        )
+
+
+    items_res = await session.execute(items_stmt)
+    top_items = [
+        {
+            "name": r.name,
+            "total_amount": float(r.item_amount),
+            "category": r.associated_category,
+            "date": r.date.strftime("%Y-%m-%d")
+        }
+        for r in items_res.all()
+    ]
+
+
+    net_balance = db_total_income - db_total_amount
+
+
+    user_config = {
+        "currency": user_bot.currency,
+        "monthly_budget": float(user_bot.monthly_budget) if user_bot.monthly_budget else None,
+        "budget_remind_percent": user_bot.budget_remind_percent,
+        "savings_goal": float(user_bot.savings_goal) if user_bot.savings_goal else None,
+    }
+
+
+    return {
+        "total_amount": round(db_total_amount, 2),
+        "total_count": db_total_count,
+        "total_income": round(db_total_income, 2),
+        "net_balance": round(net_balance, 2),
+        "categories": categories,
+        "top_items": top_items,
+        "days_period": actual_days,
+        "user_config": user_config
     }

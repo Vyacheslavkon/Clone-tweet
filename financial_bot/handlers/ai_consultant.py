@@ -14,7 +14,7 @@ from financial_bot.filters import (
     IsProUserFilter,
 )
 from financial_bot.keyboards.reply import get_main_menu, request_ai
-from financial_bot.repositories import delete_check, get_user_by_id, get_user_expense_summary, get_test_user_expense_summary
+from financial_bot.repositories import delete_check, get_user_by_id, get_user_expense_summary, get_user_financial_summary
 
 # from financial_bot.tasks.ai import process_ai_request
 from financial_bot.states.ai_states import AIState
@@ -259,7 +259,8 @@ async def handle_analytics_request(message: Message, session: AsyncSession):
             )
             return
 
-    summary_data = await get_test_user_expense_summary(session, user.id, days)
+    #summary_data = await get_user_expense_summary(session, user.id, days)
+    summary_data = await get_user_financial_summary(session, user.id, days, user) # test function
 
     if not summary_data:
         await message.answer(_("You don't have enough transactions for analysis yet. We need more data! 🧾"))

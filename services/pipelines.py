@@ -593,3 +593,139 @@ async def process_analysis_expense(
             )
         except Exception as send_err:
             logger.error("Не удалось отправить сообщение об ошибке пользователю: {}".format(send_err))
+
+
+async def process_analysis_financial(
+        locale: str,
+        data: dict,
+        chat_id: int,
+        days: int,
+        actual_days: int
+):
+    locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
+
+    try:
+        lang = gettext.translation(
+            domain="messages",
+            localedir=str(locales_dir),
+            languages=[locale],
+            fallback=True,
+        )
+    except Exception as e:  # noqa: PIE786
+        logger.error(
+            "Не удалось загрузить локализацию из {locales}: {error}",
+            locales=locales_dir,
+            error=e,
+        )
+        lang = gettext.NullTranslations()
+
+    _ = lang.gettext
+
+    token = os.getenv("BOT_TOKEN")
+    if not token:
+        raise ValueError("The BOT_TOKEN environment variable is not set!")
+
+    bot_session = AiohttpSession()
+    bot = Bot(
+        token=token,
+        session=bot_session,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
+
+    try:
+        # Вызываем наш обновленный метод, передавая расширенную Pydantic-схему
+        analysis_result: AIAnalysisResponse = (
+            await ai_service.analysis_financial(
+                summary_data=data,
+                response_schema=AIAnalysisResponse,
+                days=days,
+                actual_days=actual_days
+            )
+        )
+
+        currency = data.get("user_config", {}).get("currency", "руб.")
+
+        # --- Формируем заголовок и общую финансовую сводку ---
+        lines = [
+            _("📊 <b>Comprehensive financial analysis</b>\n"),
+            "💰 <b>{inc_label}:</b> {income} {curr}".format(inc_label=_("Total Income"),
+                                                           income=data.get('total_income', 0.0), curr=currency),
+            "🛒 <b>{exp_label}:</b> {expense} {curr}".format(exp_label=_("Total Expense"),
+                                                            expense=data.get('total_amount', 0.0), curr=currency),
+            "⚖️ <b>{bal_label}:</b> {balance} {curr}\n".format(bal_label=_("Net Balance"),
+                                                               balance=data.get('net_balance', 0.0), curr=currency),
+        ]
+
+        # Добавляем информацию о лимите бюджета, если он есть в ответе GPT
+        if analysis_result.budget_status:
+            lines.append("📈 <b>{status_label}:</b> {status}".format(status_label=_("Budget status"),
+                                                                    status=analysis_result.budget_status))
+
+        if analysis_result.budget_usage_percent is not None:
+            lines.append("📊 <b>{usage_label}:</b> {percent}%\n".format(usage_label=_("Budget used"), percent=round(
+                analysis_result.budget_usage_percent, 1)))
+        else:
+            lines.append("")  # Пустая строка для отступа
+
+        # Добавляем текстовый разбор от ИИ
+        lines.extend([
+            "{summary}\n".format(summary=analysis_result.summary),
+            _("🎯 <b>Categorizing top expenses by importance:</b>")
+        ])
+
+        # --- Блок классификации товаров (Твой оригинальный код) ---
+        essentials = [item for item in analysis_result.classified_items if item.expense_type == "essential"]
+        discretionary = [item for item in analysis_result.classified_items if item.expense_type == "discretionary"]
+
+        if essentials:
+            lines.append(_("\n🟢 <u>Necessary :</u>"))
+            for item in essentials:
+                cat = CATEGORY_TITLES.get(item.original_category, "📦 {org_cat}".format(org_cat=item.original_category))
+                lines.append(" • <b>{el}</b> ({cat})".format(el=item.name, cat=cat))
+
+        if discretionary:
+            lines.append(_("\n🟡 <u>Secondary :</u>"))
+            for item in discretionary:
+                cat = CATEGORY_TITLES.get(item.original_category, f"📦 {item.original_category}")
+                lines.append(" • <b>{el}</b> ({cat})".format(el=item.name, cat=cat))
+
+        # --- Блок рекомендаций (Твой оригинальный код) ---
+        if analysis_result.recommendations:
+            lines.append(_("\n💡 <b>Optimization recommendations:</b>"))
+            for i, rec in enumerate(analysis_result.recommendations, 1):
+                lines.append(
+                    "\n{num}. <b>{target}</b>\n"
+                    "└ {reason}\n"
+                    "└ <i>{saving_label}: {saving}</i>".format(
+                        num=i,
+                        target=rec.target_item_or_category,
+                        reason=rec.reason,
+                        saving_label=_("Possible savings"),
+                        saving=rec.potential_saving
+                    )
+                )
+
+        msg_text = "\n".join(lines)
+
+        await bot.send_message(
+            chat_id=chat_id,
+            text=msg_text,
+            parse_mode=ParseMode.HTML
+        )
+
+    except TelegramAPIError as tg_err:
+        logger.error("Ошибка отправки аналитики в Telegram для chat_id {}: {}".format(chat_id, tg_err))
+    except Exception as e:  # noqa
+        logger.exception("Критическая ошибка при генерации AI-аналитики для chat_id {}".format(chat_id))
+        try:
+            error_msg = _("❌ <b>An error occurred while generating the report.</b>\nPlease try again later.")
+            await bot.send_message(
+                chat_id=chat_id,
+                text=error_msg,
+                parse_mode=ParseMode.HTML
+            )
+        except Exception as send_err:
+            logger.error("Не удалось отправить сообщение об ошибке пользователю: {}".format(send_err))
+    finally:
+        await bot_session.close()  # Не забываем закрывать аиохиттп-сессию!
+
