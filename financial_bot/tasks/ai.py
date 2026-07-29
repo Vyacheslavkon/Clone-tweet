@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from services.celery_app import app
-from services.pipelines import async_process_receipt, process_analysis_expense, process_analysis_financial
+from services.pipelines import async_process_receipt, process_test_analysis_financial, process_analysis_financial
 
 load_dotenv()
 
@@ -71,7 +71,7 @@ def process_analysis_expense_task(
 
     try:
         result = asyncio.run(
-            process_analysis_financial(locale, data, chat_id, days, actual_days)
+            process_test_analysis_financial(locale, data, chat_id, days, actual_days)
         )# test
 
         logger.info(

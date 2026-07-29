@@ -7,7 +7,7 @@ from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from services.prompts import get_voice_message, get_test_analysis_expense, get_test_analysis_financial, \
+from services.prompts import get_voice_message, get_my_test_analysis_financial, get_test_analysis_financial, \
     get_tests_analysis_financial
 
 load_dotenv()
@@ -167,7 +167,7 @@ class AIService:
         completion = await self.client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": get_test_analysis_expense(days, actual_days)},
+                {"role": "system", "content": get_my_test_analysis_financial(days, actual_days)},
                 {"role": "user", "content": user_context}
             ],
             response_format=response_schema,
@@ -238,11 +238,11 @@ class AIService:
         completion = await self.client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": get_tests_analysis_financial(days)},
+                {"role": "system", "content": get_test_analysis_financial(days, actual_days)},
                 {"role": "user", "content": user_context}
             ],
             response_format=response_schema,
-            temperature=0.3  # Понизил до 0.3 для строгого следования математическим табу
+            temperature=0.7  # Понизил до 0.3 для строгого следования математическим табу
         )
 
         # Возвращаем спарсенный Pydantic-объект

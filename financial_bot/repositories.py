@@ -583,7 +583,7 @@ async def get_user_financial_summary(
 
     return {
         "total_amount": round(db_total_amount, 2),
-        "total_count": db_total_count,
+        "total_count": db_total_count,# maybe delete
         "total_income": round(db_total_income, 2),
         "net_balance": round(net_balance, 2),
         "categories": categories,

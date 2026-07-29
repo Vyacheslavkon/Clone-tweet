@@ -146,11 +146,17 @@ class AnalyzedItem(BaseModel):
     )
 
 
+# class TargetRecommendation(BaseModel):
+#     target_item_or_category: str = Field(description="Название конкретного товара или категории для оптимизации")
+#     reason: str = Field(description="Аргументированный совет, почему и как можно оптимизировать (без банальностей)")
+#     potential_saving: str = Field(
+#         description="Оценка потенциала экономии в свободной форме (например: 'Около 1500 руб в месяц, если сократить частоту до 2 раз в неделю' или 'До 20% от текущих трат на эту позицию')")
+
 class TargetRecommendation(BaseModel):
-    target_item_or_category: str = Field(description="Название конкретного товара или категории для оптимизации")
+    target_item: str = Field(description="Название конкретного товара, услуги или привычки (из поля 'name' в 'top_items'), которая оптимизируется")
     reason: str = Field(description="Аргументированный совет, почему и как можно оптимизировать (без банальностей)")
     potential_saving: str = Field(
-        description="Оценка потенциала экономии в свободной форме (например: 'Около 1500 руб в месяц, если сократить частоту до 2 раз в неделю' или 'До 20% от текущих трат на эту позицию')")
+        description="Оценка потенциала экономии в свободной форме (например: 'Около 1000 руб в неделю, если...' или 'До 30% от трат на эту позицию')")
 
 
 class AIAnalysisResponse(BaseModel):
@@ -173,3 +179,36 @@ class AIAnalysisResponse(BaseModel):
 
     classified_items: List[AnalyzedItem] = Field(description="Классификация топ-товаров пользователя по типу важности")
     recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов ПО ГИБКИМ РАСХОДАМ")
+
+
+class WeeklyAnalysisResponse(BaseModel):
+    summary: str = Field(
+        description="Краткий оперативный аудит финансового поведения за прошедшую неделю (до 4 предложений). "
+                    "Оцени общий баланс недели ('net_balance') относительно доходов. "
+                    "Укажи, удается ли пользователю держать баланс в плюсе. "
+                    "ВАЖНО: Копируй числовые агрегаты строго из 'user_context' без изменений и округлений!"
+    )
+    # Заменяем месячный статус на оперативный недельный статус
+    weekly_balance_status: str = Field(
+        description="Короткий вердикт по итогам недели. Примеры: 'Неделя закрыта в плюс 🔥', 'Расходы превысили доходы', 'Дисциплина на высоте!'"
+    )
+    classified_items: List[AnalyzedItem] = Field(description="Классификация топ-товаров пользователя за неделю по типу важности")
+    recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов СТРОГО по конкретным позициям трат (labels)")
+
+
+# 2. СХЕМА ДЛЯ МЕСЯЧНОГО АНАЛИЗА (Включает макро-планирование)
+class MonthlyAnalysisResponse(BaseModel):
+    summary: str = Field(
+        description="Глубокий стратегический аудит финансового поведения за месяц (до 4 предложений). "
+                    "Оцени структуру трат, накопительный эффект привычек и общий чистый баланс. "
+                    "ВАЖНО: Копируй числовые агрегаты строго из 'user_context' без изменений и округлений!"
+    )
+    budget_status: str = Field(
+        description="Вердикт по месячному бюджету и целям сбережений. Примеры: 'Идеально укладываетесь в лимит', 'Лимит превышен', 'Цель по сбережениям под угрозой', 'Бюджет не задан'"
+    )
+    budget_usage_percent: Optional[float] = Field(
+        default=None,
+        description="Процент израсходованного месячного лимита 'monthly_budget'. Рассчитай на основе переданного лимита. Если лимит не задан, верни null."
+    )
+    classified_items: List[AnalyzedItem] = Field(description="Классификация топ-товаров пользователя по типу важности за месяц")
+    recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 советов по оптимизации месячных системных привычек")
