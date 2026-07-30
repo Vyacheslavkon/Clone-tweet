@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from services.celery_app import app
-from services.pipelines import async_process_receipt, process_test_analysis_financial, process_analysis_financial
+from services.pipelines import async_process_receipt, process_analysis_financial
 
 load_dotenv()
 
@@ -52,10 +52,10 @@ def process_expense_task(
             error_msg=str(exc),
         )
 
-        # Рассчитываем экспоненциальную задержку: 2с, 4с, 8с...
+
         countdown = 2**self.request.retries
 
-        # Передаем self.retry, он сам корректно перезапустит таску в Celery
+
         raise self.retry(exc=exc, countdown=countdown)
 
     except Exception as e:
@@ -71,7 +71,7 @@ def process_analysis_expense_task(
 
     try:
         result = asyncio.run(
-            process_test_analysis_financial(locale, data, chat_id, days, actual_days)
+            process_analysis_financial(locale, data, chat_id, days, actual_days)
         )# test
 
         logger.info(

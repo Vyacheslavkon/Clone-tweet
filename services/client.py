@@ -7,8 +7,8 @@ from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from services.prompts import get_voice_message, get_my_test_analysis_financial, get_test_analysis_financial, \
-    get_tests_analysis_financial
+from services.prompts import get_voice_message, get_analysis_financial
+
 
 load_dotenv()
 
@@ -129,53 +129,6 @@ class AIService:
             text=user_text, response_schema=response_schema, locale=locale
         )
 
-    async def analysis_expense(self, response_schema: Type[BaseModel],
-
-                               summary_data: dict,
-                               days: int,
-                               actual_days: int)-> dict:
-
-        if not summary_data:
-            return {"error": "no_data"}
-
-
-        categories_block = "\n".join([
-            f"- {cat['category']}: {cat['amount']} руб. ({cat['count']} шт.)"
-            for cat in summary_data.get("categories", [])
-        ])
-
-        items_block = "\n".join([
-            f"- Дата: {item['date']} | {item['name']} | Цена: {item['total_amount']} руб. | Категория в БД: {item['category']}"
-            for item in summary_data.get("top_items", [])
-        ])
-
-        user_context = f"""
-           Период анализа: {summary_data['days_period']} дней.
-           Всего потрачено: {summary_data['total_amount']} руб. (Используй это число как финальное и неизменное в поле общего итога).
-           Количество транзакций: {summary_data['total_count']}.
-
-           === РАСПРЕДЕЛЕНИЕ ПО КАТЕГОРИЯМ В БД ===
-           {categories_block}
-
-           === ХРОНОЛОГИЧЕСКИЙ ПОТОК ПОКУПОК ИЗ ЧЕКОВ (СГРУППИРУЙ СЕМАНТИЧЕСКИ САМОСТОЯТЕЛЬНО) ===
-           {items_block}
-
-           В отчете используй только указанные выше цифры. Не округляй их и не пытайся пересчитать общую сумму расходов самостоятельно.
-           В тексте отчета запрещено использовать любые HTML теги, кроме <b>, <i>, <code>. Использование тегов с атрибутами (например, class или style) строго табуировано.
-           """
-
-        completion = await self.client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": get_my_test_analysis_financial(days, actual_days)},
-                {"role": "user", "content": user_context}
-            ],
-            response_format=response_schema,
-            temperature=0.7
-        )
-        # Возвращаем dict, готовый для сериализации в Redis/PostgreSQL
-        return completion.choices[0].message.parsed
-
 
     async def analysis_financial(
             self,
@@ -188,19 +141,19 @@ class AIService:
         if not summary_data:
             return {"error": "no_data"}
 
-        # 1. Блок категорий расходов (твой оригинальный)
+
         categories_block = "\n".join([
             f"- {cat['category']}: {cat['amount']} руб. ({cat['count']} шт.)"
             for cat in summary_data.get("categories", [])
         ])
 
-        # 2. Блок хронологического потока товаров (твой оригинальный)
+
         items_block = "\n".join([
             f"- Дата: {item['date']} | {item['name']} | Цена: {item['total_amount']} руб. | Категория в БД: {item['category']}"
             for item in summary_data.get("top_items", [])
         ])
 
-        # 3. Формируем строку конфигурации пользователя (лимиты и цели), если они заданы
+
         config = summary_data.get("user_config", {})
         currency = config.get("currency", "руб.")
 
@@ -213,7 +166,7 @@ class AIService:
 
         config_block = "\n".join(config_lines)
 
-        # 4. Обновленный user_context с доходами и балансом
+
         user_context = f"""
            Период анализа: {summary_data['days_period']} дней.
            Всего получено доходов: {summary_data.get('total_income', 0.0)} {currency}.
@@ -234,18 +187,16 @@ class AIService:
            В тексте отчета запрещено использовать любые HTML теги, кроме <b>, <i>, <code>. Использование тегов с атрибутами (например, class или style) строго табуировано.
            """
 
-        # 5. Отправка в OpenAI (подставляем наш новый get_test_analysis_financial промпт)
         completion = await self.client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": get_test_analysis_financial(days, actual_days)},
+                {"role": "system", "content": get_analysis_financial(days, actual_days)},
                 {"role": "user", "content": user_context}
             ],
             response_format=response_schema,
-            temperature=0.7  # Понизил до 0.3 для строгого следования математическим табу
+            temperature=0.7
         )
 
-        # Возвращаем спарсенный Pydantic-объект
         return completion.choices[0].message.parsed
 
 
