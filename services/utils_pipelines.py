@@ -10,7 +10,7 @@ from PIL import Image, ImageEnhance, ImageOps
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
-from services.schemas import ReceiptAnalysisSchema, ReceiptListAnalysisSchema, AIAnalysisResponse
+from services.schemas import ReceiptAnalysisSchema, ReceiptListAnalysisSchema
 
 load_dotenv()
 
@@ -372,39 +372,3 @@ CATEGORY_TITLES: Dict[str, str] = {
     }
 
 
-def format_ai_analysis_expense(data: AIAnalysisResponse, _) -> str:
-
-
-    lines = [
-        "📊 <b>Финансовый анализ расходов</b>\n",
-        f"{data.summary}\n",
-        "🎯 <b>Разделение топ-трат по важности:</b>"
-    ]
-
-    essentials = [item for item in data.classified_items if item.expense_type == "essential"]
-    discretionary = [item for item in data.classified_items if item.expense_type == "discretionary"]
-
-    if essentials:
-        lines.append(_("\n🟢 <u>Basic (Essential):</u>"))
-        for item in essentials:
-            cat = CATEGORY_TITLES.get(item.original_category, f"📦 {item.original_category}")
-            lines.append(f" • <b>{item.name}</b> ({cat})")
-
-
-    if discretionary:
-        lines.append("\n🟡 <u>Гибкие (Discretionary):</u>")
-        for item in discretionary:
-            cat = CATEGORY_TITLES.get(item.original_category, f"📦 {item.original_category}")
-            lines.append(f" • <b>{item.name}</b> ({cat})")
-
-    # 4. Точечные рекомендации по оптимизации
-    if data.recommendations:
-        lines.append("\n💡 <b>Рекомендации по оптимизации:</b>")
-        for i, rec in enumerate(data.recommendations, 1):
-            lines.append(
-                f"\n{i}. <b>{rec.target_item_or_category}</b>\n"
-                f"└ {rec.reason}\n"
-                f"└ <i>Возможная экономия: ~{rec.potential_saving:,.0f} руб.</i>"
-            )
-
-    return "\n".join(lines)

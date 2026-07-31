@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-03 21:28+1000\n"
+"POT-Creation-Date: 2026-07-31 21:33+1000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -77,76 +77,121 @@ msgstr ""
 msgid "You don't have a planned budget set! Set a basic planned budget first."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:30
+#: financial_bot/handlers/ai_consultant.py:28
 msgid "Please, select request!"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:36
+#: financial_bot/handlers/ai_consultant.py:34
 msgid "Sorry, you need a PRO subscription to use AI."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:43
+#: financial_bot/handlers/ai_consultant.py:41
 msgid "Please send me a photo of the receipt!"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:84
+#: financial_bot/handlers/ai_consultant.py:96
 msgid "Please tell us or write about your purchases!"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:92
-#: financial_bot/handlers/ai_consultant.py:140
+#: financial_bot/handlers/ai_consultant.py:108
+#: financial_bot/handlers/ai_consultant.py:226
+msgid "User not found. Please enter /start."
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:111
 msgid "🧠 I am analyzing your expenses..."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:99
+#: financial_bot/handlers/ai_consultant.py:122
 msgid ""
 "❌ The voice message is too long. Please dictate a shorter message (up to "
 "30 seconds).."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:123
+#: financial_bot/handlers/ai_consultant.py:154
 msgid ""
 "⏳ Background analysis started. I’ll send the result in a couple of "
 "seconds; in the meantime, you can continue working:"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:130
+#: financial_bot/handlers/ai_consultant.py:162
 msgid "❌ Unable to process the voice message. Please try again."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:161
+#: financial_bot/handlers/ai_consultant.py:206
 msgid "❌ The record has been cancelled and removed from the database."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:163
+#: financial_bot/handlers/ai_consultant.py:210
 msgid "Record not found."
 msgstr ""
 
-#: financial_bot/handlers/common.py:38
+#: financial_bot/handlers/ai_consultant.py:229
+#: financial_bot/keyboards/reply.py:37
+msgid "weekly data analysis"
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:230
+#: financial_bot/keyboards/reply.py:38
+msgid "monthly data analysis"
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:246
+msgid ""
+"📊 *Current week is too fresh!* \n"
+"We can only analyze the week starting from Wednesday, when enough "
+"spendings accumulate. Please check back later! 🗓"
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:256
+msgid ""
+"📈 *Too early for a monthly report!* \n"
+"A reliable monthly analysis requires at least 10 days of data (available "
+"from the 10th). Right now, try checking your weekly analytics instead! 📅"
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:266
+msgid "You don't have enough transactions for analysis yet. We need more data! 🧾"
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:275
+msgid ""
+"🧾 *Not enough data for deep analysis!* \n"
+"You have too few expenses logged for this period. Keep logging your "
+"expenditures via voice, and I will prepare a smart audit soon! 🤖"
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:292
+msgid ""
+"🤖 *AI is analyzing your spending patterns...* \n"
+"This will take a couple of seconds."
+msgstr ""
+
+#: financial_bot/handlers/common.py:41
 #, python-brace-format
 msgid "Hello, {name}! Glad to meet you!"
 msgstr ""
 
-#: financial_bot/handlers/common.py:47
+#: financial_bot/handlers/common.py:50
 #, python-brace-format
 msgid "Glad to see you {name}!"
 msgstr ""
 
-#: financial_bot/handlers/common.py:58
+#: financial_bot/handlers/common.py:61
 msgid "Action canceled. Returning to main menu..."
 msgstr ""
 
-#: financial_bot/handlers/common.py:107
+#: financial_bot/handlers/common.py:118
 #, python-brace-format
-msgid "HTML parsing or message length error: {error}"
+msgid "HTML parsing or message length error: {}"
 msgstr ""
 
-#: financial_bot/handlers/common.py:111
+#: financial_bot/handlers/common.py:122
 #, python-brace-format
 msgid "General Telegram API error when notifying admin: {error}"
 msgstr ""
 
-#: financial_bot/handlers/common.py:115
+#: financial_bot/handlers/common.py:126
 msgid "⚠️ An error occurred. I've already reported it to the developer."
 msgstr ""
 
@@ -178,11 +223,11 @@ msgstr ""
 msgid "please, select period"
 msgstr ""
 
-#: financial_bot/handlers/reports.py:48 financial_bot/keyboards/inline.py:83
+#: financial_bot/handlers/reports.py:48 financial_bot/keyboards/inline.py:115
 msgid "day"
 msgstr ""
 
-#: financial_bot/handlers/reports.py:67 financial_bot/keyboards/inline.py:85
+#: financial_bot/handlers/reports.py:67 financial_bot/keyboards/inline.py:117
 #: financial_bot/tasks/scheduled.py:33
 msgid "week"
 msgstr ""
@@ -249,7 +294,12 @@ msgstr ""
 msgid "There is no data for {period} 🤷‍♂️"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:105
+#: financial_bot/handlers/utils.py:98 financial_bot/handlers/utils.py:104
+#, python-brace-format
+msgid "  • {category}: {formated_amount}\n"
+msgstr ""
+
+#: financial_bot/handlers/utils.py:112
 #, python-brace-format
 msgid ""
 "<b>Report for {period}:</b>\n"
@@ -260,78 +310,78 @@ msgid ""
 "{expense_details}"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:126
+#: financial_bot/handlers/utils.py:133
 #, python-brace-format
 msgid "  • Planned budget: {budget}"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:133
+#: financial_bot/handlers/utils.py:140
 #, python-brace-format
 msgid "  • Limit expense: {limit}"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:136
+#: financial_bot/handlers/utils.py:143
 #, python-brace-format
 msgid "  • Limit spent: {balance}%"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:140
+#: financial_bot/handlers/utils.py:147
 #, python-brace-format
 msgid "  • Savings goal: {saving_goal}"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:146
+#: financial_bot/handlers/utils.py:153
 msgid ""
 "\n"
 "\n"
 "🎯 <b>Planning:</b>\n"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:207
+#: financial_bot/handlers/utils.py:214
 msgid "January"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:208
+#: financial_bot/handlers/utils.py:215
 msgid "February"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:209
+#: financial_bot/handlers/utils.py:216
 msgid "March"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:210
+#: financial_bot/handlers/utils.py:217
 msgid "April"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:211
+#: financial_bot/handlers/utils.py:218
 msgid "May"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:212
+#: financial_bot/handlers/utils.py:219
 msgid "June"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:213
+#: financial_bot/handlers/utils.py:220
 msgid "July"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:214
+#: financial_bot/handlers/utils.py:221
 msgid "August"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:215
+#: financial_bot/handlers/utils.py:222
 msgid "September"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:216
+#: financial_bot/handlers/utils.py:223
 msgid "October"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:217
+#: financial_bot/handlers/utils.py:224
 msgid "November"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:218
+#: financial_bot/handlers/utils.py:225
 msgid "December"
 msgstr ""
 
@@ -351,59 +401,59 @@ msgstr ""
 msgid "Expense"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:37
+#: financial_bot/keyboards/inline.py:67
 msgid "Salary"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:37
+#: financial_bot/keyboards/inline.py:68
 msgid "Bonus"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:37
+#: financial_bot/keyboards/inline.py:69
 msgid "Gift"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:37
+#: financial_bot/keyboards/inline.py:70
 msgid "Deal"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:37 financial_bot/keyboards/inline.py:45
+#: financial_bot/keyboards/inline.py:71 financial_bot/keyboards/inline.py:80
 msgid "Other"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:40
+#: financial_bot/keyboards/inline.py:75
 msgid "Food"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:41
+#: financial_bot/keyboards/inline.py:76
 msgid "Home"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:42
+#: financial_bot/keyboards/inline.py:77
 msgid "Entertainment"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:43
+#: financial_bot/keyboards/inline.py:78
 msgid "Transport"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:44
+#: financial_bot/keyboards/inline.py:79
 msgid "Health"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:67
+#: financial_bot/keyboards/inline.py:99
 msgid "Skip description"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:87 financial_bot/tasks/scheduled.py:62
+#: financial_bot/keyboards/inline.py:119 financial_bot/tasks/scheduled.py:67
 msgid "month"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:101
+#: financial_bot/keyboards/inline.py:133
 msgid "last two weeks"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:105
+#: financial_bot/keyboards/inline.py:137
 msgid "arbitrary period"
 msgstr ""
 
@@ -432,70 +482,142 @@ msgstr ""
 msgid "cancel"
 msgstr ""
 
-#: financial_bot/keyboards/reply.py:37
-msgid "weekly data analysis"
-msgstr ""
-
-#: financial_bot/keyboards/reply.py:38
-msgid "monthly data analysis"
-msgstr ""
-
 #: financial_bot/keyboards/reply.py:41
 msgid "data entry"
 msgstr ""
 
-#: services/pipelines.py:301
+#: services/pipelines.py:309
 msgid "Unable to recognize the purchase amount."
 msgstr ""
 
-#: services/pipelines.py:313
+#: services/pipelines.py:326
 msgid "❌ No transactions found to save."
 msgstr ""
 
-#: services/pipelines.py:356
+#: services/pipelines.py:362
 msgid "✅ <b>Operations successfully recorded!</b>\n"
 msgstr ""
 
-#: services/pipelines.py:359
+#: services/pipelines.py:365
 msgid "💰 <b>Received Income:</b>"
 msgstr ""
 
-#: services/pipelines.py:380
+#: services/pipelines.py:392
 msgid "📉 <b>Spent Expenses:</b>"
 msgstr ""
 
-#: services/pipelines.py:400
+#: services/pipelines.py:410
 #, python-brace-format
 msgid ""
-"{icon} {category}{desc}: <b>-{amount}</b>\n"
+"{icon} {category}: <b>-{amount}</b>\n"
 "{items}"
 msgstr ""
 
-#: services/pipelines.py:409
+#: services/pipelines.py:424
 #, python-brace-format
 msgid "Total Income: <b>+{total_amount}</b>"
 msgstr ""
 
-#: services/pipelines.py:411
+#: services/pipelines.py:430
 #, python-brace-format
 msgid "Total Expenses: <b>-{total_amount}</b>"
 msgstr ""
 
-#: services/pipelines.py:417
+#: services/pipelines.py:439
 msgid "❌ cancel income"
 msgstr ""
 
-#: services/pipelines.py:419
+#: services/pipelines.py:441
 msgid "❌ cancel expense"
 msgstr ""
 
-#: services/pipelines.py:421
+#: services/pipelines.py:443
 msgid "❌ cancel operation"
 msgstr ""
 
-#: services/pipelines.py:440
+#: services/pipelines.py:469
 msgid ""
 "❌ Unfortunately, we couldn't recognize your receipt. Please make sure the"
 " photo is clear and try again."
+msgstr ""
+
+#: services/pipelines.py:530
+msgid "📊 <b>Comprehensive financial analysis</b>\n"
+msgstr ""
+
+#: services/pipelines.py:531
+#, python-brace-format
+msgid "💰 <b>Total Income:</b> {income} {curr}"
+msgstr ""
+
+#: services/pipelines.py:533
+#, python-brace-format
+msgid "🛒 <b>Total Expense:</b> {expense} {curr}"
+msgstr ""
+
+#: services/pipelines.py:535
+#, python-brace-format
+msgid "⚖️ <b>Net Balance:</b> {balance} {curr}\n"
+msgstr ""
+
+#: services/pipelines.py:543
+#, python-brace-format
+msgid "📈 <b>Budget status:</b> {status}"
+msgstr ""
+
+#: services/pipelines.py:549
+#, python-brace-format
+msgid "📊 <b>Budget used:</b> {percent}%\n"
+msgstr ""
+
+#: services/pipelines.py:557
+msgid "🎯 <b>Categorizing top expenses by importance:</b>"
+msgstr ""
+
+#: services/pipelines.py:565
+msgid ""
+"\n"
+"🟢 <u>Necessary :</u>"
+msgstr ""
+
+#: services/pipelines.py:567
+#, python-brace-format
+msgid "📦 {org_cat}"
+msgstr ""
+
+#: services/pipelines.py:568 services/pipelines.py:574
+#, python-brace-format
+msgid " • <b>{el}</b> ({cat})"
+msgstr ""
+
+#: services/pipelines.py:571
+msgid ""
+"\n"
+"🟡 <u>Secondary :</u>"
+msgstr ""
+
+#: services/pipelines.py:578
+msgid ""
+"\n"
+"💡 <b>Optimization recommendations:</b>"
+msgstr ""
+
+#: services/pipelines.py:585
+msgid "Optimization"
+msgstr ""
+
+#: services/pipelines.py:588
+#, python-brace-format
+msgid ""
+"\n"
+"{num}. <b>{target}</b>\n"
+"└ {reason}\n"
+"└ <i>Possible savings: {saving}</i>"
+msgstr ""
+
+#: services/pipelines.py:611
+msgid ""
+"❌ <b>An error occurred while generating the report.</b>\n"
+"Please try again later."
 msgstr ""
 
