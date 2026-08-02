@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-31 21:33+1000\n"
+"POT-Creation-Date: 2026-08-02 22:01+1000\n"
 "PO-Revision-Date: 2026-04-05 19:51+1000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -96,12 +96,11 @@ msgid "Please send me a photo of the receipt!"
 msgstr "Пожалуйста, пришлите мне фотографию чека!"
 
 #: financial_bot/handlers/ai_consultant.py:96
-msgid "Please tell us or write about your purchases!"
-msgstr "Пожалуйста, расскажите или напишите нам о своих покупках"
+msgid "Please tell me about your purchases!"
+msgstr "Пожалуйста, расскажите мне о своих покупках"
 
 #: financial_bot/handlers/ai_consultant.py:108
-#: financial_bot/handlers/ai_consultant.py:226
-#, fuzzy
+#: financial_bot/handlers/ai_consultant.py:201
 msgid "User not found. Please enter /start."
 msgstr "Профиль не найден. Пожалуйста, введите /start"
 
@@ -117,7 +116,7 @@ msgstr ""
 "❌ Голосовое сообщение слишком длинное. Пожалуйста, запишите сообщение "
 "покороче (до 30 секунд)."
 
-#: financial_bot/handlers/ai_consultant.py:154
+#: financial_bot/handlers/ai_consultant.py:156
 msgid ""
 "⏳ Background analysis started. I’ll send the result in a couple of "
 "seconds; in the meantime, you can continue working:"
@@ -125,60 +124,70 @@ msgstr ""
 "⏳ Запущен фоновый анализ. Результат будет готов через пару секунд,а пока "
 "вы можете продолжать работу:"
 
-#: financial_bot/handlers/ai_consultant.py:162
+#: financial_bot/handlers/ai_consultant.py:164
 msgid "❌ Unable to process the voice message. Please try again."
 msgstr ""
 "❌ Не удалось обработать голосовое сообщение. Пожалуйста, попробуйте еще "
 "раз."
 
-#: financial_bot/handlers/ai_consultant.py:206
+#: financial_bot/handlers/ai_consultant.py:182
 msgid "❌ The record has been cancelled and removed from the database."
 msgstr "❌ Запись аннулирована и удалена из базы данных."
 
-#: financial_bot/handlers/ai_consultant.py:210
+#: financial_bot/handlers/ai_consultant.py:186
 msgid "Record not found."
 msgstr "Запись не найдена."
 
-#: financial_bot/handlers/ai_consultant.py:229
+#: financial_bot/handlers/ai_consultant.py:204
 #: financial_bot/keyboards/reply.py:37
 msgid "weekly data analysis"
 msgstr "анализ данных за неделю"
 
-#: financial_bot/handlers/ai_consultant.py:230
+#: financial_bot/handlers/ai_consultant.py:205
 #: financial_bot/keyboards/reply.py:38
 msgid "monthly data analysis"
 msgstr "анализ данных за месяц"
 
-#: financial_bot/handlers/ai_consultant.py:246
+#: financial_bot/handlers/ai_consultant.py:221
 msgid ""
-"📊 *Current week is too fresh!* \n"
+"📊 *The period is too short to analyze the current week!* \n"
 "We can only analyze the week starting from Wednesday, when enough "
 "spendings accumulate. Please check back later! 🗓"
 msgstr ""
+"📊 *Период слишком короткий для анализа текущей недели!* \n"
+"Мы сможем проанализировать неделю, начиная со среды, когда накопится "
+"достаточно данных о расходах. Пожалуйста, загляните позже! 🗓"
 
-#: financial_bot/handlers/ai_consultant.py:256
+#: financial_bot/handlers/ai_consultant.py:231
 msgid ""
-"📈 *Too early for a monthly report!* \n"
+"📈 *It’s too early for monthly analytics!* \n"
 "A reliable monthly analysis requires at least 10 days of data (available "
 "from the 10th). Right now, try checking your weekly analytics instead! 📅"
 msgstr ""
+"📈 *Для ежемесячной аналитики пока рано!* \n"
+"Для достоверного ежемесячного анализа нужны данные как минимум за 10 дней (они станут доступны с 10-го числа). А пока попробуйте посмотреть еженедельную аналитику! 📅"
 
-#: financial_bot/handlers/ai_consultant.py:266
+#: financial_bot/handlers/ai_consultant.py:241
 msgid "You don't have enough transactions for analysis yet. We need more data! 🧾"
-msgstr ""
+msgstr "У вас пока недостаточно транзакций для анализа. Нам нужно больше данных! 🧾"
 
-#: financial_bot/handlers/ai_consultant.py:275
+#: financial_bot/handlers/ai_consultant.py:250
 msgid ""
 "🧾 *Not enough data for deep analysis!* \n"
 "You have too few expenses logged for this period. Keep logging your "
 "expenditures via voice, and I will prepare a smart audit soon! 🤖"
 msgstr ""
+"🧾 *Недостаточно данных для глубокого анализа!* \n"
+"За этот период зарегистрировано слишком мало расходов. Продолжайте "
+"вносить траты голосом, и вскоре я подготовлю умный анализ! 🤖"
 
-#: financial_bot/handlers/ai_consultant.py:292
+#: financial_bot/handlers/ai_consultant.py:269
 msgid ""
 "🤖 *AI is analyzing your spending patterns...* \n"
-"This will take a couple of seconds."
+"It will take five or ten seconds."
 msgstr ""
+"🤖 *ИИ анализирует ваши привычки в расходах...* \n"
+"Это займет пять-десять секунд."
 
 #: financial_bot/handlers/common.py:41
 #, python-brace-format
@@ -570,40 +579,40 @@ msgstr ""
 "❌ К сожалению, нам не удалось распознать ваш чек. Пожалуйста, убедитесь, "
 "что фотография четкая, и попробуйте еще раз."
 
-#: services/pipelines.py:530
+#: services/pipelines.py:530 services/pipelines.py:675
 msgid "📊 <b>Comprehensive financial analysis</b>\n"
 msgstr "📊 <b>Комплексный финансовый анализ</b>"
 
-#: services/pipelines.py:531
+#: services/pipelines.py:531 services/pipelines.py:676
 #, python-brace-format
 msgid "💰 <b>Total Income:</b> {income} {curr}"
 msgstr "💰 <b>Общий доход:</b> {income} {curr}"
 
-#: services/pipelines.py:533
+#: services/pipelines.py:533 services/pipelines.py:678
 #, python-brace-format
 msgid "🛒 <b>Total Expense:</b> {expense} {curr}"
 msgstr "🛒 <b>Общие расходы:</b> {expense} {curr}"
 
-#: services/pipelines.py:535
+#: services/pipelines.py:535 services/pipelines.py:680
 #, python-brace-format
 msgid "⚖️ <b>Net Balance:</b> {balance} {curr}\n"
 msgstr "⚖️ <b>Чистый баланс:</b> {balance} {curr}\n"
 
-#: services/pipelines.py:543
+#: services/pipelines.py:543 services/pipelines.py:687
 #, python-brace-format
 msgid "📈 <b>Budget status:</b> {status}"
 msgstr "📈 <b>Статус бюджета:</b> {status}"
 
-#: services/pipelines.py:549
+#: services/pipelines.py:549 services/pipelines.py:691
 #, python-brace-format
 msgid "📊 <b>Budget used:</b> {percent}%\n"
 msgstr "📊 <b>Использовано бюджета:</b> {percent}%"
 
-#: services/pipelines.py:557
+#: services/pipelines.py:557 services/pipelines.py:704
 msgid "🎯 <b>Categorizing top expenses by importance:</b>"
 msgstr "🎯 <b>Классификация основных статей расходов по степени важности:</b>"
 
-#: services/pipelines.py:565
+#: services/pipelines.py:565 services/pipelines.py:707
 msgid ""
 "\n"
 "🟢 <u>Necessary :</u>"
@@ -611,17 +620,18 @@ msgstr ""
 "\n"
 "🟢 <u>Необходимые:</u>"
 
-#: services/pipelines.py:567
+#: services/pipelines.py:567 services/pipelines.py:710
 #, python-brace-format
 msgid "📦 {org_cat}"
 msgstr ""
 
 #: services/pipelines.py:568 services/pipelines.py:574
+#: services/pipelines.py:711 services/pipelines.py:717
 #, python-brace-format
 msgid " • <b>{el}</b> ({cat})"
 msgstr ""
 
-#: services/pipelines.py:571
+#: services/pipelines.py:571 services/pipelines.py:714
 msgid ""
 "\n"
 "🟡 <u>Secondary :</u>"
@@ -629,7 +639,7 @@ msgstr ""
 "\n"
 "🟡 <u>Второстепенное:</u>"
 
-#: services/pipelines.py:578
+#: services/pipelines.py:578 services/pipelines.py:721
 msgid ""
 "\n"
 "💡 <b>Optimization recommendations:</b>"
@@ -637,11 +647,12 @@ msgstr ""
 "\n"
 "💡 <b>Рекомендации по оптимизации:</b>"
 
-#: services/pipelines.py:585
+#: services/pipelines.py:585 services/pipelines.py:731
+#: services/pipelines.py:743
 msgid "Optimization"
 msgstr "Оптимизация"
 
-#: services/pipelines.py:588
+#: services/pipelines.py:588 services/pipelines.py:727
 #, python-brace-format
 msgid ""
 "\n"
@@ -654,7 +665,7 @@ msgstr ""
 "└ {reason}\n"
 "└ <i>Возможная экономия: {saving}</i>"
 
-#: services/pipelines.py:611
+#: services/pipelines.py:611 services/pipelines.py:763
 msgid ""
 "❌ <b>An error occurred while generating the report.</b>\n"
 "Please try again later."
@@ -662,6 +673,17 @@ msgstr ""
 "❌ <b>При создании отчета произошла ошибка.</b>\n"
 "Пожалуйста, попробуйте позже."
 
-
+#: services/pipelines.py:739
+#, fuzzy, python-brace-format
+msgid ""
+"\n"
+"{num}. <b>{target}</b> — <b>{freq}</b>\n"
+"└ {reason}\n"
+"└ <i>Possible savings: {saving}</i>"
+msgstr ""
+"\n"
+"{num}. <b>{target}</b>\n"
+"└ {reason}\n"
+"└ <i>Возможная экономия: {saving}</i>"
 
 

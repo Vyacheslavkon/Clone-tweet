@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-31 21:33+1000\n"
+"POT-Creation-Date: 2026-08-02 22:01+1000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -90,11 +90,11 @@ msgid "Please send me a photo of the receipt!"
 msgstr ""
 
 #: financial_bot/handlers/ai_consultant.py:96
-msgid "Please tell us or write about your purchases!"
+msgid "Please tell me about your purchases!"
 msgstr ""
 
 #: financial_bot/handlers/ai_consultant.py:108
-#: financial_bot/handlers/ai_consultant.py:226
+#: financial_bot/handlers/ai_consultant.py:201
 msgid "User not found. Please enter /start."
 msgstr ""
 
@@ -108,63 +108,63 @@ msgid ""
 "30 seconds).."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:154
+#: financial_bot/handlers/ai_consultant.py:156
 msgid ""
 "⏳ Background analysis started. I’ll send the result in a couple of "
 "seconds; in the meantime, you can continue working:"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:162
+#: financial_bot/handlers/ai_consultant.py:164
 msgid "❌ Unable to process the voice message. Please try again."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:206
+#: financial_bot/handlers/ai_consultant.py:182
 msgid "❌ The record has been cancelled and removed from the database."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:210
+#: financial_bot/handlers/ai_consultant.py:186
 msgid "Record not found."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:229
+#: financial_bot/handlers/ai_consultant.py:204
 #: financial_bot/keyboards/reply.py:37
 msgid "weekly data analysis"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:230
+#: financial_bot/handlers/ai_consultant.py:205
 #: financial_bot/keyboards/reply.py:38
 msgid "monthly data analysis"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:246
+#: financial_bot/handlers/ai_consultant.py:221
 msgid ""
-"📊 *Current week is too fresh!* \n"
+"📊 *The period is too short to analyze the current week!* \n"
 "We can only analyze the week starting from Wednesday, when enough "
 "spendings accumulate. Please check back later! 🗓"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:256
+#: financial_bot/handlers/ai_consultant.py:231
 msgid ""
-"📈 *Too early for a monthly report!* \n"
+"📈 *It’s too early for monthly analytics!* \n"
 "A reliable monthly analysis requires at least 10 days of data (available "
 "from the 10th). Right now, try checking your weekly analytics instead! 📅"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:266
+#: financial_bot/handlers/ai_consultant.py:241
 msgid "You don't have enough transactions for analysis yet. We need more data! 🧾"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:275
+#: financial_bot/handlers/ai_consultant.py:250
 msgid ""
 "🧾 *Not enough data for deep analysis!* \n"
 "You have too few expenses logged for this period. Keep logging your "
 "expenditures via voice, and I will prepare a smart audit soon! 🤖"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:292
+#: financial_bot/handlers/ai_consultant.py:269
 msgid ""
 "🤖 *AI is analyzing your spending patterns...* \n"
-"This will take a couple of seconds."
+"It will take five or ten seconds."
 msgstr ""
 
 #: financial_bot/handlers/common.py:41
@@ -541,72 +541,74 @@ msgid ""
 " photo is clear and try again."
 msgstr ""
 
-#: services/pipelines.py:530
+#: services/pipelines.py:530 services/pipelines.py:675
 msgid "📊 <b>Comprehensive financial analysis</b>\n"
 msgstr ""
 
-#: services/pipelines.py:531
+#: services/pipelines.py:531 services/pipelines.py:676
 #, python-brace-format
 msgid "💰 <b>Total Income:</b> {income} {curr}"
 msgstr ""
 
-#: services/pipelines.py:533
+#: services/pipelines.py:533 services/pipelines.py:678
 #, python-brace-format
 msgid "🛒 <b>Total Expense:</b> {expense} {curr}"
 msgstr ""
 
-#: services/pipelines.py:535
+#: services/pipelines.py:535 services/pipelines.py:680
 #, python-brace-format
 msgid "⚖️ <b>Net Balance:</b> {balance} {curr}\n"
 msgstr ""
 
-#: services/pipelines.py:543
+#: services/pipelines.py:543 services/pipelines.py:687
 #, python-brace-format
 msgid "📈 <b>Budget status:</b> {status}"
 msgstr ""
 
-#: services/pipelines.py:549
+#: services/pipelines.py:549 services/pipelines.py:691
 #, python-brace-format
 msgid "📊 <b>Budget used:</b> {percent}%\n"
 msgstr ""
 
-#: services/pipelines.py:557
+#: services/pipelines.py:557 services/pipelines.py:704
 msgid "🎯 <b>Categorizing top expenses by importance:</b>"
 msgstr ""
 
-#: services/pipelines.py:565
+#: services/pipelines.py:565 services/pipelines.py:707
 msgid ""
 "\n"
 "🟢 <u>Necessary :</u>"
 msgstr ""
 
-#: services/pipelines.py:567
+#: services/pipelines.py:567 services/pipelines.py:710
 #, python-brace-format
 msgid "📦 {org_cat}"
 msgstr ""
 
 #: services/pipelines.py:568 services/pipelines.py:574
+#: services/pipelines.py:711 services/pipelines.py:717
 #, python-brace-format
 msgid " • <b>{el}</b> ({cat})"
 msgstr ""
 
-#: services/pipelines.py:571
+#: services/pipelines.py:571 services/pipelines.py:714
 msgid ""
 "\n"
 "🟡 <u>Secondary :</u>"
 msgstr ""
 
-#: services/pipelines.py:578
+#: services/pipelines.py:578 services/pipelines.py:721
 msgid ""
 "\n"
 "💡 <b>Optimization recommendations:</b>"
 msgstr ""
 
-#: services/pipelines.py:585
+#: services/pipelines.py:585 services/pipelines.py:731
+#: services/pipelines.py:743
 msgid "Optimization"
 msgstr ""
 
-#: services/pipelines.py:588
+#: services/pipelines.py:588 services/pipelines.py:727
 #, python-brace-format
 msgid ""
 "\n"
@@ -615,9 +617,18 @@ msgid ""
 "└ <i>Possible savings: {saving}</i>"
 msgstr ""
 
-#: services/pipelines.py:611
+#: services/pipelines.py:611 services/pipelines.py:763
 msgid ""
 "❌ <b>An error occurred while generating the report.</b>\n"
 "Please try again later."
+msgstr ""
+
+#: services/pipelines.py:739
+#, python-brace-format
+msgid ""
+"\n"
+"{num}. <b>{target}</b> — <b>{freq}</b>\n"
+"└ {reason}\n"
+"└ <i>Possible savings: {saving}</i>"
 msgstr ""
 
