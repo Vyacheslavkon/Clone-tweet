@@ -189,20 +189,113 @@ async def delete_batch_handler(
 
 
 
+# @ai_router.message(I18nTextFilter("weekly data analysis", "monthly data analysis"))
+# async def handle_analytics_request(message: Message, session: AsyncSession, state: FSMContext):
+#
+#     if not message.from_user:
+#         return
+#
+#     user = await get_user_by_id(session, message.from_user.id)
+#
+#     if not user:
+#         await state.clear()
+#
+#         await message.answer(_("User not found. Please enter /start."))
+#
+#         return
+#
+#     weekly_text = _("weekly data analysis")
+#     monthly_text = _("monthly data analysis")
+#
+#     days_mapping = {
+#         weekly_text: 7,
+#         monthly_text: 30
+#     }
+#
+#     user_text = message.text
+#
+#     days = days_mapping[user_text]
+#     now = datetime.now(timezone.utc)
+#
+#     if days == 7:
+#         days_passed = now.weekday() + 1
+#         if days_passed < 3:
+#             await state.clear()
+#
+#             await message.answer(
+#                 _("📊 *The period is too short to analyze the current week!* \n"
+#                   "We can only analyze the week starting from Wednesday, when enough spendings accumulate. "
+#                   "Please check back later! 🗓"),
+#                 reply_markup=get_main_menu()
+#             )
+#
+#             return
+#
+#     # elif days == 30:
+#     #     days_passed = now.day
+#     #     if days_passed < 10:
+#     #         await state.clear()
+#     #
+#     #         await message.answer(
+#     #             _("📈 *It’s too early for monthly analytics!* \n"
+#     #               "A reliable monthly analysis requires at least 10 days of data (available from the 10th). "
+#     #               "Right now, try checking your weekly analytics instead! 📅"),
+#     #             reply_markup=get_main_menu()
+#     #         )
+#     #
+#     #         return
+#
+#
+#     summary_data = await get_user_financial_summary(session, user.id, days, user)
+#
+#     if not summary_data:
+#         await state.clear()
+#
+#         await message.answer(_("You don't have enough transactions for analysis yet. We need more data! 🧾"),
+#                              reply_markup=get_main_menu())
+#
+#         return
+#
+#     min_items_required = 5 if days == 7 else 12
+#
+#     actual_items_count = len(summary_data.get("top_items", []))
+#
+#     # if actual_items_count < min_items_required:
+#     #     await state.clear()
+#     #
+#     #     await message.answer(
+#     #         _("🧾 *Not enough data for deep analysis!* \n"
+#     #           "You have too few expenses logged for this period. "
+#     #           "Keep logging your expenditures via voice, and I will prepare a smart audit soon! 🤖"),
+#     #         reply_markup=get_main_menu()
+#     #     )
+#     #
+#     #     return
+#
+#
+#     process_analysis_expense_task.delay(
+#         chat_id=message.chat.id,
+#         locale=user.language_code,
+#         data=summary_data,
+#         user_id=user.id,
+#         days=days,
+#         actual_days=summary_data["days_period"]
+#     )
+#
+#     await state.clear()
+#
+#     await message.answer(
+#         _("🤖 *AI is analyzing your spending patterns...* \nIt will take five or ten seconds.",
+#           ), reply_markup=get_main_menu())
+
+
+
 @ai_router.message(I18nTextFilter("weekly data analysis", "monthly data analysis"))
-async def handle_analytics_request(message: Message, session: AsyncSession, state: FSMContext):
+async def handle_analytics_request(message: Message, state: FSMContext):
 
     if not message.from_user:
         return
 
-    user = await get_user_by_id(session, message.from_user.id)
-
-    if not user:
-        await state.clear()
-
-        await message.answer(_("User not found. Please enter /start."))
-
-        return
 
     weekly_text = _("weekly data analysis")
     monthly_text = _("monthly data analysis")
@@ -231,55 +324,27 @@ async def handle_analytics_request(message: Message, session: AsyncSession, stat
 
             return
 
-    elif days == 30:
-        days_passed = now.day
-        if days_passed < 10:
-            await state.clear()
+    # elif days == 30:
+    #     days_passed = now.day
+    #     if days_passed < 10:
+    #         await state.clear()
+    #
+    #         await message.answer(
+    #             _("📈 *It’s too early for monthly analytics!* \n"
+    #               "A reliable monthly analysis requires at least 10 days of data (available from the 10th). "
+    #               "Right now, try checking your weekly analytics instead! 📅"),
+    #             reply_markup=get_main_menu()
+    #         )
+    #
+    #         return
 
-            await message.answer(
-                _("📈 *It’s too early for monthly analytics!* \n"
-                  "A reliable monthly analysis requires at least 10 days of data (available from the 10th). "
-                  "Right now, try checking your weekly analytics instead! 📅"),
-                reply_markup=get_main_menu()
-            )
-
-            return
-
-
-    summary_data = await get_user_financial_summary(session, user.id, days, user)
-
-    if not summary_data:
-        await state.clear()
-
-        await message.answer(_("You don't have enough transactions for analysis yet. We need more data! 🧾"),
-                             reply_markup=get_main_menu())
-
-        return
-
-    min_items_required = 5 if days == 7 else 12
-
-    actual_items_count = len(summary_data.get("top_items", []))
-
-    if actual_items_count < min_items_required:
-        await state.clear()
-
-        await message.answer(
-            _("🧾 *Not enough data for deep analysis!* \n"
-              "You have too few expenses logged for this period. "
-              "Keep logging your expenditures via voice, and I will prepare a smart audit soon! 🤖"),
-            reply_markup=get_main_menu()
-        )
-
-        return
 
 
     process_analysis_expense_task.delay(
+        user_id=message.from_user.id,
         chat_id=message.chat.id,
-        locale=user.language_code,
-        data=summary_data,
-        user_id=user.id,
         days=days,
-        actual_days=summary_data["days_period"]
+
     )
 
     await state.clear()
@@ -287,6 +352,4 @@ async def handle_analytics_request(message: Message, session: AsyncSession, stat
     await message.answer(
         _("🤖 *AI is analyzing your spending patterns...* \nIt will take five or ten seconds.",
           ), reply_markup=get_main_menu())
-
-
 
