@@ -754,13 +754,29 @@ async def process_test_1_analysis_financial(
             for item in essentials:
                 cat = CATEGORY_TITLES.get(item.original_category,
                                           _("📦 {org_cat}").format(org_cat=item.original_category))
-                lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
+
+                if hasattr(item, "frequency_metric") and item.frequency_metric:
+                    lines.append(_(" • <b>{el}</b> — <b>{freq}</b> ({cat})").format(
+                        el=item.name, freq=item.frequency_metric, cat=cat
+                    ))
+                else:
+                    # Старый вывод конкретных товаров для недели
+                    lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
+                #lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
 
         if discretionary:
             lines.append(_("\n🟡 <u>Secondary :</u>"))
             for item in discretionary:
                 cat = CATEGORY_TITLES.get(item.original_category, f"📦 {item.original_category}")
-                lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
+
+                if hasattr(item, "frequency_metric") and item.frequency_metric:
+                    lines.append(_(" • <b>{el}</b> — <b>{freq}</b> ({cat})").format(
+                        el=item.name, freq=item.frequency_metric, cat=cat
+                    ))
+                else:
+                    # Старый вывод конкретных товаров для недели
+                    lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
+                #lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
 
         # === БЛОК УМНЫХ РЕКОМЕНДАЦИЙ (Разделение вывода для недели и месяца) ===
         if analysis_result.recommendations:

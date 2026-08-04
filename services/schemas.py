@@ -145,6 +145,32 @@ class WeeklyAnalysisResponse(BaseModel):
     recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов СТРОГО по конкретным позициям трат (labels)")
 
 
+class MonthlyAnalyzedCategory(BaseModel):
+    name: str = Field(
+        description="Название укрупненной группы расходов на языке пользователя. "
+                    "ТЫ ОБЯЗАН СГРУППИРОВАТЬ похожие товары из сырых данных в один бакет! "
+                    "ПРИМЕР КАК НАДО: Если в данных есть 'Зубная паста', 'Дезодорант', 'Капли для глаз', "
+                    "ты ОБЯЗАН объединить их в ОДИН объект с name='Средства гигиены и аптека'. "
+                    "Если есть 'Хлеб', 'Молоко', 'Колбаса' — объедини в name='Продукты питания'. "
+                    "ПРИМЕР КАК НЕЛЬЗЯ: Создавать отдельные объекты для 'Зубная паста' и 'Дезодорант'. "
+                    "Количество объектов в classified_items должно быть строго меньше, чем в сырых данных, "
+                    "за счет умного объединения похожих трат."
+    )
+    frequency_metric: str = Field(
+        description="Суммарная частота покупок ВСЕХ товаров, которые ты объединил в эту группу. "
+                    "Если ты объединил зубную пасту (1 транзакция) и дезодорант (1 транзакция), "
+                    "то частота этой группы будет: '2 транзакции за 4 дня' (или за месяц)."
+    )
+    original_category: str = Field(
+        description="Строгий системный ключ категории из БД бота (food, home, health, entertainment, other)."
+    )
+    expense_type: str = Field(
+        description="Строго один из двух вариантов: 'essential' или 'discretionary'"
+    )
+
+
+
+
 class MonthlyCategoryRecommendation(BaseModel):
 
     target_habit_pattern: str = Field(
@@ -188,5 +214,7 @@ class MonthlyAnalysisResponse(BaseModel):
         default=None,
         description="Процент израсходованного месячного лимита 'monthly_budget'. Рассчитай на основе переданного лимита. Если лимит не задан, верни null."
     )
-    classified_items: List[AnalyzedItem] = Field(description="Классификация топ-товаров пользователя по типу важности за месяц")
-    recommendations: List[MonthlyCategoryRecommendation] = Field(description="Список из 2-3 советов по оптимизации месячных системных привычек")
+    classified_items: List[MonthlyAnalyzedCategory] = Field(
+        description="Классификация ТОП-групп товаров пользователя по типу важности за месяц")
+    recommendations: List[MonthlyCategoryRecommendation] = Field(
+        description="Список из 2-3 советов по оптимизации месячных системных привычек")
