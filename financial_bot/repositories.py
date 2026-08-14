@@ -3,8 +3,9 @@ from decimal import Decimal
 
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
-from sqlalchemy import delete, func, select, desc, and_
+from sqlalchemy import delete, func, select, desc, and_, union_all
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import exists
 from sqlalchemy.orm import selectinload
 
 from financial_bot.exceptions import UserNotFoundError
@@ -404,42 +405,97 @@ async def get_user_financial_summary(
     ]
 
 
+    # if days == 7:
+    #     items_stmt = (
+    #         select(
+    #             TransactionItems.name,
+    #             TransactionItems.price.label("item_amount"),
+    #             Transactions.category.label("associated_category"),
+    #             Transactions.created_at.label("date")
+    #         )
+    #         .join(Transactions, TransactionItems.transaction_id == Transactions.id)
+    #         .where(
+    #             Transactions.user_id == user_id,
+    #             Transactions.type == "expense",
+    #             Transactions.created_at >= start_date,
+    #             Transactions.created_at < end_date
+    #         )
+    #         .order_by(desc(TransactionItems.price))
+    #         .limit(30)
+    #     )
+    #
+    # else:
+    #     items_stmt = (
+    #         select(
+    #             TransactionItems.name,
+    #             TransactionItems.price.label("item_amount"),
+    #             Transactions.category.label("associated_category"),
+    #             Transactions.created_at.label("date")
+    #         )
+    #         .join(Transactions, TransactionItems.transaction_id == Transactions.id)
+    #         .where(
+    #             Transactions.user_id == user_id,
+    #             Transactions.type == "expense",
+    #             Transactions.created_at >= start_date,
+    #             Transactions.created_at < end_date
+    #         )
+    #         .order_by(Transactions.created_at.desc())
+    #
+    #     )
+
+    # Test:
+
+    part_items = (
+        select(
+            TransactionItems.name.label("name"),
+            TransactionItems.price.label("item_amount"),
+            Transactions.category.label("associated_category"),
+            Transactions.created_at.label("date")
+        )
+        .join(Transactions, TransactionItems.transaction_id == Transactions.id)
+        .where(
+            Transactions.user_id == user_id,
+            Transactions.type == "expense",
+            Transactions.created_at >= start_date,
+            Transactions.created_at < end_date
+        )
+    )
+
+
+    part_manual = (
+        select(
+            Transactions.category.label("name"),  # Категория встает на место имени товара
+            Transactions.amount.label("item_amount"),
+            Transactions.category.label("associated_category"),
+            Transactions.created_at.label("date")
+        )
+        .where(
+            Transactions.user_id == user_id,
+            Transactions.type == "expense",
+            Transactions.created_at >= start_date,
+            Transactions.created_at < end_date,
+            ~exists().where(TransactionItems.transaction_id == Transactions.id)  # Нет дочерних товаров
+        )
+    )
+
+    # Объединяем через UNION ALL
+    unified_union = union_all(part_items, part_manual)
+
+    # Обернем в финальный select для сортировки и лимитов
     if days == 7:
+        # Для недели сортируем по цене (Топ-траты) и ограничиваем 30 позициями, как у вас и было
         items_stmt = (
-            select(
-                TransactionItems.name,
-                TransactionItems.price.label("item_amount"),
-                Transactions.category.label("associated_category"),
-                Transactions.created_at.label("date")
-            )
-            .join(Transactions, TransactionItems.transaction_id == Transactions.id)
-            .where(
-                Transactions.user_id == user_id,
-                Transactions.type == "expense",
-                Transactions.created_at >= start_date,
-                Transactions.created_at < end_date
-            )
-            .order_by(desc(TransactionItems.price))
+            select(unified_union.c.name, unified_union.c.item_amount, unified_union.c.associated_category,
+                   unified_union.c.date)
+            .order_by(desc(unified_union.c.item_amount))
             .limit(30)
         )
-
     else:
+        # Для месяца отдаем полный хронологический список
         items_stmt = (
-            select(
-                TransactionItems.name,
-                TransactionItems.price.label("item_amount"),
-                Transactions.category.label("associated_category"),
-                Transactions.created_at.label("date")
-            )
-            .join(Transactions, TransactionItems.transaction_id == Transactions.id)
-            .where(
-                Transactions.user_id == user_id,
-                Transactions.type == "expense",
-                Transactions.created_at >= start_date,
-                Transactions.created_at < end_date
-            )
-            .order_by(Transactions.created_at.desc())
-
+            select(unified_union.c.name, unified_union.c.item_amount, unified_union.c.associated_category,
+                   unified_union.c.date)
+            .order_by(desc(unified_union.c.date))
         )
 
 

@@ -112,37 +112,37 @@ class ReceiptListAnalysisSchema(BaseModel):
     )
 
 
-class AnalyzedItem(BaseModel):
-    name: str = Field(description="Название товара из чека")
-    original_category: str = Field(description="Категория из БД бота (food, home, health и т.д.)")
-    expense_type: str = Field(
-
-        description="Строго один из двух вариантов:\n"
-                    "1. 'essential' (Жизненно важно: лекарства, базовая медицина, аренда, детские и школьные товары в том числе канцелярия, коммунальные услуги, ремонт критических поломок).\n"
-                    "2. 'discretionary' (Гибкие траты: кофе на вынос, рестораны, такси повышенного класса, игры, подписки, хобби, декор, спонтанные покупки)."
-    )
-
-
-class TargetRecommendation(BaseModel):
-    target_item: str = Field(description="Название конкретного товара, услуги или привычки (из поля 'name' в 'top_items'), которая оптимизируется")
-    reason: str = Field(description="Аргументированный совет, почему и как можно оптимизировать (без банальностей)")
-    potential_saving: str = Field(
-        description="Оценка потенциала экономии в свободной форме (например: 'Около 1000 руб в неделю, если...' или 'До 30% от трат на эту позицию')")
-
-
-class WeeklyAnalysisResponse(BaseModel):
-    summary: str = Field(
-        description="Краткий оперативный аудит финансового поведения за прошедшую неделю (до 4 предложений). "
-                    "Оцени общий баланс недели ('net_balance') относительно доходов. "
-                    "Укажи, удается ли пользователю держать баланс в плюсе. "
-                    "ВАЖНО: Копируй числовые агрегаты строго из 'user_context' без изменений и округлений!"
-    )
-
-    weekly_balance_status: str = Field(
-        description="Короткий вердикт на текущий момент недели. Примеры: 'Расходы превысили доходы', 'Дисциплина на высоте! 🔥'"
-    )
-    classified_items: List[AnalyzedItem] = Field(description="Классификация топ-товаров пользователя за неделю по типу важности")
-    recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов СТРОГО по конкретным позициям трат (labels)")
+# class AnalyzedItem(BaseModel):
+#     name: str = Field(description="Название товара из чека")
+#     original_category: str = Field(description="Категория из БД бота (food, home, health и т.д.)")
+#     expense_type: str = Field(
+#
+#         description="Строго один из двух вариантов:\n"
+#                     "1. 'essential' (Жизненно важно: лекарства, базовая медицина, аренда, детские и школьные товары в том числе канцелярия, коммунальные услуги, ремонт критических поломок).\n"
+#                     "2. 'discretionary' (Гибкие траты: кофе на вынос, рестораны, такси повышенного класса, игры, подписки, хобби, декор, спонтанные покупки)."
+#     )
+#
+#
+# class TargetRecommendation(BaseModel):
+#     target_item: str = Field(description="Название конкретного товара, услуги или привычки (из поля 'name' в 'top_items'), которая оптимизируется")
+#     reason: str = Field(description="Аргументированный совет, почему и как можно оптимизировать (без банальностей)")
+#     potential_saving: str = Field(
+#         description="Оценка потенциала экономии в свободной форме (например: 'Около 1000 руб в неделю, если...' или 'До 30% от трат на эту позицию')")
+#
+#
+# class WeeklyAnalysisResponse(BaseModel):
+#     summary: str = Field(
+#         description="Краткий оперативный аудит финансового поведения за прошедшую неделю (до 4 предложений). "
+#                     "Оцени общий баланс недели ('net_balance') относительно доходов. "
+#                     "Укажи, удается ли пользователю держать баланс в плюсе. "
+#                     "ВАЖНО: Копируй числовые агрегаты строго из 'user_context' без изменений и округлений!"
+#     )
+#
+#     weekly_balance_status: str = Field(
+#         description="Короткий вердикт на текущий момент недели. Примеры: 'Расходы превысили доходы', 'Дисциплина на высоте! 🔥'"
+#     )
+#     classified_items: List[AnalyzedItem] = Field(description="Классификация топ-товаров пользователя за неделю по типу важности")
+#     recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов СТРОГО по конкретным позициям трат (labels)")
 
 
 # class MonthlyAnalyzedCategory(BaseModel):
@@ -229,6 +229,12 @@ class WeeklyAnalysisResponse(BaseModel):
 
 
 class MonthlyCategoryRecommendation(BaseModel):
+    name: str = Field(
+                description="Название созданной ТОБОЙ укрупненной аналитической группы на языке пользователя. "
+                            "ЗАПРЕЩЕНО использовать названия единичных товаров из сырых данных (никаких 'Зубная паста', 'Батарейки'). "
+                            "Ты обязан переписать название в обобщенную категорию верхнего уровня. "
+                            "Примеры: 'Аптека и средства гигиены', 'Продукты питания', 'Бытовые мелочи и техника', 'Развлечения и отдых'."
+            )
 
     target_habit_pattern: str = Field(
         description="Назови выявленный системный ритуал или повторяющуюся привычку пользователя "
@@ -280,3 +286,40 @@ class MonthlyAnalysisResponse(BaseModel):
     #     description="Классификация ТОП-групп товаров пользователя по типу важности за месяц")
     recommendations: List[MonthlyCategoryRecommendation] = Field(
         description="Список из 2-3 советов по оптимизации месячных системных привычек")
+
+
+
+class TargetRecommendation(BaseModel):
+    name: str = Field(
+        description="Название конкретного товара из чека (например, 'Зубная паста') "
+                    "ИЛИ название категории расходов, если детализация по товарам отсутствует (например, 'Транспорт', 'Продукты')."
+    )
+    expense_type: str = Field(
+        description="Строго один из двух вариантов:\n"
+                    "1. 'essential' (Жизненно важно: лекарства, коммунальные услуги, базовые продукты).\n"
+                    "2. 'discretionary' (Гибкие траты: кофе, рестораны, развлечения)."
+    )
+    target_item: str = Field(
+        description="Название анализируемого товара или категории из поля 'name', которая оптимизируется."
+    )
+    reason: str = Field(
+        description="Аргументированный совет, почему и как можно оптимизировать расходы на этот товар или категорию."
+    )
+    potential_saving: str = Field(
+        description="Оценка потенциала экономии в свободной форме."
+    )
+
+
+
+class WeeklyAnalysisResponse(BaseModel):
+    summary: str = Field(
+        description="Краткий оперативный аудит финансового поведения за прошедшую неделю (до 4 предложений). "
+                    "Оцени общий баланс недели ('net_balance') относительно доходов. "
+                    "Укажи, удается ли пользователю держать баланс в плюсе. "
+                    "ВАЖНО: Копируй числовые агрегаты строго из 'user_context' без изменений и округлений!"
+    )
+
+    weekly_balance_status: str = Field(
+        description="Короткий вердикт на текущий момент недели. Примеры: 'Расходы превысили доходы', 'Дисциплина на высоте! 🔥'"
+    )
+    recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов СТРОГО по конкретным позициям трат (labels)")

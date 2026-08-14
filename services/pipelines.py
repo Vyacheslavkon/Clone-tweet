@@ -891,19 +891,19 @@ async def process_test_1_analysis_financial(
 
     actual_items_count = len(data.get("top_items", []))
 
-    # if actual_items_count < min_items_required:
-    #
-    #     msg_text =  _("🧾 *Not enough data for deep analysis!* \n"
-    #           "You have too few expenses logged for this period. "
-    #           "Keep logging your expenditures via voice, and I will prepare a smart audit soon! 🤖")
-    #
-    #     await bot.send_message(
-    #         chat_id=chat_id,
-    #         text=msg_text,
-    #         parse_mode=ParseMode.HTML
-    #     )
-    #
-    #     return
+    if actual_items_count < min_items_required:
+
+        msg_text =  _("🧾 *Not enough data for deep analysis!* \n"
+              "You have too few expenses logged for this period. "
+              "Keep logging your expenditures via voice, and I will prepare a smart audit soon! 🤖")
+
+        await bot.send_message(
+            chat_id=chat_id,
+            text=msg_text,
+            parse_mode=ParseMode.HTML
+        )
+
+        return
 
     actual_days = data["days_period"]
 
@@ -945,12 +945,13 @@ async def process_test_1_analysis_financial(
         lines.extend([
             "{summary}\n".format(summary=analysis_result.summary),
         ])
-        #  schemas target_recommendations has not attribute expense_type!!!!! divide generating list elements for period
-        # === БЛОК СТРУКТУРЫ ТРАТ (Classified Items) ===
+
         # Разделяем вывод товаров по типам важности, как они классифицированы моделью в classified_items
         essentials = [item for item in analysis_result.recommendations if item.expense_type == "essential"]
         discretionary = [item for item in analysis_result.recommendations if item.expense_type == "discretionary"]
 
+        logger.info(f"essentials: {essentials}")
+        logger.info(f"discretionary: {discretionary}")
 
         lines.append(_("🎯 <b>Categorizing top expenses by importance:</b>"))
 
