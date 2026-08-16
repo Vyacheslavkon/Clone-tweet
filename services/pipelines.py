@@ -946,9 +946,12 @@ async def process_test_1_analysis_financial(
             "{summary}\n".format(summary=analysis_result.summary),
         ])
 
-        # Разделяем вывод товаров по типам важности, как они классифицированы моделью в classified_items
-        essentials = [item for item in analysis_result.recommendations if item.expense_type == "essential"]
-        discretionary = [item for item in analysis_result.recommendations if item.expense_type == "discretionary"]
+
+        # essentials = [item for item in analysis_result.recommendations if item.expense_type == "essential"]
+        # discretionary = [item for item in analysis_result.recommendations if item.expense_type == "discretionary"]
+
+        essentials = [item for item in analysis_result.classified_items if item.expense_type == "essential"]
+        discretionary = [item for item in analysis_result.classified_items if item.expense_type == "discretionary"]
 
         logger.info(f"essentials: {essentials}")
         logger.info(f"discretionary: {discretionary}")
@@ -961,11 +964,11 @@ async def process_test_1_analysis_financial(
 
                 if hasattr(item, "frequency_metric") and item.frequency_metric:
                     lines.append(_(" • <b>{el}</b> — <b>{freq}</b>").format(
-                        el=item.target_habit_pattern, freq=item.frequency_metric
+                        el=item.name, freq=item.frequency_metric
                     ))
                 else:
                     # Старый вывод конкретных товаров для недели
-                    lines.append(_(" • <b>{el}</b>").format(el=item.target_habit_pattern))
+                    lines.append(_(" • <b>{el}</b>").format(el=item.name))
                 #lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
 
         if discretionary:
@@ -974,7 +977,7 @@ async def process_test_1_analysis_financial(
 
                 if hasattr(item, "frequency_metric") and item.frequency_metric:
                     lines.append(_(" • <b>{el}</b> — <b>{freq}</b>").format(
-                        el=item.target_habit_pattern, freq=item.frequency_metric
+                        el=item.name, freq=item.frequency_metric
                     ))
                 else:
                     # Старый вывод конкретных товаров для недели
