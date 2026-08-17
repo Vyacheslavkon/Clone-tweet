@@ -915,7 +915,8 @@ async def process_test_1_analysis_financial(
             summary_data=data,
             response_schema=response_schema,
             days=days,
-            actual_days=actual_days
+            actual_days=actual_days,
+            locale=locale
         )
 
         currency = data.get("user_config", {}).get("currency", "руб.")
@@ -946,9 +947,6 @@ async def process_test_1_analysis_financial(
             "{summary}\n".format(summary=analysis_result.summary),
         ])
 
-
-        # essentials = [item for item in analysis_result.recommendations if item.expense_type == "essential"]
-        # discretionary = [item for item in analysis_result.recommendations if item.expense_type == "discretionary"]
 
         essentials = [item for item in analysis_result.classified_items if item.expense_type == "essential"]
         discretionary = [item for item in analysis_result.classified_items if item.expense_type == "discretionary"]

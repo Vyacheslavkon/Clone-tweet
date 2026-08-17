@@ -1,6 +1,6 @@
 from decimal import Decimal
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -116,84 +116,85 @@ class ReceiptListAnalysisSchema(BaseModel):
 class MonthlyAnalyzedCategory(BaseModel):
     # Possible look like MonthlyCategoryRecommendation. Necessary correcting
     name: str = Field(
-        description="Название созданной ТОБОЙ укрупненной аналитической группы на языке пользователя. "
-                    "ЗАПРЕЩЕНО использовать названия единичных товаров из сырых данных (никаких 'Зубная паста', 'Батарейки'). "
-                    "Ты обязан переписать название в обобщенную категорию верхнего уровня. "
-                    "Примеры: 'Аптека и средства гигиены', 'Продукты питания', 'Бытовые мелочи и техника', 'Развлечения и отдых'."
-    )
-    frequency_metric: str = Field(
-        description="Суммарный аналитический показатель частоты для всей созданной группы за месяц. "
-                    "Формат строго: 'Х транзакций за месяц' или 'Регулярно (Х раз в неделю)'. "
-                    "Складывай количество всех транзакций, которые вошли в этот бакет."
+        min_length=3,
+        description="The high-level category name generated strictly in the user's language (specified in system prompt). "
+        "FORBIDDEN: Do not use single product names (like 'Toothpaste', 'Milk') and do not copy raw database keys "
+        "as-is (like 'food', 'health', 'home', 'entertainment'). "
+        "You must translate and expand technical keys into proper generalized human-readable group names "
+        "in the target language (e.g., for Russian: 'food' -> 'Продукты', 'health' -> 'Лекарства и аптека')."
     )
 
-    expense_type: str = Field(
-        description="Строго один из двух вариантов: 'essential' или 'discretionary'"
-    )
-    #     original_category: str = Field(
-    #         description="Строгий системный ключ родительской категории из БД: food, home, health, entertainment, other."
-    #     )
+
+frequency_metric: str = Field(
+    description="The aggregated analytical frequency indicator for the entire created group over the month. "
+                "Strict format required: 'X transactions per month' or 'Regularly (X times a week)', "
+                "translated into the user's language specified in the system prompt. "
+                "You must sum the count of all individual transactions that fall into this specific bucket."
+)
+
+expense_type: Literal["essential", "discretionary"] = Field(
+    description="Strictly classify the entire group into one of two options:\n"
+                "1. 'essential' (Vital: standard groceries, supermarkets, medication, healthcare, housing, utilities, critical repairs).\n"
+                "2. 'discretionary' (Flexible/Lifestyle: coffee to go, cafes, restaurants, bars, entertainment, hobbies, cinema, spontaneous shopping)."
+)
 
 
 class MonthlyCategoryRecommendation(BaseModel):
-    # name: str = Field(
-    #             description="Название созданной ТОБОЙ укрупненной аналитической группы на языке пользователя. "
-    #                         "ЗАПРЕЩЕНО использовать названия единичных товаров из сырых данных (никаких 'Зубная паста', 'Батарейки'). "
-    #                         "Ты обязан переписать название в обобщенную категорию верхнего уровня. "
-    #                         "Примеры: 'Аптека и средства гигиены', 'Продукты питания', 'Бытовые мелочи и техника', 'Развлечения и отдых'."
-    #         )
-
     target_habit_pattern: str = Field(
-        description="Назови выявленный системный ритуал или повторяющуюся привычку пользователя "
-                    "на основе частоты и количества транзакций за месяц. "
-                    "Примеры: 'Регулярные перекусы и кофе на вынос', 'Частые мелкие покупки игрушек', "
-                    "'Системные поездки на такси вместо общественного транспорта', 'Регулярный фастфуд'. "
-                    "КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО писать название одной конкретной покупки (например, 'Игрушка автобус'). "
-                    "Название должно описывать именно повторяющийся паттерн поведения во множественном числе."
+        description="The identified systemic behavioral ritual or recurring user spending habit based on transaction frequency over the month. "
+                    "Examples formatted strictly in the user's language: 'Frequent snacks and coffee to go', 'Regular fast food purchases'. "
+                    "FORBIDDEN: Never write the name of a specific single purchase (e.g., do NOT write 'Toy bus'). "
+                    "The title MUST describe a recurring behavioral pattern in the plural form."
     )
 
     frequency_metric: str = Field(
-        description="Укажи частоту этого ритуала за месяц, которую ты насчитал в сырых данных. "
-                    "Пример: 'Куплено 14 раз за месяц', '7 поездок за 3 недели', 'Почти каждый день'."
+        description="The exact frequency of this specific ritual counted across the raw monthly data. "
+                    "Examples formatted strictly in the user's language: 'Purchased 14 times this month', '7 rides in 3 weeks', 'Nearly every day'."
     )
 
-    # expense_type: str = Field(
-    #     description="Категоризируй данный паттерн/группу трат по типу важности. "
-    #                 "Строго один из двух вариантов: 'essential' (необходимые, базовые траты) или 'discretionary' (второстепенные, спонтанные трат)."
-    # )
-
     reason: str = Field(
-        description="Проанализируй эту привычку или группу трат в разрезе месяца. "
-                    "Объясни пользователю, как этот паттерн влияет на его бюджет в долгосрочной перспективе. "
-                    "КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО упоминать конкретные имена, бренды или единичные события из сырых данных "
-                    "(например, вместо 'Подарок Вике' пиши 'незапланированные расходы на подарки и праздники', "
-                    "вместо 'Игрушка автобус' пиши 'спонтанные покупки для детей'). "
-                    "Дай совет по контролю этой статьи расходов."
+        description="A deep macro-analysis of this specific habit over the month. Explain to the user how this pattern "
+                    "compounds and affects their long-term budget in the future. "
+                    "STRICTLY FORBIDDEN: Do not mention specific personal names, brands, or unique single events from the raw data "
+                    "(e.g., instead of 'Gift for Victoria' write 'unplanned expenses on gifts and holidays'; "
+                    "instead of 'Toy bus' write 'spontaneous purchases for children'). "
+                    "Provide actionable financial advice on how to control and track this expense category. Written strictly in the user's language."
     )
 
     potential_saving: str = Field(
-        description="Оценка потенциала экономии в рамках этого паттерна поведения за месяц (в свободной форме)."
+        description="An estimate of the monthly savings potential within this behavioral pattern. "
+                    "Format as a free-form encouraging text in the user's language (e.g., 'Up to 3,000 RUB per month if...')."
     )
+
 
 
 class MonthlyAnalysisResponse(BaseModel):
     summary: str = Field(
-        description="Глубокий стратегический аудит финансового поведения за месяц (до 4 предложений). "
-                    "Оцени структуру трат, накопительный эффект привычек и общий чистый баланс. "
-                    "ВАЖНО: Копируй числовые агрегаты строго из 'user_context' без изменений и округлений!"
+        description="A deep, strategic audit of the user's monthly financial behavior (maximum 4 sentences). "
+                    "Evaluate the overall spending structure, the compounding effect of habits, and the net financial balance. "
+                    "CRITICAL AGGREGATE RULE: You must copy all numerical aggregates strictly from the provided 'user_context' "
+                    "without any modifications, calculations, or roundings! Written strictly in the user's language."
     )
     budget_status: str = Field(
-        description="Вердикт по месячному бюджету и целям сбережений. Примеры: 'Идеально укладываетесь в лимит', 'Лимит превышен', 'Цель по сбережениям под угрозой', 'Бюджет не задан'"
+        description="The final verdict on the monthly budget status and savings targets. "
+                    "Examples formatted strictly in the user's language: 'Perfectly within limits', 'Limit exceeded', "
+                    "'Savings goal at risk', 'Budget not set'."
     )
     budget_usage_percent: Optional[float] = Field(
         default=None,
-        description="Процент израсходованного месячного лимита 'monthly_budget'. Рассчитай на основе переданного лимита. Если лимит не задан, верни null."
+        description="The calculated percentage of the consumed 'monthly_budget'. Calculate this value mathematically "
+                    "based on the passed limit. If the monthly budget limit is not provided, strictly return null."
     )
-    classified_items: List[MonthlyAnalyzedCategory] = Field(
-        description="Классификация ТОП-групп товаров пользователя по типу важности за месяц")
-    recommendations: List[MonthlyCategoryRecommendation] = Field(
-        description="Список из 2-3 советов по оптимизации месячных системных привычек")
 
+    # ПРИМЕНЯЕМ ВАРИАНТ 1 (ИНВЕРСИЯ ПОЛЕЙ): рекомендации идут ПЕРВЫМИ для удержания фокуса внимания ИИ
+    recommendations: List[MonthlyCategoryRecommendation] = Field(
+        description="A list of 2-3 expert strategic optimization recommendations regarding systemic habits and behavioral rituals."
+    )
+
+    # Блок классификации идет вторым, опираясь на контекст сгенерированных выше рекомендаций
+    classified_items: List[MonthlyAnalyzedCategory] = Field(
+        description="Classification of the main high-level groups of user expenses categorized by their importance type for the month."
+    )
 
 
 class AnalyzedItem(BaseModel):

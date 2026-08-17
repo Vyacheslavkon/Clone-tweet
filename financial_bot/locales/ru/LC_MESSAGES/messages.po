@@ -674,7 +674,6 @@ msgstr ""
 "Пожалуйста, попробуйте позже."
 
 #: services/pipelines.py:739
-#, fuzzy, python-brace-format
 msgid ""
 "\n"
 "{num}. <b>{target}</b> — <b>{freq}</b>\n"

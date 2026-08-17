@@ -135,7 +135,8 @@ class AIService:
             response_schema: Type[BaseModel],
             summary_data: dict,
             days: int,
-            actual_days: int
+            actual_days: int,
+            locale: str
     ) -> dict:
 
         if not summary_data:
@@ -190,11 +191,11 @@ class AIService:
         completion = await self.client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": get_analysis_financial(days, actual_days)},
+                {"role": "system", "content": get_analysis_financial(days, actual_days, locale)},
                 {"role": "user", "content": user_context}
             ],
             response_format=response_schema,
-            temperature=0.7
+            temperature=0.0
         )
 
         return completion.choices[0].message.parsed
