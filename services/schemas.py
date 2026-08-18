@@ -113,30 +113,58 @@ class ReceiptListAnalysisSchema(BaseModel):
 
 
 
+# class MonthlyAnalyzedCategory(BaseModel):
+#
+#     name: str = Field(
+#         min_length=3,
+#         description="The high-level category name generated strictly in the user's language (specified in system prompt). "
+#         "FORBIDDEN: Do not use single product names (like 'Toothpaste', 'Milk') and do not copy raw database keys "
+#         "as-is (like 'food', 'health', 'home', 'entertainment'). "
+#         "You must translate and expand technical keys into proper generalized human-readable group names "
+#         "in the target language (e.g., for Russian: 'food' -> 'Продукты', 'health' -> 'Лекарства и аптека')."
+#     )
+#
+#
+#     frequency_metric: str = Field(
+#         description="The aggregated analytical frequency indicator for the entire created group over the month. "
+#                     "Strict format required: 'X transactions per month' or 'Regularly (X times a week)', "
+#                     "translated into the user's language specified in the system prompt. "
+#                     "You must sum the count of all individual transactions that fall into this specific bucket."
+#     )
+#
+#     expense_type: Literal["essential", "discretionary"] = Field(
+#         description="Strictly classify the entire group into one of two options:\n"
+#                     "1. 'essential' (Vital: standard groceries, supermarkets, medication, healthcare, housing, utilities, critical repairs).\n"
+#                     "2. 'discretionary' (Flexible/Lifestyle: coffee to go, cafes, restaurants, bars, entertainment, hobbies, cinema, spontaneous shopping)."
+#     )
+
 class MonthlyAnalyzedCategory(BaseModel):
-    # Possible look like MonthlyCategoryRecommendation. Necessary correcting
     name: str = Field(
         min_length=3,
-        description="The high-level category name generated strictly in the user's language (specified in system prompt). "
-        "FORBIDDEN: Do not use single product names (like 'Toothpaste', 'Milk') and do not copy raw database keys "
-        "as-is (like 'food', 'health', 'home', 'entertainment'). "
-        "You must translate and expand technical keys into proper generalized human-readable group names "
-        "in the target language (e.g., for Russian: 'food' -> 'Продукты', 'health' -> 'Лекарства и аптека')."
+        description=(
+            "The high-level category name generated strictly in the user's language. "
+            "INSTRUCTION: Scan the 'name' and 'category' fields in the raw data. "
+            "If you see specific product tokens (like 'Toothpaste', 'T-shirt'), cluster them into narrow, "
+            "accurate sub-categories (e.g., 'Hygiene & Cosmetics', 'Clothing & Shopping'). "
+            "If you see only broad category tokens (like 'food', 'transport'), expand them into beautiful "
+            "human-readable names (e.g., 'Groceries & Supermarkets', 'Transport & Auto'). "
+            "Never use raw single product names as titles. Aim for a detailed layout."
+        )
     )
 
+    frequency_metric: str = Field(
+        description="The aggregated indicator: 'X transactions per month' or 'Regularly (X times a week)' in the user's language."
+    )
+    expense_type: Literal["essential", "discretionary"] = Field(
+        description="Strictly classify this specific category into 'essential' or 'discretionary' based on its current context."
+    )
 
-frequency_metric: str = Field(
-    description="The aggregated analytical frequency indicator for the entire created group over the month. "
-                "Strict format required: 'X transactions per month' or 'Regularly (X times a week)', "
-                "translated into the user's language specified in the system prompt. "
-                "You must sum the count of all individual transactions that fall into this specific bucket."
-)
+    items_breakdown: List[str] = Field(
+        description="A list of specific transaction names or item descriptors from 'top_items' that formed this category. "
+                    "For example, if name is 'Cafes & Fastfood', this list must contain items like ['McDonalds', 'KFC', 'Coffee']. "
+                    "If the category was formed by manual entries without details, put the base category name here: ['Manual Entry Expenses']."
+    )
 
-expense_type: Literal["essential", "discretionary"] = Field(
-    description="Strictly classify the entire group into one of two options:\n"
-                "1. 'essential' (Vital: standard groceries, supermarkets, medication, healthcare, housing, utilities, critical repairs).\n"
-                "2. 'discretionary' (Flexible/Lifestyle: coffee to go, cafes, restaurants, bars, entertainment, hobbies, cinema, spontaneous shopping)."
-)
 
 
 class MonthlyCategoryRecommendation(BaseModel):
@@ -191,10 +219,21 @@ class MonthlyAnalysisResponse(BaseModel):
         description="A list of 2-3 expert strategic optimization recommendations regarding systemic habits and behavioral rituals."
     )
 
-    # Блок классификации идет вторым, опираясь на контекст сгенерированных выше рекомендаций
+
+    # classified_items: List[MonthlyAnalyzedCategory] = Field(
+    #     description="A detailed classification of ALL expense groups for the month. "
+    #                 "CRITICAL: You must generate between 6 and 10 distinct high-level category groups "
+    #                 "to provide a comprehensive statistics block (e.g., separate 'Transport/Taxi', "
+    #                 "'Subscriptions', 'Clothes & Shopping', 'Cafes & Fastfood' instead of merging everything into 'Other'). "
+    #                 "Sort by volume from highest to lowest."
+    # )
+
     classified_items: List[MonthlyAnalyzedCategory] = Field(
-        description="Classification of the main high-level groups of user expenses categorized by their importance type for the month."
+        description="A complete classification of all expense categories present in the user's data for the month, "
+                    "sorted by total spending volume from highest to lowest."
     )
+
+
 
 
 class AnalyzedItem(BaseModel):
