@@ -197,12 +197,20 @@ class MonthlyCategoryRecommendation(BaseModel):
 
 
 class MonthlyAnalysisResponse(BaseModel):
+    # summary: str = Field(
+    #     description="A deep, strategic audit of the user's monthly financial behavior (maximum 4 sentences). "
+    #                 "Evaluate the overall spending structure, the compounding effect of habits, and the net financial balance. "
+    #                 "CRITICAL AGGREGATE RULE: You must copy all numerical aggregates strictly from the provided 'user_context' "
+    #                 "without any modifications, calculations, or roundings! Written strictly in the user's language."
+    # )
     summary: str = Field(
-        description="A deep, strategic audit of the user's monthly financial behavior (maximum 4 sentences). "
-                    "Evaluate the overall spending structure, the compounding effect of habits, and the net financial balance. "
-                    "CRITICAL AGGREGATE RULE: You must copy all numerical aggregates strictly from the provided 'user_context' "
-                    "without any modifications, calculations, or roundings! Written strictly in the user's language."
+        description="A deep, strategic verbal audit of the user's monthly financial behavior (max 4 sentences). "
+                    "CRITICAL: You are STRICTLY FORBIDDEN from generating or writing any percentage values (do NOT use the '%' symbol at all) "
+                    "or calculating new balance numbers. Focus entirely on behavioral trends, lifestyle coaching, "
+                    "and conceptual budget evaluation using ONLY the raw numbers passed in the context. "
+                    "Written strictly in the user's language."
     )
+
     budget_status: str = Field(
         description="The final verdict on the monthly budget status and savings targets. "
                     "Examples formatted strictly in the user's language: 'Perfectly within limits', 'Limit exceeded', "

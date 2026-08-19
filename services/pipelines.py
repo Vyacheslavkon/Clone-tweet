@@ -1,6 +1,7 @@
 import gettext
 import os
 import uuid
+from collections import Counter
 from pathlib import Path
 
 import openai
@@ -956,31 +957,161 @@ async def process_test_1_analysis_financial(
 
         lines.append(_("🎯 <b>Categorizing top expenses by importance:</b>"))
 
-        if essentials:
-            lines.append(_("\n🟢 <u>Necessary :</u>"))
-            for item in essentials:
 
-                if hasattr(item, "frequency_metric") and item.frequency_metric:
-                    lines.append(_(" • <b>{el}</b> — <b>{freq}</b>").format(
-                        el=item.name, freq=item.frequency_metric
-                    ))
-                else:
-                    # Старый вывод конкретных товаров для недели
-                    lines.append(_(" • <b>{el}</b>").format(el=item.name))
-                #lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
+        # if essentials:
+        #     lines.append(_("\n🟢 <u>Necessary :</u>"))
+        #     for item in essentials:
+        #         # Если у модели естьitems_breakdown, уберем из него дубликаты синонимов и покажем пользователю
+        #         if hasattr(item, "items_breakdown") and item.items_breakdown:
+        #             # Убираем дубликаты и чистим технические названия, если они совпадают с именем категории
+        #             clean_items = list(set([i for i in item.items_breakdown if i.lower() != item.name.lower()]))
+        #             if clean_items:
+        #                 details_str = f" ({', '.join(clean_items[:4])})"  # Берем топ-4 детали
+        #             else:
+        #                 details_str = ""
+        #         else:
+        #             details_str = ""
+        #
+        #         if hasattr(item, "frequency_metric") and item.frequency_metric:
+        #             lines.append(_(" • <b>{el}</b>{details} — <b>{freq}</b>").format(
+        #                 el=item.name, details=details_str, freq=item.frequency_metric
+        #             ))
+        #         else:
+        #             lines.append(_(" • <b>{el}</b>{details}").format(el=item.name, details=details_str))
+        #
+        # if discretionary:
+        #     lines.append(_("\n🟡 <u>Secondary :</u>"))
+        #     for item in discretionary:
+        #         # Точно так же раскрываем сочные внутренности второстепенных трат
+        #         if hasattr(item, "items_breakdown") and item.items_breakdown:
+        #             clean_items = list(set([i for i in item.items_breakdown if i.lower() != item.name.lower()]))
+        #             if clean_items:
+        #                 details_str = f" (<i>{', '.join(clean_items[:4])}</i>)"
+        #             else:
+        #                 details_str = ""
+        #         else:
+        #             details_str = ""
+        #
+        #         if hasattr(item, "frequency_metric") and item.frequency_metric:
+        #             lines.append(_(" • <b>{el}</b>{details} — <b>{freq}</b>").format(
+        #                 el=item.name, details=details_str, freq=item.frequency_metric
+        #             ))
+        #         else:
+        #             lines.append(_(" • <b>{el}</b>{details}").format(el=item.name, details=details_str))
+        #_________________________________________________________
 
-        if discretionary:
-            lines.append(_("\n🟡 <u>Secondary :</u>"))
-            for item in discretionary:
+        category_titles = {
+            "food": _("Продукты и еда"),
+            "health": _("Здоровье и медицина"),
+            "transport": _("Транспорт и авто"),
+            "entertainment": _("Развлечения и досуг"),
+            "home": _("Дом и быт"),
+            "other": _("Прочие расходы")
+        }
 
-                if hasattr(item, "frequency_metric") and item.frequency_metric:
-                    lines.append(_(" • <b>{el}</b> — <b>{freq}</b>").format(
-                        el=item.name, freq=item.frequency_metric
-                    ))
-                else:
-                    # Старый вывод конкретных товаров для недели
-                    lines.append(_(" • <b>{el}</b>").format(el=item.name))
-                #lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
+        # Жесткое разделение категорий по типу важности на уровне бизнес-логики приложения
+        essential_categories = ["food", "health", "home"]
+        discretionary_categories = ["transport", "entertainment", "other"]
+
+        lines.append(_("\n🟢 <u>Necessary :</u>"))
+        has_essentials = False
+
+        for cat_data in data.get("categories", []):
+            cat_key = cat_data["category"]
+
+            if cat_key in essential_categories:
+                has_essentials = True
+                lines.append(_(" • <b>{cat_name}</b> — <b>{count} транзакций в месяц</b>").format(
+                    cat_name=category_titles.get(cat_key, cat_key).upper(),
+                    count=cat_data["count"]
+                ))
+
+                # Считаем частоту конкретных товаров/ручных вводов внутри этой категории
+                category_items = [
+                    item["name"] for item in data.get("top_items", [])
+                    if item["category"] == cat_key
+                ]
+
+                # Counter превратит список ['Еда', 'Еда', 'Лапша'] в {'Еда': 2, 'Лапша': 1}
+                item_counts = Counter(category_items)
+
+                # Выводим топ-4 самых частых позиций внутри категории
+                for item_name, item_freq in item_counts.most_common(4):
+                    lines.append(f"     └ {item_name} — {item_freq} раз")
+
+        # --- 2. ВТОРОСТЕПЕННЫЕ РАСХОДЫ ---
+        lines.append(_("\n🟡 <u>Secondary :</u>"))
+        has_discretionary = False
+        for cat_data in data.get("categories", []):
+            cat_key = cat_data["category"]
+            if cat_key in discretionary_categories:
+                has_discretionary = True
+                lines.append(_(" • <b>{cat_name}</b> — <b>{count} транзакций в месяц</b>").format(
+                    cat_name=CATEGORY_TITLES.get(cat_key, cat_key).upper(),
+                    count=cat_data["count"]
+                ))
+
+                # Считаем частоту для второстепенных
+                category_items = [
+                    item["name"] for item in data.get("top_items", [])
+                    if item["category"] == cat_key
+                ]
+                item_counts = Counter(category_items)
+
+                for item_name, item_freq in item_counts.most_common(4):
+                    lines.append(f"     └ {item_name} — {item_freq} раз")
+
+        #___________________________________________________________________________
+        #Собираем Необходимые расходы
+        # lines.append(_("\n🟢 <u>Necessary :</u>"))
+        # has_essentials = False
+        # for cat_data in data.get("categories", []):
+        #     cat_key = cat_data["category"]
+        #     if cat_key in essential_categories:
+        #         has_essentials = True
+        #         # Вытаскиваем ИЗ БАЗЫ ДАННЫХ реальные товары, принадлежащие ТОЛЬКО этой категории
+        #         db_items = [
+        #             item["name"] for item in data.get("top_items", [])
+        #             if item["category"] == cat_key and item["name"] != cat_key
+        #         ]
+        #         # Убираем дубликаты строк через set
+        #         unique_items = list(set(db_items))
+        #         details_str = f" (<i>{', '.join(unique_items[:4])}</i>)" if unique_items else ""
+        #         #details_str = f" (<i>{', '.join(db_items)}</i>)" if db_items else ""
+        #
+        #         lines.append(_(" • <b>{cat_name}</b>{details} — <b>{count} транзакций в месяц</b>").format(
+        #             cat_name=category_titles.get(cat_key, cat_key),
+        #             details=details_str,
+        #             count=cat_data["count"]
+        #         ))
+        # if not has_essentials:
+        #     lines.append(_(" • Нет расходов за период"))
+        #
+        # # Собираем Второстепенные расходы
+        # lines.append(_("\n🟡 <u>Secondary :</u>"))
+        # has_discretionary = False
+        # for cat_data in data.get("categories", []):
+        #     cat_key = cat_data["category"]
+        #     if cat_key in discretionary_categories:
+        #         has_discretionary = True
+        #         # Точно так же вытаскиваем реальные товары для второстепенных трат
+        #         db_items = [
+        #             item["name"] for item in data.get("top_items", [])
+        #             if item["category"] == cat_key and item["name"] != cat_key
+        #         ]
+        #         unique_items = list(set(db_items))
+        #         details_str = f" (<i>{', '.join(unique_items[:4])}</i>)" if unique_items else ""
+        #
+        #         lines.append(_(" • <b>{cat_name}</b>{details} — <b>{count} транзакций в месяц</b>").format(
+        #             cat_name=category_titles.get(cat_key, cat_key),
+        #             details=details_str,
+        #             count=cat_data["count"]
+        #         ))
+        # if not has_discretionary:
+        #     lines.append(_(" • Нет расходов за период"))
+        #_________________________________________________________________________
+
+
 
         # === БЛОК УМНЫХ РЕКОМЕНДАЦИЙ (Разделение вывода для недели и месяца) ===
         if analysis_result.recommendations:
