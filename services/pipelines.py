@@ -957,7 +957,6 @@ async def process_test_1_analysis_financial(
 
         lines.append(_("🎯 <b>Categorizing top expenses by importance:</b>"))
 
-
         # if essentials:
         #     lines.append(_("\n🟢 <u>Necessary :</u>"))
         #     for item in essentials:
@@ -998,7 +997,7 @@ async def process_test_1_analysis_financial(
         #             ))
         #         else:
         #             lines.append(_(" • <b>{el}</b>{details}").format(el=item.name, details=details_str))
-        #_________________________________________________________
+        # _________________________________________________________
 
         category_titles = {
             "food": _("Продукты и еда"),
@@ -1015,6 +1014,12 @@ async def process_test_1_analysis_financial(
 
         lines.append(_("\n🟢 <u>Necessary :</u>"))
         has_essentials = False
+        names = [el["name"] for el in data.get("top_items") ]
+        cats = [el["category"] for el in data.get("top_items") if el["category"] == "food"]
+        logger.info(f"TOP_ITEMS:{len(data["top_items"])}")
+        logger.info(f"TOP_ITEMS:{data["top_items"]}")
+        logger.info(f"TOP_ITEMS_NAMES:{names, len(names)}")
+        logger.info(f"TOP_ITEMS_CATEGORY:{cats, len(cats)}")
 
         for cat_data in data.get("categories", []):
             cat_key = cat_data["category"]
