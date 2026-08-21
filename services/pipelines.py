@@ -630,209 +630,7 @@ async def process_test_analysis_financial(
         await bot_session.close()
 
 
-# async def process_test_1_analysis_financial(
-#         user_id: int,
-#         chat_id: int,
-#         days: int,
-# ):
-#     session = get_isolated_session()
-#
-#     user = await get_user_by_id(session, user_id)
-#     locale = user.language_code
-#
-#     locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
-#
-#     try:
-#         lang = gettext.translation(
-#             domain="messages",
-#             localedir=str(locales_dir),
-#             languages=[locale],
-#             fallback=True,
-#         )
-#     except Exception as e:  # noqa: PIE786
-#         logger.error(
-#             "Не удалось загрузить локализацию из {locales}: {error}",
-#             locales=locales_dir,
-#             error=e,
-#         )
-#         lang = gettext.NullTranslations()
-#
-#     _ = lang.gettext
-#
-#     token = os.getenv("BOT_TOKEN")
-#     if not token:
-#         raise ValueError("The BOT_TOKEN environment variable is not set!")
-#
-#     bot_session = AiohttpSession()
-#     bot = Bot(
-#         token=token,
-#         session=bot_session,
-#         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-#     )
-#
-#
-#     data = await get_user_financial_summary(session, user.id, days, user)
-#
-#     if not data:
-#
-#         msg_text = _("You don't have enough transactions for analysis yet. We need more data! 🧾")
-#         await bot.send_message(chat_id=chat_id,
-#                                text=msg_text,
-#                                parse_mode=ParseMode.HTML
-#                              )
-#
-#         return
-#
-#     min_items_required = 5 if days == 7 else 12
-#
-#     actual_items_count = len(data.get("top_items", []))
-#
-#     # if actual_items_count < min_items_required:
-#     #
-#     #     msg_text =  _("🧾 *Not enough data for deep analysis!* \n"
-#     #           "You have too few expenses logged for this period. "
-#     #           "Keep logging your expenditures via voice, and I will prepare a smart audit soon! 🤖")
-#     #
-#     #     await bot.send_message(
-#     #         chat_id=chat_id,
-#     #         text=msg_text,
-#     #         parse_mode=ParseMode.HTML
-#     #     )
-#     #
-#     #     return
-#
-#     actual_days = data["days_period"]
-#
-#     try:
-#
-#         response_schema = WeeklyAnalysisResponse if days == 7 else MonthlyAnalysisResponse
-#
-#         analysis_result = await ai_service.analysis_financial(
-#             summary_data=data,
-#             response_schema=response_schema,
-#             days=days,
-#             actual_days=actual_days
-#         )
-#
-#         currency = data.get("user_config", {}).get("currency", "руб.")
-#
-#         # Шапка отчета (общая для недели и месяца)
-#         lines = [
-#             _("📊 <b>Comprehensive financial analysis</b>\n"),
-#             _("💰 <b>Total Income:</b> {income} {curr}").format(
-#                 income=data.get('total_income', 0.0), curr=currency),
-#             _("🛒 <b>Total Expense:</b> {expense} {curr}").format(
-#                 expense=data.get('total_amount', 0.0), curr=currency),
-#             _("⚖️ <b>Net Balance:</b> {balance} {curr}\n").format(
-#                 balance=data.get('net_balance', 0.0), curr=currency),
-#         ]
-#
-#         budget_status = getattr(analysis_result, "budget_status", None) or getattr(analysis_result,
-#                                                                                    "weekly_balance_status", None)
-#         if budget_status:
-#             lines.append(_("📈 <b>Budget status:</b> {status}").format(status=budget_status))
-#
-#         budget_usage_percent = getattr(analysis_result, "budget_usage_percent", None)
-#         if budget_usage_percent is not None:
-#             lines.append(_("📊 <b>Budget used:</b> {percent}%\n").format(percent=round(budget_usage_percent, 1)))
-#         else:
-#             lines.append("")
-#
-#         lines.extend([
-#             "{summary}\n".format(summary=analysis_result.summary),
-#         ])
-#
-#         # === БЛОК СТРУКТУРЫ ТРАТ (Classified Items) ===
-#         # Разделяем вывод товаров по типам важности, как они классифицированы моделью в classified_items
-#         essentials = [item for item in analysis_result.classified_items if item.expense_type == "essential"]
-#         discretionary = [item for item in analysis_result.classified_items if item.expense_type == "discretionary"]
-#
-#
-#         lines.append(_("🎯 <b>Categorizing top expenses by importance:</b>"))
-#
-#         if essentials:
-#             lines.append(_("\n🟢 <u>Necessary :</u>"))
-#             for item in essentials:
-#                 cat = CATEGORY_TITLES.get(item.original_category,
-#                                           _("📦 {org_cat}").format(org_cat=item.original_category))
-#
-#                 if hasattr(item, "frequency_metric") and item.frequency_metric:
-#                     lines.append(_(" • <b>{el}</b> — <b>{freq}</b> ({cat})").format(
-#                         el=item.name, freq=item.frequency_metric, cat=cat
-#                     ))
-#                 else:
-#                     # Старый вывод конкретных товаров для недели
-#                     lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
-#                 #lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
-#
-#         if discretionary:
-#             lines.append(_("\n🟡 <u>Secondary :</u>"))
-#             for item in discretionary:
-#                 cat = CATEGORY_TITLES.get(item.original_category, f"📦 {item.original_category}")
-#
-#                 if hasattr(item, "frequency_metric") and item.frequency_metric:
-#                     lines.append(_(" • <b>{el}</b> — <b>{freq}</b> ({cat})").format(
-#                         el=item.name, freq=item.frequency_metric, cat=cat
-#                     ))
-#                 else:
-#                     # Старый вывод конкретных товаров для недели
-#                     lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
-#                 #lines.append(_(" • <b>{el}</b> ({cat})").format(el=item.name, cat=cat))
-#
-#         # === БЛОК УМНЫХ РЕКОМЕНДАЦИЙ (Разделение вывода для недели и месяца) ===
-#         if analysis_result.recommendations:
-#             lines.append(_("\n💡 <b>Optimization recommendations:</b>"))
-#
-#             for i, rec in enumerate(analysis_result.recommendations, 1):
-#                 if days == 7:
-#                     # Недельный вывод (использует target_item)
-#                     lines.append(
-#                         _("\n{num}. <b>{target}</b>\n"
-#                           "└ {reason}\n"
-#                           "└ <i>Possible savings: {saving}</i>").format(
-#                             num=i,
-#                             target=getattr(rec, "target_item", _("Optimization")),
-#                             reason=rec.reason,
-#                             saving=rec.potential_saving
-#                         )
-#                     )
-#                 else:
-#                     # Месячный вывод (использует target_habit_pattern и frequency_metric)
-#                     lines.append(
-#                         _("\n{num}. <b>{target}</b> — <b>{freq}</b>\n"
-#                           "└ {reason}\n"
-#                           "└ <i>Possible savings: {saving}</i>").format(
-#                             num=i,
-#                             target=getattr(rec, "target_habit_pattern", _("Optimization")),
-#                             freq=getattr(rec, "frequency_metric", ""),
-#                             reason=rec.reason,
-#                             saving=rec.potential_saving
-#                         )
-#                     )
-#
-#         msg_text = "\n".join(lines)
-#
-#         await bot.send_message(
-#             chat_id=chat_id,
-#             text=msg_text,
-#             parse_mode=ParseMode.HTML
-#         )
-#
-#     except TelegramAPIError as tg_err:
-#         logger.error("Ошибка отправки аналитики в Telegram для chat_id {}: {}".format(chat_id, tg_err))
-#     except Exception as e:  # noqa
-#         logger.exception("Критическая ошибка при генерации AI-аналитики для chat_id {}".format(chat_id))
-#         try:
-#             error_msg = _("❌ <b>An error occurred while generating the report.</b>\nPlease try again later.")
-#             await bot.send_message(
-#                 chat_id=chat_id,
-#                 text=error_msg,
-#                 parse_mode=ParseMode.HTML
-#             )
-#         except Exception as send_err:
-#             logger.error("Не удалось отправить сообщение об ошибке пользователю: {}".format(send_err))
-#     finally:
-#         await bot_session.close()
+
 
 
 async def process_test_1_analysis_financial(
@@ -949,11 +747,11 @@ async def process_test_1_analysis_financial(
         ])
 
 
-        essentials = [item for item in analysis_result.classified_items if item.expense_type == "essential"]
-        discretionary = [item for item in analysis_result.classified_items if item.expense_type == "discretionary"]
-
-        logger.info(f"essentials: {essentials}")
-        logger.info(f"discretionary: {discretionary}")
+        # essentials = [item for item in analysis_result.classified_items if item.expense_type == "essential"]
+        # discretionary = [item for item in analysis_result.classified_items if item.expense_type == "discretionary"]
+        #
+        # logger.info(f"essentials: {essentials}")
+        # logger.info(f"discretionary: {discretionary}")
 
         lines.append(_("🎯 <b>Categorizing top expenses by importance:</b>"))
 
@@ -1008,14 +806,13 @@ async def process_test_1_analysis_financial(
             "other": _("Прочие расходы")
         }
 
-        # Жесткое разделение категорий по типу важности на уровне бизнес-логики приложения
         essential_categories = ["food", "health", "home"]
         discretionary_categories = ["transport", "entertainment", "other"]
 
         lines.append(_("\n🟢 <u>Necessary :</u>"))
         has_essentials = False
         names = [el["name"] for el in data.get("top_items") ]
-        cats = [el["category"] for el in data.get("top_items") if el["category"] == "food"]
+        cats = [el["category"] for el in data.get("top_items") if el["category"] == "health"]
         logger.info(f"TOP_ITEMS:{len(data["top_items"])}")
         logger.info(f"TOP_ITEMS:{data["top_items"]}")
         logger.info(f"TOP_ITEMS_NAMES:{names, len(names)}")
@@ -1041,10 +838,10 @@ async def process_test_1_analysis_financial(
                 item_counts = Counter(category_items)
 
                 # Выводим топ-4 самых частых позиций внутри категории
-                for item_name, item_freq in item_counts.most_common(4):
-                    lines.append(f"     └ {item_name} — {item_freq} раз")
+                for item_name, item_freq in item_counts.most_common():
+                    lines.append(f"     └ {item_name} — {item_freq}") # They removed it once."раз"
 
-        # --- 2. ВТОРОСТЕПЕННЫЕ РАСХОДЫ ---
+
         lines.append(_("\n🟡 <u>Secondary :</u>"))
         has_discretionary = False
         for cat_data in data.get("categories", []):
@@ -1063,8 +860,8 @@ async def process_test_1_analysis_financial(
                 ]
                 item_counts = Counter(category_items)
 
-                for item_name, item_freq in item_counts.most_common(4):
-                    lines.append(f"     └ {item_name} — {item_freq} раз")
+                for item_name, item_freq in item_counts.most_common():
+                    lines.append(f"     └ {item_name} — {item_freq}")
 
         #___________________________________________________________________________
         #Собираем Необходимые расходы
