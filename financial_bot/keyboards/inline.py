@@ -1,4 +1,6 @@
-from aiogram.types import InlineKeyboardButton
+from typing import Callable
+
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -150,3 +152,16 @@ def get_delete_keyboard(batch_id: str, button_text: str):
         text=button_text, callback_data=DeleteTransactionCallback(batch_id=batch_id)
     )
     return builder.as_markup()
+
+
+def get_detailed_report(days: int, _: Callable[[str], str]):
+    builder = InlineKeyboardBuilder()
+
+    builder.add(
+        InlineKeyboardButton(text=_("🔎 Detailed report"), callback_data=f"show_detailed_report:{days}")
+    )
+    return builder.as_markup()
+
+
+
+

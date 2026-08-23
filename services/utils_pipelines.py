@@ -2,8 +2,8 @@ import base64
 import io
 import os
 import re
-from collections import defaultdict
-from typing import Dict
+from collections import defaultdict, Counter
+from typing import Dict, Callable, List
 
 from dotenv import load_dotenv
 from PIL import Image, ImageEnhance, ImageOps
@@ -372,3 +372,231 @@ CATEGORY_TITLES: Dict[str, str] = {
     }
 
 
+
+def render_category_tree(
+        cat_key: str,
+        data: dict,
+        _: Callable[[str], str],
+        max_visible_items: int = 5
+) -> List[str]:
+
+    tree_lines = []
+
+    system_keys_transactions = {
+        "food": _("Food"),
+        "health": _("Health"),
+        "transport": _("Transport"),
+        "entertainment": _("Entertainment"),
+        "home": _("Home"),
+        "other": _("Other")
+    }
+
+    category_items = []
+    for item in data.get("top_items", []):
+        if item["category"] == cat_key:
+            name_raw = item["name"].strip()
+            name_lower = name_raw.lower()
+
+            if name_lower in system_keys_transactions:
+
+                category_items.append(system_keys_transactions[name_lower])
+
+            elif "system_category_" in name_lower:
+                clean_key = name_lower.replace("system_category_", "")
+                category_items.append(system_keys_transactions.get(clean_key, clean_key))
+
+            else:
+
+                category_items.append(name_raw)
+
+    if not category_items:
+        return tree_lines
+
+    item_counts = Counter(category_items)
+    all_unique_items = item_counts.most_common()
+
+    visible_items = all_unique_items[:max_visible_items]
+    for item_name, item_freq in visible_items:
+        tree_lines.append(f"     └ {item_name} — {item_freq}")
+
+    total_items_count = len(category_items)
+    visible_items_count = sum(freq for _, freq in visible_items)
+    hidden_items_count = total_items_count - visible_items_count
+
+    if hidden_items_count > 0:
+        tree_lines.append(_("     └ Other operations — {count}").format(count=hidden_items_count))
+
+    return tree_lines
+
+
+def render_monthly_tree(data: dict, _: Callable[[str], str]) -> List[str]:
+    category_titles = {
+        "food": _("Groceries and food"),
+        "health": _("Health and Medicine"),
+        "transport": _("Transport and Automotive"),
+        "entertainment": _("Entertainment and leisure"),
+        "home": _("Home and Household"),
+        "other": _("Other expenses")
+    }
+
+    essential_categories = ["food", "health", "home"]
+    discretionary_categories = ["transport", "entertainment", "other"]
+
+    tree_lines = [_("\n🟢 <u>Necessary :</u>")]
+
+    for cat_data in data.get("categories", []):
+        cat_key = cat_data["category"]
+
+        if cat_key in essential_categories:
+            tree_lines.append(_(" • <b>{cat_name}</b> — <b>{count} transactions per month</b>").format(
+                cat_name=category_titles.get(cat_key, cat_key).upper(),
+                count=cat_data["count"]
+            ))
+            tree_lines.extend(render_category_tree(cat_key, data, _))
+
+    tree_lines.append(_("\n🟡 <u>Secondary :</u>"))
+
+    for cat_data in data.get("categories", []):
+        cat_key = cat_data["category"]
+        if cat_key in discretionary_categories:
+            tree_lines.append(_(" • <b>{cat_name}</b> — <b>{count} transactions per month</b>").format(
+                cat_name=CATEGORY_TITLES.get(cat_key, cat_key).upper(),
+                count=cat_data["count"]
+            ))
+
+            tree_lines.extend(render_category_tree(cat_key, data, _))
+
+    return tree_lines
+
+
+def format_weekly_block(
+        items_list: list,
+        _: Callable[[str], str],
+        max_items: int
+) -> List[str]:
+
+    block_lines = []
+    if not items_list:
+        block_lines.append(_("   • No expenses for the period"))
+        return block_lines
+
+    counts = Counter(items_list)
+
+    for name, freq in counts.most_common(max_items):
+        block_lines.append(f"   • <b>{name}</b> — {freq} " + _("transaction(s)"))
+
+    return block_lines
+
+
+def render_weekly_top(
+        data: dict,
+        _: Callable[[str], str],
+        max_items: int = 10
+) -> List[str]:
+
+    tree_lines = []
+
+
+    essential_categories = {"food", "health", "home"}
+
+    system_keys_transactions = {
+        "food": _("Food"),
+        "health": _("Health"),
+        "transport": _("Transport"),
+        "entertainment": _("Entertainment"),
+        "home": _("Home"),
+        "other": _("Other")
+    }
+
+    essential_items = []
+    discretionary_items = []
+
+    for item in data.get("top_items", []):
+        cat_key = item.get("category", "other")
+        name_raw = item["name"].strip()
+        name_lower = name_raw.lower()
+
+
+        if name_lower in system_keys_transactions:
+            display_name = system_keys_transactions[name_lower]
+        elif "system_category_" in name_lower:
+            clean_key = name_lower.replace("system_category_", "")
+            display_name = system_keys_transactions.get(clean_key, clean_key)
+        else:
+            display_name = name_raw
+
+
+        if cat_key in essential_categories:
+            essential_items.append(display_name)
+        else:
+            discretionary_items.append(display_name)
+
+
+    tree_lines.append(_("\n🟢 <u>Necessary :</u>"))
+    tree_lines.extend(format_weekly_block(essential_items, _, max_items))
+
+    tree_lines.append(_("\n🟡 <u>Secondary :</u>"))
+    tree_lines.extend(format_weekly_block(discretionary_items, _, max_items))
+
+    return tree_lines
+
+
+def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
+    """
+    Генерирует подробную выписку транзакций пользователя на чистом Python.
+    Схема: Название/Товар — Сумма — Дата
+    """
+    category_titles = {
+        "food": _("Food"),
+        "health": _("Health"),
+        "transport": _("Transport"),
+        "entertainment": _("Entertainment"),
+        "home": _("Home"),
+        "other": _("Other")
+    }
+
+    report_lines = [
+        _("🧾 <b>Detailed Transaction History</b>\n"),
+    ]
+
+    # Сортируем элементы из top_items по дате (от свежих к старым)
+    raw_items = data.get("top_items", [])
+    try:
+        sorted_items = sorted(raw_items, key=lambda x: x.get("date", ""), reverse=True)
+    except Exception:
+        # Фаллбэк, если с датами что-то не так
+        sorted_items = raw_items
+
+    current_group_date = None
+    currency = data.get("user_config", {}).get("currency", "RUB")
+
+    for item in sorted_items:
+        item_date = item.get("date", "")
+
+        # Группируем визуально по дням для красоты UI
+        if item_date != current_group_date:
+            current_group_date = item_date
+            report_lines.append(f"\n📅 <b>{item_date}</b>")
+
+        cat_key = item.get("category", "other")
+        cat_title = category_titles.get(cat_key, cat_key)
+        name_raw = item.get("name", "").strip()
+        name_lower = name_raw.lower()
+
+        # Определяем, ручной это ввод (технический ключ) или реальный товар чека
+        if name_lower in category_titles or "system_category" in name_lower or "operation" in name_lower:
+            # Ручной ввод: пишем категорию
+            display_name = f"✍️ {cat_title}"
+        else:
+            # Детализированный чек: Пишем Товар (Категория)
+            display_name = f"🛒 {name_raw} ({cat_title})"
+
+        amount = item.get("total_amount", 0.0)
+
+        # Сборка строки по схеме: name - amount
+        report_lines.append(f"  • {display_name} — <b>{round(amount, 2)} {currency}</b>")
+
+    if not sorted_items:
+        report_lines.append(_("No transactions found for this period."))
+
+    return "\n".join(report_lines)

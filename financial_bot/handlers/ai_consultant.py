@@ -2,7 +2,7 @@ import io
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, BufferedInputFile
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +15,7 @@ from financial_bot.filters import (
 )
 from financial_bot.keyboards.reply import get_main_menu, request_ai
 from financial_bot.repositories import delete_check, get_user_by_id, get_user_financial_summary
-
+from services.utils_pipelines import (render_detailed_transactions)
 # from financial_bot.tasks.ai import process_ai_request
 from financial_bot.states.ai_states import AIState
 from financial_bot.tasks.ai import process_expense_task, process_receipt_task, process_analysis_expense_task
@@ -353,3 +353,41 @@ async def handle_analytics_request(message: Message, state: FSMContext):
         _("🤖 *AI is analyzing your spending patterns...* \nIt will take five or ten seconds.",
           ), reply_markup=get_main_menu())
 
+
+
+@ai_router.callback_query(F.data.startswith("show_detailed_report:"))
+async def handle_show_detailed_report(callback: CallbackQuery, session: AsyncSession):
+    # 1. Извлекаем период из callback_data
+    days = int(callback.data.split(":")[1])
+    user_id = callback.from_user.id
+
+    # 2. Инициализируем локаль gettext для этого конкретного юзера
+    user = await get_user_by_id(session, user_id)
+
+    # 3. Достаем данные из нашей быстрой функции SQL с UNION ALL
+    data = await get_user_financial_summary(session, user.id, days, user)
+
+    # 4. Генерируем текст подробного отчета на чистом Python
+    report_text = render_detailed_transactions(data, _)
+
+    # 5. Проверяем лимит длины сообщения Telegram
+    if len(report_text) <= 4000:
+        # Если отчет компактный — отправляем обычным текстом
+        await callback.message.answer(text=report_text, parse_mode="HTML")
+    else:
+        # Если транзакций слишком много — на лету упаковываем в .txt файл без сохранения на диск
+        file_buffer = io.BytesIO(report_text.encode('utf-8'))
+        file_buffer.seek(0)
+
+        # Формируем красивое имя файла для пользователя
+        filename = f"financial_report_{days}_days.txt"
+        document = BufferedInputFile(file_buffer.read(), filename=filename)
+
+        # Отправляем как документ с поддерживающим текстом
+        await callback.message.answer_document(
+            document=document,
+            caption=_(
+                "🧾 <b>Ваш подробный отчет превысил лимит Telegram на длину сообщения.</b>\nЯ упаковал всю историю транзакций в этот файл! 📁")
+        )
+
+    await callback.answer()  # Убираем часики анимации кнопки в Telegram
