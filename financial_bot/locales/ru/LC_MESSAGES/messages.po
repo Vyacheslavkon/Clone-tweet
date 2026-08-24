@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-02 22:01+1000\n"
+"POT-Creation-Date: 2026-08-24 21:58+1000\n"
 "PO-Revision-Date: 2026-04-05 19:51+1000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -54,7 +54,7 @@ msgid "Enter your desired savings amount"
 msgstr "Введите желаемую сумму сбережений"
 
 #: financial_bot/handlers/adding_data.py:59
-#: financial_bot/handlers/fallback.py:13
+#: financial_bot/handlers/fallback.py:16
 msgid "Sorry, I didn't understand you, please use the suggested choice!"
 msgstr ""
 "Извините, я вас не понял, пожалуйста, воспользуйтесь предложенным "
@@ -100,7 +100,6 @@ msgid "Please tell me about your purchases!"
 msgstr "Пожалуйста, расскажите мне о своих покупках"
 
 #: financial_bot/handlers/ai_consultant.py:108
-#: financial_bot/handlers/ai_consultant.py:201
 msgid "User not found. Please enter /start."
 msgstr "Профиль не найден. Пожалуйста, введите /start"
 
@@ -138,17 +137,17 @@ msgstr "❌ Запись аннулирована и удалена из баз�
 msgid "Record not found."
 msgstr "Запись не найдена."
 
-#: financial_bot/handlers/ai_consultant.py:204
+#: financial_bot/handlers/ai_consultant.py:300
 #: financial_bot/keyboards/reply.py:37
 msgid "weekly data analysis"
 msgstr "анализ данных за неделю"
 
-#: financial_bot/handlers/ai_consultant.py:205
+#: financial_bot/handlers/ai_consultant.py:301
 #: financial_bot/keyboards/reply.py:38
 msgid "monthly data analysis"
 msgstr "анализ данных за месяц"
 
-#: financial_bot/handlers/ai_consultant.py:221
+#: financial_bot/handlers/ai_consultant.py:319
 msgid ""
 "📊 *The period is too short to analyze the current week!* \n"
 "We can only analyze the week starting from Wednesday, when enough "
@@ -158,36 +157,30 @@ msgstr ""
 "Мы сможем проанализировать неделю, начиная со среды, когда накопится "
 "достаточно данных о расходах. Пожалуйста, загляните позже! 🗓"
 
-#: financial_bot/handlers/ai_consultant.py:231
+#: financial_bot/handlers/ai_consultant.py:333
 msgid ""
 "📈 *It’s too early for monthly analytics!* \n"
 "A reliable monthly analysis requires at least 10 days of data (available "
 "from the 10th). Right now, try checking your weekly analytics instead! 📅"
 msgstr ""
 "📈 *Для ежемесячной аналитики пока рано!* \n"
-"Для достоверного ежемесячного анализа нужны данные как минимум за 10 дней (они станут доступны с 10-го числа). А пока попробуйте посмотреть еженедельную аналитику! 📅"
+"Для достоверного ежемесячного анализа нужны данные как минимум за 10 дней"
+" (они станут доступны с 10-го числа). А пока попробуйте посмотреть "
+"еженедельную аналитику! 📅"
 
-#: financial_bot/handlers/ai_consultant.py:241
-msgid "You don't have enough transactions for analysis yet. We need more data! 🧾"
-msgstr "У вас пока недостаточно транзакций для анализа. Нам нужно больше данных! 🧾"
-
-#: financial_bot/handlers/ai_consultant.py:250
-msgid ""
-"🧾 *Not enough data for deep analysis!* \n"
-"You have too few expenses logged for this period. Keep logging your "
-"expenditures via voice, and I will prepare a smart audit soon! 🤖"
-msgstr ""
-"🧾 *Недостаточно данных для глубокого анализа!* \n"
-"За этот период зарегистрировано слишком мало расходов. Продолжайте "
-"вносить траты голосом, и вскоре я подготовлю умный анализ! 🤖"
-
-#: financial_bot/handlers/ai_consultant.py:269
+#: financial_bot/handlers/ai_consultant.py:353
 msgid ""
 "🤖 *AI is analyzing your spending patterns...* \n"
 "It will take five or ten seconds."
 msgstr ""
 "🤖 *ИИ анализирует ваши привычки в расходах...* \n"
 "Это займет пять-десять секунд."
+
+#: financial_bot/handlers/ai_consultant.py:386
+msgid ""
+"🧾 <b>Your detailed report exceeded Telegram's message length limit.</b>\n"
+"I’ve packed the entire transaction history into this file! 📁"
+msgstr ""
 
 #: financial_bot/handlers/common.py:41
 #, python-brace-format
@@ -248,11 +241,11 @@ msgstr ""
 msgid "please, select period"
 msgstr "Пожалуйста, выберите период"
 
-#: financial_bot/handlers/reports.py:48 financial_bot/keyboards/inline.py:115
+#: financial_bot/handlers/reports.py:48 financial_bot/keyboards/inline.py:117
 msgid "day"
 msgstr "день"
 
-#: financial_bot/handlers/reports.py:67 financial_bot/keyboards/inline.py:117
+#: financial_bot/handlers/reports.py:67 financial_bot/keyboards/inline.py:119
 #: financial_bot/tasks/scheduled.py:33
 msgid "week"
 msgstr "неделя"
@@ -421,77 +414,88 @@ msgstr "Ноябрь"
 msgid "December"
 msgstr "Декабрь"
 
-#: financial_bot/keyboards/inline.py:10
+#: financial_bot/keyboards/inline.py:12
 msgid "Cancel"
 msgstr "Отмена"
 
-#: financial_bot/keyboards/inline.py:16
+#: financial_bot/keyboards/inline.py:18
 msgid "Back"
 msgstr "Назад"
 
-#: financial_bot/keyboards/inline.py:22
+#: financial_bot/keyboards/inline.py:24
 msgid "Income"
 msgstr "Доход"
 
-#: financial_bot/keyboards/inline.py:23
+#: financial_bot/keyboards/inline.py:25
 msgid "Expense"
 msgstr "Расход"
 
-#: financial_bot/keyboards/inline.py:67
+#: financial_bot/keyboards/inline.py:69
 msgid "Salary"
 msgstr "Зарплата"
 
-#: financial_bot/keyboards/inline.py:68
+#: financial_bot/keyboards/inline.py:70
 msgid "Bonus"
 msgstr "Бонус"
 
-#: financial_bot/keyboards/inline.py:69
+#: financial_bot/keyboards/inline.py:71
 msgid "Gift"
 msgstr "Подарок"
 
-#: financial_bot/keyboards/inline.py:70
+#: financial_bot/keyboards/inline.py:72
 msgid "Deal"
 msgstr "Сделка"
 
-#: financial_bot/keyboards/inline.py:71 financial_bot/keyboards/inline.py:80
+#: financial_bot/keyboards/inline.py:73 financial_bot/keyboards/inline.py:82
+#: services/utils_pipelines.py:392 services/utils_pipelines.py:509
+#: services/utils_pipelines.py:553
 msgid "Other"
 msgstr "Другое"
 
-#: financial_bot/keyboards/inline.py:75
+#: financial_bot/keyboards/inline.py:77 services/utils_pipelines.py:387
+#: services/utils_pipelines.py:504 services/utils_pipelines.py:548
 msgid "Food"
 msgstr "Еда"
 
-#: financial_bot/keyboards/inline.py:76
+#: financial_bot/keyboards/inline.py:78 services/utils_pipelines.py:391
+#: services/utils_pipelines.py:508 services/utils_pipelines.py:552
 msgid "Home"
 msgstr "Дом"
 
-#: financial_bot/keyboards/inline.py:77
+#: financial_bot/keyboards/inline.py:79 services/utils_pipelines.py:390
+#: services/utils_pipelines.py:507 services/utils_pipelines.py:551
 msgid "Entertainment"
 msgstr "Развлечения"
 
-#: financial_bot/keyboards/inline.py:78
+#: financial_bot/keyboards/inline.py:80 services/utils_pipelines.py:389
+#: services/utils_pipelines.py:506 services/utils_pipelines.py:550
 msgid "Transport"
 msgstr "Транспорт"
 
-#: financial_bot/keyboards/inline.py:79
+#: financial_bot/keyboards/inline.py:81 services/utils_pipelines.py:388
+#: services/utils_pipelines.py:505 services/utils_pipelines.py:549
 msgid "Health"
 msgstr "Здоровье"
 
-#: financial_bot/keyboards/inline.py:99
+#: financial_bot/keyboards/inline.py:101
 msgid "Skip description"
 msgstr "Пропустить описание"
 
-#: financial_bot/keyboards/inline.py:119 financial_bot/tasks/scheduled.py:67
+#: financial_bot/keyboards/inline.py:121 financial_bot/tasks/scheduled.py:67
 msgid "month"
 msgstr "месяц"
 
-#: financial_bot/keyboards/inline.py:133
+#: financial_bot/keyboards/inline.py:135
 msgid "last two weeks"
 msgstr "последние две недели"
 
-#: financial_bot/keyboards/inline.py:137
+#: financial_bot/keyboards/inline.py:139
 msgid "arbitrary period"
 msgstr "произвольный период"
+
+#: financial_bot/keyboards/inline.py:161
+msgid "🔎 Detailed report"
+msgstr "🔎 Подробный отчет"
 
 #: financial_bot/keyboards/reply.py:9
 msgid "Enter amount"
@@ -522,56 +526,56 @@ msgstr "отмена"
 msgid "data entry"
 msgstr "ввод данных"
 
-#: services/pipelines.py:309
+#: services/pipelines.py:314
 msgid "Unable to recognize the purchase amount."
 msgstr "Не удалось распознать сумму покупки."
 
-#: services/pipelines.py:326
+#: services/pipelines.py:331
 msgid "❌ No transactions found to save."
 msgstr "❌ Не найдено транзакций для сохранения."
 
-#: services/pipelines.py:362
+#: services/pipelines.py:367
 msgid "✅ <b>Operations successfully recorded!</b>\n"
 msgstr "✅ <b>Операции успешно записаны!</b>"
 
-#: services/pipelines.py:365
+#: services/pipelines.py:370
 msgid "💰 <b>Received Income:</b>"
 msgstr "💰 <b>Полученный доход:</b>"
 
-#: services/pipelines.py:392
+#: services/pipelines.py:397
 msgid "📉 <b>Spent Expenses:</b>"
 msgstr "📉 <b>Произведенные расходы:</b>"
 
-#: services/pipelines.py:410
+#: services/pipelines.py:415
 #, python-brace-format
 msgid ""
 "{icon} {category}: <b>-{amount}</b>\n"
 "{items}"
 msgstr ""
 
-#: services/pipelines.py:424
+#: services/pipelines.py:429
 #, python-brace-format
 msgid "Total Income: <b>+{total_amount}</b>"
 msgstr "Общий доход: <b>+{total_amount}</b>"
 
-#: services/pipelines.py:430
+#: services/pipelines.py:435
 #, python-brace-format
 msgid "Total Expenses: <b>-{total_amount}</b>"
 msgstr "Общие расходы: <b>-{total_amount}</b>"
 
-#: services/pipelines.py:439
+#: services/pipelines.py:444
 msgid "❌ cancel income"
 msgstr "❌ отменить доход"
 
-#: services/pipelines.py:441
+#: services/pipelines.py:446
 msgid "❌ cancel expense"
 msgstr "❌ отменить расход"
 
-#: services/pipelines.py:443
+#: services/pipelines.py:448
 msgid "❌ cancel operation"
 msgstr "❌ отменить операцию"
 
-#: services/pipelines.py:469
+#: services/pipelines.py:474
 msgid ""
 "❌ Unfortunately, we couldn't recognize your receipt. Please make sure the"
 " photo is clear and try again."
@@ -579,40 +583,41 @@ msgstr ""
 "❌ К сожалению, нам не удалось распознать ваш чек. Пожалуйста, убедитесь, "
 "что фотография четкая, и попробуйте еще раз."
 
-#: services/pipelines.py:530 services/pipelines.py:675
+#: services/pipelines.py:537 services/pipelines.py:729
 msgid "📊 <b>Comprehensive financial analysis</b>\n"
 msgstr "📊 <b>Комплексный финансовый анализ</b>"
 
-#: services/pipelines.py:531 services/pipelines.py:676
+#: services/pipelines.py:538 services/pipelines.py:730
 #, python-brace-format
 msgid "💰 <b>Total Income:</b> {income} {curr}"
 msgstr "💰 <b>Общий доход:</b> {income} {curr}"
 
-#: services/pipelines.py:533 services/pipelines.py:678
+#: services/pipelines.py:540 services/pipelines.py:732
 #, python-brace-format
 msgid "🛒 <b>Total Expense:</b> {expense} {curr}"
 msgstr "🛒 <b>Общие расходы:</b> {expense} {curr}"
 
-#: services/pipelines.py:535 services/pipelines.py:680
+#: services/pipelines.py:542 services/pipelines.py:734
 #, python-brace-format
 msgid "⚖️ <b>Net Balance:</b> {balance} {curr}\n"
 msgstr "⚖️ <b>Чистый баланс:</b> {balance} {curr}\n"
 
-#: services/pipelines.py:543 services/pipelines.py:687
+#: services/pipelines.py:549 services/pipelines.py:741
 #, python-brace-format
 msgid "📈 <b>Budget status:</b> {status}"
 msgstr "📈 <b>Статус бюджета:</b> {status}"
 
-#: services/pipelines.py:549 services/pipelines.py:691
+#: services/pipelines.py:553 services/pipelines.py:745
 #, python-brace-format
 msgid "📊 <b>Budget used:</b> {percent}%\n"
 msgstr "📊 <b>Использовано бюджета:</b> {percent}%"
 
-#: services/pipelines.py:557 services/pipelines.py:704
+#: services/pipelines.py:566 services/pipelines.py:754
 msgid "🎯 <b>Categorizing top expenses by importance:</b>"
 msgstr "🎯 <b>Классификация основных статей расходов по степени важности:</b>"
 
-#: services/pipelines.py:565 services/pipelines.py:707
+#: services/pipelines.py:569 services/utils_pipelines.py:446
+#: services/utils_pipelines.py:536
 msgid ""
 "\n"
 "🟢 <u>Necessary :</u>"
@@ -620,18 +625,18 @@ msgstr ""
 "\n"
 "🟢 <u>Необходимые:</u>"
 
-#: services/pipelines.py:567 services/pipelines.py:710
+#: services/pipelines.py:572
 #, python-brace-format
 msgid "📦 {org_cat}"
 msgstr ""
 
-#: services/pipelines.py:568 services/pipelines.py:574
-#: services/pipelines.py:711 services/pipelines.py:717
+#: services/pipelines.py:573 services/pipelines.py:579
 #, python-brace-format
 msgid " • <b>{el}</b> ({cat})"
 msgstr ""
 
-#: services/pipelines.py:571 services/pipelines.py:714
+#: services/pipelines.py:576 services/utils_pipelines.py:458
+#: services/utils_pipelines.py:539
 msgid ""
 "\n"
 "🟡 <u>Secondary :</u>"
@@ -639,7 +644,7 @@ msgstr ""
 "\n"
 "🟡 <u>Второстепенное:</u>"
 
-#: services/pipelines.py:578 services/pipelines.py:721
+#: services/pipelines.py:583 services/pipelines.py:766
 msgid ""
 "\n"
 "💡 <b>Optimization recommendations:</b>"
@@ -647,12 +652,7 @@ msgstr ""
 "\n"
 "💡 <b>Рекомендации по оптимизации:</b>"
 
-#: services/pipelines.py:585 services/pipelines.py:731
-#: services/pipelines.py:743
-msgid "Optimization"
-msgstr "Оптимизация"
-
-#: services/pipelines.py:588 services/pipelines.py:727
+#: services/pipelines.py:589 services/pipelines.py:772
 #, python-brace-format
 msgid ""
 "\n"
@@ -665,15 +665,13 @@ msgstr ""
 "└ {reason}\n"
 "└ <i>Возможная экономия: {saving}</i>"
 
-#: services/pipelines.py:611 services/pipelines.py:763
-msgid ""
-"❌ <b>An error occurred while generating the report.</b>\n"
-"Please try again later."
-msgstr ""
-"❌ <b>При создании отчета произошла ошибка.</b>\n"
-"Пожалуйста, попробуйте позже."
+#: services/pipelines.py:593 services/pipelines.py:605
+#: services/pipelines.py:776 services/pipelines.py:788
+msgid "Optimization"
+msgstr "Оптимизация"
 
-#: services/pipelines.py:739
+#: services/pipelines.py:601 services/pipelines.py:784
+#, python-brace-format
 msgid ""
 "\n"
 "{num}. <b>{target}</b> — <b>{freq}</b>\n"
@@ -685,4 +683,75 @@ msgstr ""
 "└ {reason}\n"
 "└ <i>Возможная экономия: {saving}</i>"
 
+#: services/pipelines.py:625 services/pipelines.py:809
+msgid ""
+"❌ <b>An error occurred while generating the report.</b>\n"
+"Please try again later."
+msgstr ""
+"❌ <b>При создании отчета произошла ошибка.</b>\n"
+"Пожалуйста, попробуйте позже."
+
+#: services/pipelines.py:685
+msgid "You don't have enough transactions for analysis yet. We need more data! 🧾"
+msgstr "У вас пока недостаточно транзакций для анализа. Нам нужно больше данных! 🧾"
+
+#: services/pipelines.py:699
+msgid ""
+"🧾 *Not enough data for deep analysis!* \n"
+"You have too few expenses logged for this period. Keep logging your "
+"expenditures via voice, and I will prepare a smart audit soon! 🤖"
+msgstr ""
+"🧾 *Недостаточно данных для глубокого анализа!* \n"
+"За этот период зарегистрировано слишком мало расходов. Продолжайте "
+"вносить траты голосом, и вскоре я подготовлю умный анализ! 🤖"
+
+#: services/utils_pipelines.py:428
+#, python-brace-format
+msgid "     └ Other operations — {count}"
+msgstr "     └ Другие операции — {count}"
+
+#: services/utils_pipelines.py:435
+msgid "Groceries and food"
+msgstr "Продукты и еда"
+
+#: services/utils_pipelines.py:436
+msgid "Health and Medicine"
+msgstr "Здоровье и Медицина"
+
+#: services/utils_pipelines.py:437
+msgid "Transport and Automotive"
+msgstr "Транспорт и Авто"
+
+#: services/utils_pipelines.py:438
+msgid "Entertainment and leisure"
+msgstr "Развлечения и досуг"
+
+#: services/utils_pipelines.py:439
+msgid "Home and Household"
+msgstr "Дом и быт"
+
+#: services/utils_pipelines.py:440
+msgid "Other expenses"
+msgstr "Другие расходы"
+
+#: services/utils_pipelines.py:452 services/utils_pipelines.py:463
+#, python-brace-format
+msgid " • <b>{cat_name}</b> — <b>{count} transactions per month</b>"
+msgstr "• <b>{cat_name}</b> — <b>{count} транзакций в месяц</b>"
+
+#: services/utils_pipelines.py:481
+msgid "   • No expenses for the period"
+msgstr "• Расходы за период отсутствуют"
+
+#: services/utils_pipelines.py:487
+msgid "transaction(s)"
+msgstr "транзакции(я/й)"
+
+#: services/utils_pipelines.py:557
+msgid "🧾 <b>Detailed Transaction History</b>\n"
+msgstr "🧾 <b>Подробная история транзакций</b>"
+
+#: services/utils_pipelines.py:601
+msgid "No transactions found for this period."
+msgstr "❌ Не найдено транзакций для сохранения."
 

@@ -478,12 +478,11 @@ async def get_user_financial_summary(
         )
     )
 
-    # Объединяем через UNION ALL
+
     unified_union = union_all(part_items, part_manual)
 
-    # Обернем в финальный select для сортировки и лимитов
     if days == 7:
-        # Для недели сортируем по цене (Топ-траты) и ограничиваем 30 позициями, как у вас и было
+
         items_stmt = (
             select(unified_union.c.name, unified_union.c.item_amount, unified_union.c.associated_category,
                    unified_union.c.date)
@@ -491,7 +490,7 @@ async def get_user_financial_summary(
             .limit(30)
         )
     else:
-        # Для месяца отдаем полный хронологический список
+
         items_stmt = (
             select(unified_union.c.name, unified_union.c.item_amount, unified_union.c.associated_category,
                    unified_union.c.date)

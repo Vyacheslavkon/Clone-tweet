@@ -4,6 +4,7 @@ import os
 import re
 from collections import defaultdict, Counter
 from typing import Dict, Callable, List
+from loguru import logger
 
 from dotenv import load_dotenv
 from PIL import Image, ImageEnhance, ImageOps
@@ -460,7 +461,7 @@ def render_monthly_tree(data: dict, _: Callable[[str], str]) -> List[str]:
         cat_key = cat_data["category"]
         if cat_key in discretionary_categories:
             tree_lines.append(_(" • <b>{cat_name}</b> — <b>{count} transactions per month</b>").format(
-                cat_name=CATEGORY_TITLES.get(cat_key, cat_key).upper(),
+                cat_name=category_titles.get(cat_key, cat_key).upper(),
                 count=cat_data["count"]
             ))
 
@@ -542,10 +543,7 @@ def render_weekly_top(
 
 
 def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
-    """
-    Генерирует подробную выписку транзакций пользователя на чистом Python.
-    Схема: Название/Товар — Сумма — Дата
-    """
+
     category_titles = {
         "food": _("Food"),
         "health": _("Health"),
@@ -559,12 +557,17 @@ def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
         _("🧾 <b>Detailed Transaction History</b>\n"),
     ]
 
-    # Сортируем элементы из top_items по дате (от свежих к старым)
+
     raw_items = data.get("top_items", [])
     try:
         sorted_items = sorted(raw_items, key=lambda x: x.get("date", ""), reverse=True)
-    except Exception:
-        # Фаллбэк, если с датами что-то не так
+    except TypeError as type_err:
+
+        logger.warning(
+            "Failed to sort transactions by date due to mismatched types. "
+            "Using fallback unsorted data. Error: %s", type_err
+        )
+
         sorted_items = raw_items
 
     current_group_date = None
@@ -573,7 +576,6 @@ def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
     for item in sorted_items:
         item_date = item.get("date", "")
 
-        # Группируем визуально по дням для красоты UI
         if item_date != current_group_date:
             current_group_date = item_date
             report_lines.append(f"\n📅 <b>{item_date}</b>")
@@ -583,17 +585,16 @@ def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
         name_raw = item.get("name", "").strip()
         name_lower = name_raw.lower()
 
-        # Определяем, ручной это ввод (технический ключ) или реальный товар чека
+
         if name_lower in category_titles or "system_category" in name_lower or "operation" in name_lower:
-            # Ручной ввод: пишем категорию
+
             display_name = f"✍️ {cat_title}"
         else:
-            # Детализированный чек: Пишем Товар (Категория)
+
             display_name = f"🛒 {name_raw} ({cat_title})"
 
         amount = item.get("total_amount", 0.0)
 
-        # Сборка строки по схеме: name - amount
         report_lines.append(f"  • {display_name} — <b>{round(amount, 2)} {currency}</b>")
 
     if not sorted_items:
