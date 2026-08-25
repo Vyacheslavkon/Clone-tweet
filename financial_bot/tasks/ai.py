@@ -7,7 +7,7 @@ from loguru import logger
 from services.celery_app import app
 from services.pipelines import (async_process_receipt,
 
-                                process_test_analysis_financial,
+
                                 process_test_1_analysis_financial)
 
 load_dotenv()

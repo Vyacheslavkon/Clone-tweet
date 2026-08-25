@@ -1,4 +1,5 @@
 from typing import Union
+import os
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
@@ -7,6 +8,7 @@ from aiogram.utils.i18n import gettext as _
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
+from redis.exceptions import RedisError
 
 from financial_bot.filters import I18nTextFilter
 from financial_bot.keyboards.inline import get_category, get_description, get_type
@@ -14,9 +16,15 @@ from financial_bot.keyboards.reply import get_main_menu
 from financial_bot.repositories import add_transaction, get_user_by_id
 from financial_bot.schemas import AddTransaction
 from financial_bot.states.amount_states import AmountState
+from services.analysis_cache import AnalysisCacheService
 
 router_tr = Router()
 
+redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
+if not redis_url:
+    raise ValueError("CRITICAL: ANALYSIS_CACHE_REDIS environment variable is not set!")
+
+cache_service = AnalysisCacheService(redis_url=redis_url)
 
 @router_tr.callback_query(F.data == "back")
 async def go_back(callback: CallbackQuery, state: FSMContext):
@@ -158,6 +166,16 @@ async def save_to_db_and_finish(
         transaction = AddTransaction(**data)
 
         await add_transaction(session, transaction.model_dump())
+
+        try:
+            await cache_service.invalidate_user_cache(user_id=user.id)
+            logger.info("Successfully invalidated cache for user: %s via manual entry", user.id)
+        except RedisError as redis_err:
+            # Ловим ТОЛЬКО конкретные сетевые проблемы с Redis
+            logger.error(
+                "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
+                user.id, redis_err
+            )
 
         text = _("Data saved successfully!")
         if isinstance(event, CallbackQuery):
