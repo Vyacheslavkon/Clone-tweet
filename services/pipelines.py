@@ -11,11 +11,12 @@ from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramAPIError
 from loguru import logger
+from redis.asyncio import Redis
 
 from financial_bot.keyboards.inline import get_delete_keyboard, get_detailed_report
 from financial_bot.repositories import save_receipt_to_db, get_user_by_id, get_user_financial_summary
 from services.client import ai_service
-from services.analysis_cache import AnalysisCacheService
+from services.analysis_cache import FinancialCacheService
 from services.schemas import ReceiptListAnalysisSchema, MonthlyAnalysisResponse, WeeklyAnalysisResponse
 from services.utils_pipelines import (
     get_isolated_session,
@@ -117,8 +118,8 @@ async def async_process_receipt(
         )
 
         try:
-
-            async with AnalysisCacheService(redis_url=redis_url) as cache_service:
+            async with Redis.from_url(redis_url, decode_responses=True, max_connections=5) as task_redis_client:
+                cache_service = FinancialCacheService(redis_client=task_redis_client)
                 await cache_service.invalidate_user_cache(user_id=db_user_id)
                 logger.info("Successfully invalidated cache from Celery task for user: %s", db_user_id)
         except Exception as e:
@@ -342,7 +343,8 @@ async def process_test_1_analysis_financial(
         response_schema = WeeklyAnalysisResponse if days == 7 else MonthlyAnalysisResponse
         # 1. ПЫТАЕМСЯ ВЗЯТЬ ДАННЫЕ ИЗ КЭША REDIS
 
-        async with AnalysisCacheService(redis_url=redis_url) as cache_service:
+        async with Redis.from_url(redis_url, decode_responses=True, max_connections=5) as task_redis_client:
+            cache_service = FinancialCacheService(redis_client=task_redis_client)
             analysis_result = await cache_service.get_cached_analysis(user.id, days, response_schema)
 
             if analysis_result:

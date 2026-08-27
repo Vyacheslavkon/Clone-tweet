@@ -16,7 +16,7 @@ from financial_bot.keyboards.reply import get_main_menu
 from financial_bot.repositories import add_transaction, get_user_by_id
 from financial_bot.schemas import AddTransaction
 from financial_bot.states.amount_states import AmountState
-from services.analysis_cache import AnalysisCacheService
+from services.analysis_cache import  FinancialCacheService
 
 router_tr = Router()
 
@@ -24,7 +24,6 @@ redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
 if not redis_url:
     raise ValueError("CRITICAL: ANALYSIS_CACHE_REDIS environment variable is not set!")
 
-cache_service = AnalysisCacheService(redis_url=redis_url)
 
 @router_tr.callback_query(F.data == "back")
 async def go_back(callback: CallbackQuery, state: FSMContext):
@@ -129,28 +128,55 @@ async def category_amount(callback: CallbackQuery, state: FSMContext):
     F.data == "skip_description", AmountState.waiting_for_description
 )
 async def end_with_callback(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession
+    callback: CallbackQuery, state: FSMContext, session: AsyncSession, cache_service: FinancialCacheService
 ):
-
+    user = await get_user_by_id(session, callback.from_user.id)
     await state.update_data(description=None)
     await save_to_db_and_finish(callback, state, session, callback.from_user.id)
 
+    try:
+        await cache_service.invalidate_user_cache(user_id=user.id)
+        logger.info("Successfully invalidated cache for user: %s via manual entry", user.id)
+    except RedisError as redis_err:
+        # Ловим ТОЛЬКО конкретные сетевые проблемы с Redis
+        logger.error(
+            "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
+            user.id, redis_err
+        )
+
 
 @router_tr.message(AmountState.waiting_for_description)
-async def end_with_message(message: Message, state: FSMContext, session: AsyncSession):
+async def end_with_message(message: Message, state: FSMContext, session: AsyncSession, cache_service: FinancialCacheService):
 
     if not message.from_user:
         return
 
+    user = await get_user_by_id(session,message.from_user.id)
+
+    if not user:
+        logger.error("User with id {} not found in database", message.from_user.id)
+        return
+
     await state.update_data(description=message.text)
     await save_to_db_and_finish(message, state, session, message.from_user.id)
+
+    try:
+        await cache_service.invalidate_user_cache(user_id=user.id)
+        logger.info("Successfully invalidated cache for user: %s via manual entry", user.id)
+    except RedisError as redis_err:
+        # Ловим ТОЛЬКО конкретные сетевые проблемы с Redis
+        logger.error(
+            "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
+            user.id, redis_err
+        )
 
 
 async def save_to_db_and_finish(
     event: Union[Message, CallbackQuery],
     state: FSMContext,
     session: AsyncSession,
-    tg_id: int,
+    tg_id: int
+
 ):
 
     data = await state.get_data()
@@ -167,15 +193,6 @@ async def save_to_db_and_finish(
 
         await add_transaction(session, transaction.model_dump())
 
-        try:
-            await cache_service.invalidate_user_cache(user_id=user.id)
-            logger.info("Successfully invalidated cache for user: %s via manual entry", user.id)
-        except RedisError as redis_err:
-            # Ловим ТОЛЬКО конкретные сетевые проблемы с Redis
-            logger.error(
-                "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
-                user.id, redis_err
-            )
 
         text = _("Data saved successfully!")
         if isinstance(event, CallbackQuery):

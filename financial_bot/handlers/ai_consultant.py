@@ -8,6 +8,7 @@ from aiogram.utils.i18n import gettext as _
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone
+from redis.exceptions import RedisError
 
 from financial_bot.filters import (
     DeleteTransactionCallback,
@@ -17,7 +18,7 @@ from financial_bot.filters import (
 from financial_bot.keyboards.reply import get_main_menu, request_ai
 from financial_bot.repositories import delete_check, get_user_by_id, get_user_financial_summary
 from services.utils_pipelines import (render_detailed_transactions)
-from services.analysis_cache import AnalysisCacheService
+from services.analysis_cache import FinancialCacheService
 # from financial_bot.tasks.ai import process_ai_request
 from financial_bot.states.ai_states import AIState
 from financial_bot.tasks.ai import process_expense_task, process_receipt_task, process_analysis_expense_task
@@ -177,19 +178,24 @@ async def handle_voice_receipt(message: Message, session: AsyncSession, state: F
 async def delete_batch_handler(
     callback: CallbackQuery,
     callback_data: DeleteTransactionCallback,
-    session: AsyncSession
+    session: AsyncSession,
+    cache_service: FinancialCacheService
 
 ):
+    user = await get_user_by_id(session, callback.from_user.id)
 
     result = await delete_check(session, callback_data.batch_id)
-    # try:
-    #
-    #     async with AnalysisCacheService(redis_url=redis_url) as cache_service:
-    #         await cache_service.invalidate_user_cache(user_id=db_user_id)
-    #         logger.info("Successfully invalidated cache from Celery task for user: %s", db_user_id)
-    # except Exception as e:
-    #
-    #     logger.error("Non-critical error: Failed to invalidate cache in Celery task: %s", e)
+
+
+    try:
+        await cache_service.invalidate_user_cache(user_id=user.id)
+        logger.info("Successfully invalidated cache for user: %s via manual entry", user.id)
+    except RedisError as redis_err:
+        # Ловим ТОЛЬКО конкретные сетевые проблемы с Redis
+        logger.error(
+            "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
+            user.id, redis_err
+        )
 
     if result:
         if isinstance(callback.message, Message):

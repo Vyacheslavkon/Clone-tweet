@@ -22,6 +22,7 @@ from financial_bot.middlewares import (
     UserActivityMiddleware,
 )
 from financial_bot.tasks.scheduled import setup_scheduler
+from services.analysis_cache import FinancialCacheService
 from logger_config import setup_logging
 
 redis_fsm = Redis(host="redis", port=6379, db=2)
@@ -29,6 +30,10 @@ storage = RedisStorage(redis=redis_fsm)
 i18n = I18n(
     path="/application/financial_bot/locales", default_locale="en", domain="messages"
 )
+
+redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
+if not redis_url:
+    raise ValueError("CRITICAL: ANALYSIS_CACHE_REDIS environment variable is not set!")
 
 
 async def main():
@@ -40,6 +45,13 @@ async def main():
     session_pool = async_session
     scheduler = setup_scheduler(bot, session_pool, i18n)
     dp["admin_id"] = int(os.getenv("ADMIN_ID", 0))
+    redis = Redis.from_url(
+        url=redis_url,
+        decode_responses=True,
+        max_connections=20
+    )
+    cache_service = FinancialCacheService(redis_client=redis)
+    dp["cache_service"] = cache_service
     # ai_service = AIService(
     #         api_key=settings.OPENAI_API_KEY,
     #         base_url=settings.OPENAI_BASE_URL,
@@ -67,6 +79,7 @@ async def main():
     finally:
         await redis_fsm.close()
         scheduler.shutdown()
+        await redis.aclose()
 
 
 if __name__ == "__main__":
