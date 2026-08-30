@@ -31,6 +31,8 @@ i18n = I18n(
     path="/application/financial_bot/locales", default_locale="en", domain="messages"
 )
 
+admin_id = int(os.getenv("ADMIN_ID"))
+
 redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
 if not redis_url:
     raise ValueError("CRITICAL: ANALYSIS_CACHE_REDIS environment variable is not set!")
@@ -71,6 +73,7 @@ async def main():
     dp.include_router(history_rout)
     dp.include_router(ai_router)
     dp.include_router(router_fallback)
+
 
     try:
         scheduler.start()

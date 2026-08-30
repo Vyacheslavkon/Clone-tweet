@@ -63,32 +63,6 @@ class AIService:
 
         return parsed_result
 
-    """for check"""
-    # async def process_receipt(
-    #         self,
-    #         response_schema: Type[BaseModel],
-    #         text: dict,
-    #         locale: str
-    # ):
-    #
-    #     completion = await self.client.beta.chat.completions.parse(
-    #         model=self.model,
-    #         messages=[
-    #             {
-    #                 "role": "system",
-    #                 "content": get_system_prompt(locale)
-    #             },
-    #             {
-    #                 "role": "user",
-    #                 "content": text
-    #             }
-    #         ],
-    #         response_format= response_schema,
-    #         temperature=0.0
-    #     )
-    #
-    #     # Получаем валидированный Pydantic-объект
-    #     return completion.choices[0].message.parsed
 
     async def process_receipt(
         self, response_schema: Type[BaseModel], text: str, locale: str
@@ -101,7 +75,7 @@ class AIService:
                 {"role": "user", "content": text},
             ],
             response_format=response_schema,
-            max_completion_tokens=1024,
+            max_completion_tokens=2000, # changed to  200. was 1024
             temperature=0.0,
         )
 

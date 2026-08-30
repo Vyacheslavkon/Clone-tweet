@@ -22,6 +22,7 @@ from financial_bot.repositories import (
     create_user,
 )
 from financial_bot.schemas import AddData, CreateUser
+from services.analysis_cache import FinancialCacheService
 from services.client import ai_service
 from services.schemas import (
     ReceiptAnalysisSchema,
@@ -129,11 +130,11 @@ def test_i18n():
 
 
 @pytest.fixture
-async def test_dp(test_session, test_redis, test_i18n):
-
+async def test_dp(test_session, test_redis, test_i18n, cache_service):
+    # add cache_service
     storage = RedisStorage(redis=test_redis)
     dp = Dispatcher(storage=storage)
-
+    dp["cache_service"] = cache_service
     i18n_middleware = MyI18nMiddleware(i18n=test_i18n)
     dp.update.outer_middleware(i18n_middleware)
 
@@ -284,3 +285,17 @@ async def data_for_merge_by_cat():
             ),
         ],
     )
+
+
+@pytest.fixture
+def mock_redis_client():
+
+    client = AsyncMock()
+    pipeline_mock = AsyncMock()
+    client.pipeline.return_value.__aenter__.return_value = pipeline_mock
+    return client
+
+@pytest.fixture
+def cache_service(mock_redis_client):
+
+    return FinancialCacheService(redis_client=mock_redis_client)

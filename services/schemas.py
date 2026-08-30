@@ -112,32 +112,6 @@ class ReceiptListAnalysisSchema(BaseModel):
     )
 
 
-
-# class MonthlyAnalyzedCategory(BaseModel):
-#
-#     name: str = Field(
-#         min_length=3,
-#         description="The high-level category name generated strictly in the user's language (specified in system prompt). "
-#         "FORBIDDEN: Do not use single product names (like 'Toothpaste', 'Milk') and do not copy raw database keys "
-#         "as-is (like 'food', 'health', 'home', 'entertainment'). "
-#         "You must translate and expand technical keys into proper generalized human-readable group names "
-#         "in the target language (e.g., for Russian: 'food' -> 'Продукты', 'health' -> 'Лекарства и аптека')."
-#     )
-#
-#
-#     frequency_metric: str = Field(
-#         description="The aggregated analytical frequency indicator for the entire created group over the month. "
-#                     "Strict format required: 'X transactions per month' or 'Regularly (X times a week)', "
-#                     "translated into the user's language specified in the system prompt. "
-#                     "You must sum the count of all individual transactions that fall into this specific bucket."
-#     )
-#
-#     expense_type: Literal["essential", "discretionary"] = Field(
-#         description="Strictly classify the entire group into one of two options:\n"
-#                     "1. 'essential' (Vital: standard groceries, supermarkets, medication, healthcare, housing, utilities, critical repairs).\n"
-#                     "2. 'discretionary' (Flexible/Lifestyle: coffee to go, cafes, restaurants, bars, entertainment, hobbies, cinema, spontaneous shopping)."
-#     )
-
 class MonthlyAnalyzedCategory(BaseModel):
     name: str = Field(
         min_length=3,
@@ -197,12 +171,7 @@ class MonthlyCategoryRecommendation(BaseModel):
 
 
 class MonthlyAnalysisResponse(BaseModel):
-    # summary: str = Field(
-    #     description="A deep, strategic audit of the user's monthly financial behavior (maximum 4 sentences). "
-    #                 "Evaluate the overall spending structure, the compounding effect of habits, and the net financial balance. "
-    #                 "CRITICAL AGGREGATE RULE: You must copy all numerical aggregates strictly from the provided 'user_context' "
-    #                 "without any modifications, calculations, or roundings! Written strictly in the user's language."
-    # )
+
     summary: str = Field(
         description="A deep, strategic verbal audit of the user's monthly financial behavior (max 4 sentences). "
                     "CRITICAL: You are STRICTLY FORBIDDEN from generating or writing any percentage values (do NOT use the '%' symbol at all) "
@@ -222,19 +191,11 @@ class MonthlyAnalysisResponse(BaseModel):
                     "based on the passed limit. If the monthly budget limit is not provided, strictly return null."
     )
 
-    # ПРИМЕНЯЕМ ВАРИАНТ 1 (ИНВЕРСИЯ ПОЛЕЙ): рекомендации идут ПЕРВЫМИ для удержания фокуса внимания ИИ
+
     recommendations: List[MonthlyCategoryRecommendation] = Field(
         description="A list of 2-3 expert strategic optimization recommendations regarding systemic habits and behavioral rituals."
     )
 
-
-    # classified_items: List[MonthlyAnalyzedCategory] = Field(
-    #     description="A detailed classification of ALL expense groups for the month. "
-    #                 "CRITICAL: You must generate between 6 and 10 distinct high-level category groups "
-    #                 "to provide a comprehensive statistics block (e.g., separate 'Transport/Taxi', "
-    #                 "'Subscriptions', 'Clothes & Shopping', 'Cafes & Fastfood' instead of merging everything into 'Other'). "
-    #                 "Sort by volume from highest to lowest."
-    # )
 
     classified_items: List[MonthlyAnalyzedCategory] = Field(
         description="A complete classification of all expense categories present in the user's data for the month, "

@@ -1,3 +1,4 @@
+import os
 from typing import Union
 
 from aiogram import F, Router, html
@@ -73,6 +74,18 @@ async def cancel_handler(event: Union[Message, CallbackQuery], state: FSMContext
 
 @router.errors()
 async def global_error_handler(event: ErrorEvent, admin_id: int):
+    #it is necessary to implement Admin_id
+
+    # admin_id = int(os.getenv("ADMIN_ID"))
+    # if not admin_id:
+    #     logger.critical("CRITICAL: ADMIN_ID environment variable is not set! Admin notification skipped.")
+    #     return True
+    #
+    # try:
+    #     admin_id = int(admin_id)
+    # except ValueError:
+    #     logger.critical("CRITICAL: ADMIN_ID is not a valid integer: %s", admin_id)
+    #     return True
 
     logger.exception("Global error caught")
 

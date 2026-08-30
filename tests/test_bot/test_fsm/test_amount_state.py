@@ -6,7 +6,7 @@ from tests.test_bot.utils import called_bot, called_kb
 
 
 async def test_full_transaction_flow(
-    test_dp, mock_bot, create_mock_update, test_session, test_i18n, test_user
+    test_dp, mock_bot, create_mock_update, test_session, test_i18n, test_user, cache_service
 ):
 
     create_message, create_callback = create_mock_update
