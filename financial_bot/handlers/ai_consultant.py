@@ -1,7 +1,8 @@
 import io
 import os
+import uuid
 
-from aiogram import F, Router
+from aiogram import F, Router, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, BufferedInputFile
 from aiogram.utils.i18n import gettext as _
@@ -29,6 +30,8 @@ if not redis_url:
 
 ai_router = Router()
 
+TMP_AUDIO_DIR = "/tmp/financial_bot_stt"
+os.makedirs(TMP_AUDIO_DIR, exist_ok=True)
 
 @ai_router.message(I18nTextFilter("AI"), IsProUserFilter())
 async def waiting_for_request(message: Message, state: FSMContext):
@@ -104,73 +107,144 @@ async def waiting_purchases(message: Message, state: FSMContext):
     await state.set_state(AIState.waiting_for_receipt)
 
 
+# @ai_router.message(F.voice, AIState.waiting_for_receipt)
+# async def handle_voice_receipt(message: Message, session: AsyncSession, state: FSMContext):
+#     if not message.from_user:
+#         return
+#
+#     user = await get_user_by_id(session, message.from_user.id)
+#
+#     if not user:
+#         await message.answer(_("User not found. Please enter /start."))
+#         return
+#
+#     waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
+#
+#     try:
+#         voice = message.voice
+#
+#         if not voice or not message.bot:
+#             return
+#
+#         if voice.duration > 35:
+#             await waiting_msg.edit_text(
+#                 _(
+#                     "❌ The voice message is too long. Please dictate a shorter message (up to 30 seconds).."
+#                 )
+#             )
+#             return
+#
+#         file_info = await message.bot.get_file(voice.file_id)
+#
+#         file_buffer = io.BytesIO()
+#
+#         if not file_info.file_path:
+#             await message.answer(
+#                 "Unfortunately, it was not possible to obtain the path for downloading the file."
+#             )
+#             return
+#
+#         await message.bot.download_file(file_info.file_path, file_buffer)
+#
+#         voice_bytes = file_buffer.getvalue()
+#
+#         process_expense_task.delay(
+#             chat_id=message.chat.id,
+#             db_user_id=user.id,
+#             locale=user.language_code,
+#             voice_bytes=voice_bytes,
+#         )
+#
+#         await state.clear()
+#
+#         await message.bot.delete_message(
+#             chat_id=message.chat.id, message_id=waiting_msg.message_id
+#         )
+#
+#         await message.answer(
+#             _(
+#                 "⏳ Background analysis started. I’ll send the result in a couple of seconds; in the meantime, you can continue working:"
+#             ),
+#             reply_markup=get_main_menu(),
+#         )
+#
+#     except Exception as e:  # noqa: PIE786
+#         logger.error("Error downloading voice message: {error}", error=e, exc_info=True)
+#         await waiting_msg.edit_text(
+#             _("❌ Unable to process the voice message. Please try again."),
+#             reply_markup=get_main_menu(),
+#         )
+
+#new need testing
 @ai_router.message(F.voice, AIState.waiting_for_receipt)
-async def handle_voice_receipt(message: Message, session: AsyncSession, state: FSMContext):
+async def handle_voice_receipt(message: Message, session: AsyncSession, state: FSMContext, bot: Bot):
+
     if not message.from_user:
         return
 
-    user = await get_user_by_id(session, message.from_user.id)
+    local_file_path = None
 
+    user = await get_user_by_id(session, message.from_user.id)
     if not user:
         await message.answer(_("User not found. Please enter /start."))
         return
 
+    voice = message.voice
+    if not voice:
+        return
+
+
+    if voice.duration > 35:
+        await message.answer(
+            _("❌ The voice message is too long. Please dictate a shorter message (up to 30 seconds).")
+        )
+        return
+
+    # 3. Отправляем статус анализа. Мы НЕ будем удалять его здесь.
+    # Мы передадим message_id этого статуса в Celery, и воркер сам изменит его текст
+    # на результат анализа, когда всё будет готово! Это топовый UX.
     waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
 
     try:
-        voice = message.voice
-
-        if not voice or not message.bot:
-            return
-
-        if voice.duration > 35:
-            await waiting_msg.edit_text(
-                _(
-                    "❌ The voice message is too long. Please dictate a shorter message (up to 30 seconds).."
-                )
-            )
-            return
-
-        file_info = await message.bot.get_file(voice.file_id)
-
-        file_buffer = io.BytesIO()
-
+        file_info = await bot.get_file(voice.file_id)
         if not file_info.file_path:
-            await message.answer(
-                "Unfortunately, it was not possible to obtain the path for downloading the file."
-            )
+            await waiting_msg.edit_text(_("❌ Failed to get download path."))
             return
 
-        await message.bot.download_file(file_info.file_path, file_buffer)
+        # 4. Избавляемся от io.BytesIO(). Сохраняем на диск (tmpfs)
+        unique_filename = f"{uuid.uuid4()}.ogg"
+        local_file_path = os.path.join(TMP_AUDIO_DIR, unique_filename)
 
-        voice_bytes = file_buffer.getvalue()
-
-        process_expense_task.delay(
-            chat_id=message.chat.id,
-            db_user_id=user.id,
-            locale=user.language_code,
-            voice_bytes=voice_bytes,
-        )
+        # Асинхронное скачивание файла
+        await bot.download_file(file_info.file_path, destination=local_file_path)
 
         await state.clear()
 
-        await message.bot.delete_message(
-            chat_id=message.chat.id, message_id=waiting_msg.message_id
+        # 6. Отправляем в Celery путь к файлу и ID статуса
+        process_expense_task.delay(
+            chat_id=message.chat.id,
+            db_user_id=user.id,
+            locale=user.language_code or "ru",
+            voice_file_path=local_file_path,
+            status_message_id=waiting_msg.message_id  # <--- Передаем для обновления текста
         )
 
+        # 7. Возвращаем меню. Юзер может кликать кнопки, пока Celery думает в фоне
         await message.answer(
-            _(
-                "⏳ Background analysis started. I’ll send the result in a couple of seconds; in the meantime, you can continue working:"
-            ),
+            _("⏳ Analysis started in the background. You can continue working:"),
             reply_markup=get_main_menu(),
         )
 
-    except Exception as e:  # noqa: PIE786
-        logger.error("Error downloading voice message: {error}", error=e, exc_info=True)
+    except Exception as e:
+        logger.error("Error in voice handler pipeline: {error}", error=e, exc_info=True)
+        # Если упало на этапе скачивания — чистим за собой
+        if 'local_file_path' in locals() and os.path.exists(local_file_path):
+            os.remove(local_file_path)
         await waiting_msg.edit_text(
             _("❌ Unable to process the voice message. Please try again."),
             reply_markup=get_main_menu(),
         )
+
 
 
 

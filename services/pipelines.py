@@ -24,7 +24,8 @@ from services.utils_pipelines import (
     CATEGORY_TITLES,
     render_category_tree,
     render_weekly_top,
-    render_monthly_tree
+    render_monthly_tree,
+    render_receipt_report
 )
 
 redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
@@ -33,6 +34,9 @@ if not redis_url:
 
 #cache_service = AnalysisCacheService(redis_url=redis_url)
 
+#new need testing
+_global_bot_session = None
+_global_bot_instance = None
 
 async def async_process_receipt(
     chat_id: int, db_user_id: int, locale: str, voice_bytes: bytes
@@ -457,3 +461,164 @@ async def process_test_1_analysis_financial(
             logger.error("Не удалось отправить сообщение об ошибке пользователю: {}".format(send_err))
     finally:
         await bot_session.close()
+
+
+
+
+
+# new need testing
+def get_shared_bot() -> Bot:
+    """
+    Возвращает синглтон инстанса Bot с постоянным пулом Keep-Alive соединений.
+    Предотвращает утечку сокетов и убирает оверхед на SSL handshake при 10k RPS.
+    """
+    global _global_bot_session, _global_bot_instance
+    token = os.getenv("BOT_TOKEN")
+    if not token:
+        raise ValueError("The BOT_TOKEN environment variable is not set!")
+
+    if _global_bot_session is None or _global_bot_session.disabled:
+        # Инициализируем сессию с пулом соединений один раз на весь жизненный цикл воркера
+        _global_bot_session = AiohttpSession()
+        _global_bot_instance = Bot(
+            token=token,
+            session=_global_bot_session,
+            default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+        )
+    return _global_bot_instance
+
+# new need testing
+async def close_shared_bot():
+    """Вызывается только при штатном завершении процесса Celery воркера"""
+    global _global_bot_session
+    if _global_bot_session and not _global_bot_session.disabled:
+        await _global_bot_session.close()
+
+# new need testing
+async def asynctest_process_receipt(
+        chat_id: int,
+        db_user_id: int,
+        locale: str,
+        voice_file_path: str,  # Заменили байты на путь к файлу
+        status_message_id: int = None  # Принимаем ID статуса для In-place Update
+):
+    locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
+    try:
+        lang = gettext.translation(
+            domain="messages",
+            localedir=str(locales_dir),
+            languages=[locale],
+            fallback=True,
+        )
+    except Exception as e:
+        logger.error("Failed to load localization: {error}", error=e)
+        lang = gettext.NullTranslations()
+
+    _ = lang.gettext
+
+    # Получаем переиспользуемый объект бота из пула
+    bot = get_shared_bot()
+    session = get_isolated_session()
+
+    try:
+        # Читаем байты с диска (tmpfs) непосредственно перед отправкой в OpenAI
+        if not os.path.exists(voice_file_path):
+            raise FileNotFoundError(f"Audio file missing: {voice_file_path}")
+
+        with open(voice_file_path, "rb") as f:
+            voice_bytes = f.read()
+
+        # Наш оптимизированный метод с лимитом max_completion_tokens=200
+        analysis_result = await ai_service.process_voice_message(
+            voice_bytes=voice_bytes,
+            response_schema=ReceiptListAnalysisSchema,
+            locale=locale,
+        )
+
+        # Логика обработки пустого/бредового ввода
+        if not analysis_result.is_shopping_related:
+            joke_text = analysis_result.error_message or _("Unable to recognize the purchase amount.")
+
+            # РЕАЛИЗАЦИЯ IN-PLACE UPDATE: Вместо спама новым сообщением, обновляем старый статус
+            if status_message_id:
+                await bot.edit_message_text(chat_id=chat_id, message_id=status_message_id, text=f"❌ {joke_text}")
+            else:
+                await bot.send_message(chat_id=chat_id, text=f"❌ {joke_text}")
+
+            return {"status": "cancelled", "message": joke_text}
+
+        valid_transactions = [t for t in analysis_result.transactions if t.amount > 0]
+        analysis_result.transactions = valid_transactions
+
+        if not analysis_result.transactions:
+            if status_message_id:
+                await bot.edit_message_text(chat_id=chat_id, message_id=status_message_id,
+                                            text=_("❌ No transactions found to save."))
+            else:
+                await bot.send_message(chat_id=chat_id, text=_("❌ No transactions found to save."))
+            return {"status": "cancelled", "message": "Empty transactions list"}
+
+        final_analysis_result = merge_transactions_by_category(analysis_result)
+        message_batch_id = str(uuid.uuid4())
+
+        # Запись в БД
+        await save_receipt_to_db(
+            session=session,
+            user_id=db_user_id,
+            analysis_result=final_analysis_result,
+            photo_url=None,
+            raw_text=analysis_result.model_dump_json(),
+            batch_id=message_batch_id,
+        )
+
+        # Инвалидация кэша Redis
+        try:
+            async with Redis.from_url(redis_url, decode_responses=True, max_connections=5) as task_redis_client:
+                cache_service = FinancialCacheService(redis_client=task_redis_client)
+                await cache_service.invalidate_user_cache(user_id=db_user_id)
+        except Exception as e:
+            logger.error("Failed to invalidate cache: %s", e)
+
+        # Вызываем презентер: передаем данные и функцию локализации (_)
+        msg_text, localized_button_label = render_receipt_report(analysis_result, _)
+
+        # Отправляем красивый HTML-отчет (In-place Update)
+        if status_message_id:
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=status_message_id,
+                text=msg_text,
+                reply_markup=get_delete_keyboard(batch_id=message_batch_id, button_text=localized_button_label),
+            )
+        else:
+            await bot.send_message(
+                chat_id=chat_id,
+                text=msg_text,
+                reply_markup=get_delete_keyboard(batch_id=message_batch_id, button_text=localized_button_label),
+            )
+
+    except openai.OpenAIError as net_err:
+        logger.warning("OpenAI API network failure. Retrying the task in Celery.")
+        await session.rollback()
+        raise net_err
+
+    except Exception:
+        logger.exception("Error processing check for user {user_id}", user_id=db_user_id)
+        await session.rollback()
+
+        # Если упало на нашей стороне — выводим человеческую ошибку поверх статуса
+        if status_message_id:
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=status_message_id,
+                text=_("❌ Unfortunately, we couldn't recognize your receipt. Please try again.")
+            )
+        else:
+            await bot.send_message(
+                chat_id=chat_id,
+                text=_("❌ Unfortunately, we couldn't recognize your receipt. Please try again.")
+            )
+
+    finally:
+        await session.close()
+        # ВНИМАНИЕ: bot_session.close() УБРАН отсюда. Сессия пула остается жить глобально!

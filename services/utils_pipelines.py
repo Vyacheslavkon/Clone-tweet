@@ -12,6 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import NullPool
 
 from services.schemas import ReceiptAnalysisSchema, ReceiptListAnalysisSchema
+from typing import List, Dict, Tuple
+from services.schemas import ReceiptListAnalysisSchema
 
 load_dotenv()
 
@@ -601,3 +603,80 @@ def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
         report_lines.append(_("No transactions found for this period."))
 
     return "\n".join(report_lines)
+
+
+#new  need testing
+def render_receipt_report(
+        analysis_result: ReceiptListAnalysisSchema,
+        _  # Сюда прокидываем скомпилированную функцию lang.gettext
+) -> Tuple[str, str]:
+    """
+    Синхронный презентер. Генерирует HTML-текст отчета и текст для кнопки отмены.
+    Возвращает кортеж: (msg_text, localized_button_label)
+    """
+    income_txs = [t for t in analysis_result.transactions if t.type == "income"]
+    expense_txs = [t for t in analysis_result.transactions if t.type == "expense"]
+
+    total_income = sum(t.amount for t in income_txs)
+    total_expense = sum(t.amount for t in expense_txs)
+
+    icons = {
+        "food": "Apple", "transport": "Car", "home": "House", "entertainment": "PartyPopper",
+        "health": "Pill", "other": "Package", "salary": "Briefcase", "bonus": "ChartPie",
+        "gift": "Gift", "deal": "Handshake"
+    }
+
+    report_chunks = [_("✅ <b>Operations successfully recorded!</b>\n")]
+
+    # 1. Рендеринг Доходов
+    if income_txs:
+        report_chunks.append(_("💰 <b>Received Income:</b>"))
+        income_details = []
+        for tx in income_txs:
+            icon = icons.get(tx.category, "💵")
+            localized_category = _(tx.description.capitalize() if tx.description else "Other")
+            items_lines = [f"  • {item.name}: <b>{item.price}</b>" for item in tx.items]
+            items_str = "\n" + "\n".join(items_lines) if items_lines else ""
+            income_details.append(f"{icon} {localized_category}: <b>+{tx.amount}</b>{items_str}")
+        report_chunks.append("\n".join(income_details))
+
+    if income_txs and expense_txs:
+        report_chunks.append(" ")
+
+    # 2. Рендеринг Расходов
+    if expense_txs:
+        report_chunks.append(_("📉 <b>Spent Expenses:</b>"))
+        expense_details = []
+        for tx in expense_txs:
+            icon = icons.get(tx.category, "📦")
+            localized_category = _(tx.category.capitalize())
+            items_lines = [
+                f"  • {item.name}: <b>{item.price}</b>" if item.price > 0 else f"  • {item.name}"
+                for item in tx.items
+            ]
+            items_str = "\n".join(items_lines)
+            expense_details.append(_("{icon} {category}: <b>-{amount}</b>\n{items}").format(
+                icon=icon, category=localized_category, amount=tx.amount, items=items_str
+            ))
+        report_chunks.append("\n".join(expense_details))
+
+    # 3. Подвал и Мета-данные
+    report_chunks.append("\n" + "─" * 20)
+    meta_lines = []
+    if total_income > 0:
+        meta_lines.append(_("Total Income: <b>+{total_amount}</b>").format(total_amount=total_income))
+    if total_expense > 0:
+        meta_lines.append(_("Total Expenses: <b>-{total_amount}</b>").format(total_amount=total_expense))
+    report_chunks.append("\n".join(meta_lines))
+
+    msg_text = "\n".join(report_chunks)
+
+    # 4. Локализация текста кнопки отмены
+    if income_txs and not expense_txs:
+        localized_button_label = _("❌ cancel income")
+    elif expense_txs and not income_txs:
+        localized_button_label = _("❌ cancel expense")
+    else:
+        localized_button_label = _("❌ cancel operation")
+
+    return msg_text, localized_button_label

@@ -1,4 +1,5 @@
 import io
+import json
 import os
 from typing import Type, TypeVar
 
@@ -64,23 +65,45 @@ class AIService:
         return parsed_result
 
 
-    async def process_receipt(
-        self, response_schema: Type[BaseModel], text: str, locale: str
-    ):
+    # async def process_receipt(
+    #     self, response_schema: Type[BaseModel], text: str, locale: str
+    # ):
+    #
+    #     completion = await self.client.beta.chat.completions.parse(
+    #         model=self.model,
+    #         messages=[
+    #             {"role": "system", "content": get_voice_message(locale)},
+    #             {"role": "user", "content": text},
+    #         ],
+    #         response_format=response_schema,
+    #         max_completion_tokens=200, # changed to  200. was 1024
+    #         temperature=0.0,
+    #     )
+    #
+    #
+    #     return completion.choices[0].message.parsed
 
-        completion = await self.client.beta.chat.completions.parse(
+    async def process_receipt(self, response_schema: Type[BaseModel], text: str, locale: str):
+        # Заменяем beta.chat.completions.parse на стандартный create
+        completion = await self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": get_voice_message(locale)},
+                # Явно скармливаем схему текстом в системный промпт
+                {"role": "system",
+                 "content": f"Return JSON strictly matching this schema: {json.dumps(response_schema.model_json_schema())}"},
                 {"role": "user", "content": text},
             ],
-            response_format=response_schema,
-            max_completion_tokens=2000, # changed to  200. was 1024
+            # Включаем нативный JSON-мод (он разрешен прокси без лимита в 3к токенов)
+            response_format={"type": "json_object"},
+            max_completion_tokens=200,
             temperature=0.0,
         )
 
-        # Получаем валидированный Pydantic-объект
-        return completion.choices[0].message.parsed
+        # Парсим и валидируем на стороне Python
+        raw_json = completion.choices[0].message.content
+        return response_schema.model_validate_json(raw_json)
+
 
     async def process_voice_message(
         self,
