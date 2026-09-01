@@ -107,75 +107,7 @@ async def waiting_purchases(message: Message, state: FSMContext):
     await state.set_state(AIState.waiting_for_receipt)
 
 
-# @ai_router.message(F.voice, AIState.waiting_for_receipt)
-# async def handle_voice_receipt(message: Message, session: AsyncSession, state: FSMContext):
-#     if not message.from_user:
-#         return
-#
-#     user = await get_user_by_id(session, message.from_user.id)
-#
-#     if not user:
-#         await message.answer(_("User not found. Please enter /start."))
-#         return
-#
-#     waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
-#
-#     try:
-#         voice = message.voice
-#
-#         if not voice or not message.bot:
-#             return
-#
-#         if voice.duration > 35:
-#             await waiting_msg.edit_text(
-#                 _(
-#                     "❌ The voice message is too long. Please dictate a shorter message (up to 30 seconds).."
-#                 )
-#             )
-#             return
-#
-#         file_info = await message.bot.get_file(voice.file_id)
-#
-#         file_buffer = io.BytesIO()
-#
-#         if not file_info.file_path:
-#             await message.answer(
-#                 "Unfortunately, it was not possible to obtain the path for downloading the file."
-#             )
-#             return
-#
-#         await message.bot.download_file(file_info.file_path, file_buffer)
-#
-#         voice_bytes = file_buffer.getvalue()
-#
-#         process_expense_task.delay(
-#             chat_id=message.chat.id,
-#             db_user_id=user.id,
-#             locale=user.language_code,
-#             voice_bytes=voice_bytes,
-#         )
-#
-#         await state.clear()
-#
-#         await message.bot.delete_message(
-#             chat_id=message.chat.id, message_id=waiting_msg.message_id
-#         )
-#
-#         await message.answer(
-#             _(
-#                 "⏳ Background analysis started. I’ll send the result in a couple of seconds; in the meantime, you can continue working:"
-#             ),
-#             reply_markup=get_main_menu(),
-#         )
-#
-#     except Exception as e:  # noqa: PIE786
-#         logger.error("Error downloading voice message: {error}", error=e, exc_info=True)
-#         await waiting_msg.edit_text(
-#             _("❌ Unable to process the voice message. Please try again."),
-#             reply_markup=get_main_menu(),
-#         )
 
-#new need testing
 @ai_router.message(F.voice, AIState.waiting_for_receipt)
 async def handle_voice_receipt(message: Message, session: AsyncSession, state: FSMContext, bot: Bot):
 
@@ -200,9 +132,7 @@ async def handle_voice_receipt(message: Message, session: AsyncSession, state: F
         )
         return
 
-    # 3. Отправляем статус анализа. Мы НЕ будем удалять его здесь.
-    # Мы передадим message_id этого статуса в Celery, и воркер сам изменит его текст
-    # на результат анализа, когда всё будет готово! Это топовый UX.
+
     waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
 
     try:
@@ -211,25 +141,22 @@ async def handle_voice_receipt(message: Message, session: AsyncSession, state: F
             await waiting_msg.edit_text(_("❌ Failed to get download path."))
             return
 
-        # 4. Избавляемся от io.BytesIO(). Сохраняем на диск (tmpfs)
         unique_filename = f"{uuid.uuid4()}.ogg"
         local_file_path = os.path.join(TMP_AUDIO_DIR, unique_filename)
 
-        # Асинхронное скачивание файла
         await bot.download_file(file_info.file_path, destination=local_file_path)
 
         await state.clear()
 
-        # 6. Отправляем в Celery путь к файлу и ID статуса
         process_expense_task.delay(
             chat_id=message.chat.id,
             db_user_id=user.id,
             locale=user.language_code or "ru",
             voice_file_path=local_file_path,
-            status_message_id=waiting_msg.message_id  # <--- Передаем для обновления текста
+            status_message_id=waiting_msg.message_id
         )
 
-        # 7. Возвращаем меню. Юзер может кликать кнопки, пока Celery думает в фоне
+
         await message.answer(
             _("⏳ Analysis started in the background. You can continue working:"),
             reply_markup=get_main_menu(),
@@ -237,12 +164,16 @@ async def handle_voice_receipt(message: Message, session: AsyncSession, state: F
 
     except Exception as e:
         logger.error("Error in voice handler pipeline: {error}", error=e, exc_info=True)
-        # Если упало на этапе скачивания — чистим за собой
+
         if 'local_file_path' in locals() and os.path.exists(local_file_path):
             os.remove(local_file_path)
         await waiting_msg.edit_text(
-            _("❌ Unable to process the voice message. Please try again."),
-            reply_markup=get_main_menu(),
+            _("❌ Unable to process the voice message. Please try again.")
+
+        )
+        await message.answer(
+            _("You can continue working using the menu below:"),
+            reply_markup=get_main_menu()
         )
 
 
@@ -265,7 +196,7 @@ async def delete_batch_handler(
         await cache_service.invalidate_user_cache(user_id=user.id)
         logger.info("Successfully invalidated cache for user: %s via manual entry", user.id)
     except RedisError as redis_err:
-        # Ловим ТОЛЬКО конкретные сетевые проблемы с Redis
+
         logger.error(
             "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
             user.id, redis_err
@@ -304,33 +235,33 @@ async def handle_analytics_request(message: Message, state: FSMContext):
     days = days_mapping[user_text]
     now = datetime.now(timezone.utc)
 
-    if days == 7:
-        days_passed = now.weekday() + 1
-        if days_passed < 3:
-            await state.clear()
-
-            await message.answer(
-                _("📊 *The period is too short to analyze the current week!* \n"
-                  "We can only analyze the week starting from Wednesday, when enough spendings accumulate. "
-                  "Please check back later! 🗓"),
-                reply_markup=get_main_menu()
-            )
-
-            return
-
-    elif days == 30:
-        days_passed = now.day
-        if days_passed < 10:
-            await state.clear()
-
-            await message.answer(
-                _("📈 *It’s too early for monthly analytics!* \n"
-                  "A reliable monthly analysis requires at least 10 days of data (available from the 10th). "
-                  "Right now, try checking your weekly analytics instead! 📅"),
-                reply_markup=get_main_menu()
-            )
-
-            return
+    # if days == 7:
+    #     days_passed = now.weekday() + 1
+    #     if days_passed < 3:
+    #         await state.clear()
+    #
+    #         await message.answer(
+    #             _("📊 *The period is too short to analyze the current week!* \n"
+    #               "We can only analyze the week starting from Wednesday, when enough spendings accumulate. "
+    #               "Please check back later! 🗓"),
+    #             reply_markup=get_main_menu()
+    #         )
+    #
+    #         return
+    #
+    # elif days == 30:
+    #     days_passed = now.day
+    #     if days_passed < 10:
+    #         await state.clear()
+    #
+    #         await message.answer(
+    #             _("📈 *It’s too early for monthly analytics!* \n"
+    #               "A reliable monthly analysis requires at least 10 days of data (available from the 10th). "
+    #               "Right now, try checking your weekly analytics instead! 📅"),
+    #             reply_markup=get_main_menu()
+    #         )
+    #
+    #         return
 
 
 

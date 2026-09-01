@@ -605,15 +605,12 @@ def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
     return "\n".join(report_lines)
 
 
-#new  need testing
+
 def render_receipt_report(
         analysis_result: ReceiptListAnalysisSchema,
-        _  # Сюда прокидываем скомпилированную функцию lang.gettext
+        _
 ) -> Tuple[str, str]:
-    """
-    Синхронный презентер. Генерирует HTML-текст отчета и текст для кнопки отмены.
-    Возвращает кортеж: (msg_text, localized_button_label)
-    """
+
     income_txs = [t for t in analysis_result.transactions if t.type == "income"]
     expense_txs = [t for t in analysis_result.transactions if t.type == "expense"]
 
@@ -621,14 +618,21 @@ def render_receipt_report(
     total_expense = sum(t.amount for t in expense_txs)
 
     icons = {
-        "food": "Apple", "transport": "Car", "home": "House", "entertainment": "PartyPopper",
-        "health": "Pill", "other": "Package", "salary": "Briefcase", "bonus": "ChartPie",
-        "gift": "Gift", "deal": "Handshake"
+        "food": "🍏",
+        "transport": "🚗",
+        "home": "🏠",
+        "entertainment": "🎉",
+        "health": "💊",
+        "other": "📦",
+        "salary": "💼",
+        "bonus": "📈",
+        "gift": "🎁",
+        "deal": "🤝"
     }
 
     report_chunks = [_("✅ <b>Operations successfully recorded!</b>\n")]
 
-    # 1. Рендеринг Доходов
+
     if income_txs:
         report_chunks.append(_("💰 <b>Received Income:</b>"))
         income_details = []
@@ -643,7 +647,7 @@ def render_receipt_report(
     if income_txs and expense_txs:
         report_chunks.append(" ")
 
-    # 2. Рендеринг Расходов
+
     if expense_txs:
         report_chunks.append(_("📉 <b>Spent Expenses:</b>"))
         expense_details = []
@@ -660,7 +664,7 @@ def render_receipt_report(
             ))
         report_chunks.append("\n".join(expense_details))
 
-    # 3. Подвал и Мета-данные
+
     report_chunks.append("\n" + "─" * 20)
     meta_lines = []
     if total_income > 0:
@@ -671,7 +675,7 @@ def render_receipt_report(
 
     msg_text = "\n".join(report_chunks)
 
-    # 4. Локализация текста кнопки отмены
+
     if income_txs and not expense_txs:
         localized_button_label = _("❌ cancel income")
     elif expense_txs and not income_txs:

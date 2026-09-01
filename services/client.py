@@ -33,74 +33,24 @@ class AIService:
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url, timeout=60.0)
         self.model = model
 
-    async def analyze_image(
-        self,
-        image_url: str,
-        # response_schema: Type[BaseModel],
-        response_schema: Type[T],
-        system_prompt: str,
-        user_prompt: str = "Разбери этот чек по позициям согласно схеме.",
-    ) -> T:
-
-        completion = await self.client.beta.chat.completions.parse(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                # Картинку и задачу отдаем в пользовательский промт
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": user_prompt},
-                        {"type": "image_url", "image_url": {"url": image_url}},
-                    ],
-                },
-            ],
-            response_format=response_schema,
-            temperature=0.0,
-        )
-        parsed_result = completion.choices[0].message.parsed
-        if parsed_result is None:
-            raise ValueError("Failed to parse response")
-
-        return parsed_result
-
-
-    # async def process_receipt(
-    #     self, response_schema: Type[BaseModel], text: str, locale: str
-    # ):
-    #
-    #     completion = await self.client.beta.chat.completions.parse(
-    #         model=self.model,
-    #         messages=[
-    #             {"role": "system", "content": get_voice_message(locale)},
-    #             {"role": "user", "content": text},
-    #         ],
-    #         response_format=response_schema,
-    #         max_completion_tokens=200, # changed to  200. was 1024
-    #         temperature=0.0,
-    #     )
-    #
-    #
-    #     return completion.choices[0].message.parsed
 
     async def process_receipt(self, response_schema: Type[BaseModel], text: str, locale: str):
-        # Заменяем beta.chat.completions.parse на стандартный create
+
         completion = await self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": get_voice_message(locale)},
-                # Явно скармливаем схему текстом в системный промпт
+
                 {"role": "system",
                  "content": f"Return JSON strictly matching this schema: {json.dumps(response_schema.model_json_schema())}"},
                 {"role": "user", "content": text},
             ],
-            # Включаем нативный JSON-мод (он разрешен прокси без лимита в 3к токенов)
+
             response_format={"type": "json_object"},
             max_completion_tokens=200,
             temperature=0.0,
         )
 
-        # Парсим и валидируем на стороне Python
         raw_json = completion.choices[0].message.content
         return response_schema.model_validate_json(raw_json)
 

@@ -76,6 +76,7 @@ services:
       - ./${LOG_PATH:-./logs}:/application/logs
       - ./core:/application/core
       - ./logger_config.py:/application/logger_config.py
+      - shared_stt_audio:/tmp/financial_bot_stt
 
     command: python -m financial_bot.main
 
@@ -176,7 +177,7 @@ services:
       - ./services:/application/services
       - ./${LOG_PATH:-./logs}:/application/logs
       - ./logger_config.py:/application/logger_config.py
-      - ./ocr_models:/application/ocr_models
+      - shared_stt_audio:/tmp/financial_bot_stt
 
     command: celery -A services.celery_app:app worker --loglevel=info
     depends_on:
@@ -202,3 +203,9 @@ networks:
 volumes:
   db-data:
   paddle_models:
+  shared_stt_audio:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: "size=512m,uid=1000"
