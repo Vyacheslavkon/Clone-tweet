@@ -2,10 +2,14 @@ import asyncio
 import os
 
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.utils.i18n import I18n, SimpleI18nMiddleware
 from dotenv import load_dotenv
 from redis.asyncio import Redis
+from loguru import logger
 
 from core.config import TOKEN_BOT
 from core.database import async_session
@@ -25,7 +29,7 @@ from financial_bot.tasks.scheduled import setup_scheduler
 from services.analysis_cache import FinancialCacheService
 from logger_config import setup_logging
 
-redis_fsm = Redis(host="redis", port=6379, db=2)
+redis_fsm = Redis(host="redis", port=6379, db=2,  max_connections=20, decode_responses=True)
 storage = RedisStorage(redis=redis_fsm)
 i18n = I18n(
     path="/application/financial_bot/locales", default_locale="en", domain="messages"
@@ -41,9 +45,12 @@ if not redis_url:
 async def main():
     load_dotenv()
     setup_logging()
-    bot = Bot(token=TOKEN_BOT)
+    bot_session = AiohttpSession()
+    bot = Bot(token=TOKEN_BOT,
+              session=bot_session,
+              default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+              )
     dp = Dispatcher(storage=storage)
-    # await bot.delete_webhook(drop_pending_updates=True)
     session_pool = async_session
     scheduler = setup_scheduler(bot, session_pool, i18n)
     dp["admin_id"] = int(os.getenv("ADMIN_ID", 0))
@@ -54,12 +61,6 @@ async def main():
     )
     cache_service = FinancialCacheService(redis_client=redis)
     dp["cache_service"] = cache_service
-    # ai_service = AIService(
-    #         api_key=settings.OPENAI_API_KEY,
-    #         base_url=settings.OPENAI_BASE_URL,
-    #         model="gpt-4o-mini"
-    #     )
-    # dp["ai_service"] = ai_service
     dp.message.outer_middleware(SessionMiddleware(session_pool))
     dp.callback_query.outer_middleware(SessionMiddleware(session_pool))
     dp.errors.middleware(SimpleI18nMiddleware(i18n))
@@ -79,11 +80,24 @@ async def main():
         scheduler.start()
         await dp.start_polling(bot)
 
+    except Exception as e:  # noqa
+        logger.critical("Critical error in bot core execution: {error}", error=e, exc_info=True)
+
     finally:
         await redis_fsm.close()
+        logger.info("Redis FSM client closed.")
+
         scheduler.shutdown()
+        logger.info("Scheduler stopped.")
+
         await redis.aclose()
+        logger.info("Redis cache client closed.")
+
+        await bot_session.close()
+        logger.info("Bot HTTP session closed.")
+
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+
