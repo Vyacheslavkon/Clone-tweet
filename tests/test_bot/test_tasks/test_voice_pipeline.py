@@ -1,3 +1,4 @@
+import os
 import uuid
 from unittest.mock import AsyncMock, patch
 
@@ -130,26 +131,26 @@ def test_process_expense_task_network_error_rolls_back_db():
 
 
 def test_process_expense_task_garbage_audio_sends_joke_and_no_db_write(
-    test_session_for_pipeline, mock_bot
+    test_session_for_pipeline, mock_bot, celery_eager
 ):
 
-    celery_app.conf.task_always_eager = True
-    celery_app.conf.task_eager_propagates = True
+    fake_path = "/tmp/fake_garbage.ogg"
+    with open(fake_path, "wb") as f:
+        f.write(b"fake_audio_bytes")
 
     mock_ai_response = ReceiptListAnalysisSchema(
         is_shopping_related=False,
-        error_message="Красиво поёшь! Но где тут траты? Давай ближе к делу.",
+        error_message="You sing a fine tune! But where are the expenses? Let's get down to business.",
         transactions=[],
     )
 
-    joke_message = "Красиво поёшь! Но где тут траты? Давай ближе к делу."
     mock_bot.close = AsyncMock()
 
     with patch(
-        "services.utils_pipelines.get_isolated_session",
-        return_value=test_session_for_pipeline,
+            "services.utils_pipelines.get_isolated_session",
+            return_value=test_session_for_pipeline,
     ), patch(
-        "services.client.ai_service.process_voice_message",
+        "services.client.ai_service.process_voice_message",  # Убедись, что путь к ai_service точный!
         new_callable=AsyncMock,
         return_value=mock_ai_response,
     ), patch(
@@ -157,23 +158,34 @@ def test_process_expense_task_garbage_audio_sends_joke_and_no_db_write(
     ), patch(
         "services.pipelines.save_receipt_to_db", new_callable=AsyncMock
     ) as mock_save_db, patch(
-        "services.pipelines.Bot", return_value=mock_bot
+        "services.pipelines.get_shared_bot", return_value=mock_bot
     ):
 
-        result = process_expense_task.delay(
-            chat_id=12345,
-            db_user_id=42,
-            locale="ru",
-            voice_bytes=b"garbage_audio_bytes",
-        )
+        try:
+            result = process_expense_task.delay(
+                chat_id=12345,
+                db_user_id=42,
+                locale="ru",
+                voice_file_path=fake_path,  # Передаем реальный созданный путь
+                status_message_id=12345
+            )
 
-        assert result.successful()
+            assert result.successful()
 
-        mock_bot.send_message.assert_awaited_once_with(
-            chat_id=12345, text=f"❌ {joke_message}"
-        )
+            assert mock_bot.edit_message_text.await_count == 1
+            args, kwargs = mock_bot.edit_message_text.call_args
 
-        mock_save_db.assert_not_called()
+            assert kwargs.get("chat_id") == 12345
+            assert kwargs.get("message_id") == 12345
+            assert "❌" in kwargs.get("text", "")
+            assert "You sing a fine tune!" in kwargs.get("text", "")
+            assert mock_ai_response.error_message in kwargs.get("text", "")
+
+            mock_save_db.assert_not_called()
+
+        finally:
+            if os.path.exists(fake_path):
+                os.remove(fake_path)
 
 
 async def test_delete_check_idempotency_on_double_click(

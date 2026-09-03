@@ -29,6 +29,7 @@ from services.schemas import (
     ReceiptItemSchema,
     ReceiptListAnalysisSchema,
 )
+from services.celery_app import app as celery_app
 
 current_file_path = Path(__file__).resolve()
 base_dir = current_file_path.parent.parent.parent
@@ -227,7 +228,7 @@ def patch_pipeline_dependencies(mocker, test_session_for_pipeline, mock_bot):
         return_value=test_session_for_pipeline,
     )
 
-    mocker.patch("services.pipelines.Bot", return_value=mock_bot)  # maybe bot
+    mocker.patch("financial_bot.highload_bot.get_shared_bot", return_value=mock_bot)  # maybe bot
 
     yield test_session_for_pipeline
 
@@ -299,3 +300,12 @@ def mock_redis_client():
 def cache_service(mock_redis_client):
 
     return FinancialCacheService(redis_client=mock_redis_client)
+
+
+@pytest.fixture
+def celery_eager():
+    original = (celery_app.conf.task_always_eager, celery_app.conf.task_eager_propagates)
+    celery_app.conf.task_always_eager = True
+    celery_app.conf.task_eager_propagates = True
+    yield
+    celery_app.conf.task_always_eager, celery_app.conf.task_eager_propagates = original
