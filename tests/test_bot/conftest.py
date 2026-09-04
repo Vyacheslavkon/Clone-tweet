@@ -2,7 +2,7 @@ import copy
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from aiogram import Bot, Dispatcher
@@ -296,6 +296,7 @@ def mock_redis_client():
     client.pipeline.return_value.__aenter__.return_value = pipeline_mock
     return client
 
+
 @pytest.fixture
 def cache_service(mock_redis_client):
 
@@ -309,3 +310,54 @@ def celery_eager():
     celery_app.conf.task_eager_propagates = True
     yield
     celery_app.conf.task_always_eager, celery_app.conf.task_eager_propagates = original
+
+
+@pytest.fixture
+def mock_isolated_session():
+    with patch("services.pipelines.get_isolated_session") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_voice_processing():
+    with patch(
+        "services.client.ai_service.process_voice_message", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def audio_file(tmp_path):
+    path = tmp_path / "voice.ogg"
+    path.write_bytes(b"fake_audio_bytes")
+    return str(path)
+
+
+@pytest.fixture
+def mock_pipeline_infra(mock_bot):
+    """Инфраструктурные моки, не варьирующиеся между тестами."""
+    with patch(
+        "services.pipelines.get_shared_bot", return_value=mock_bot
+    ), patch(
+        "aiogram.client.session.aiohttp.AiohttpSession.close", new_callable=AsyncMock
+    ):
+        yield
+
+
+@pytest.fixture
+def mock_save_receipt():
+    with patch(
+        "services.pipelines.save_receipt_to_db", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_redis_cache():
+    """Инвалидация кэша не должна ронять основной флоу — по умолчанию тихо успешна."""
+    with patch("services.pipelines.Redis.from_url") as mock_from_url, patch(
+        "services.pipelines.FinancialCacheService.invalidate_user_cache",
+        new_callable=AsyncMock,
+    ) as mock_invalidate:
+        mock_from_url.return_value.__aenter__.return_value = AsyncMock()
+        yield mock_invalidate

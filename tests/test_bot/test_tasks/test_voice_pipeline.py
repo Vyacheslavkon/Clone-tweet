@@ -3,6 +3,8 @@ import uuid
 from unittest.mock import AsyncMock, patch
 
 import openai
+import pytest
+from celery.exceptions import Retry
 from sqlalchemy import func, select
 
 from financial_bot.models import TransactionItems, Transactions
@@ -11,9 +13,13 @@ from financial_bot.tasks.ai import process_expense_task
 from services.celery_app import app as celery_app
 from services.pipelines import async_process_receipt
 from services.schemas import (
-    ReceiptListAnalysisSchema,
+    ReceiptListAnalysisSchema, ReceiptItemSchema, ReceiptAnalysisSchema
 )
 from services.utils_pipelines import merge_transactions_by_category
+
+CHAT_ID = 12345
+DB_USER_ID = 42
+STATUS_MESSAGE_ID = 999
 
 
 async def test_process_expense_task_writes_to_real_db(
@@ -22,19 +28,27 @@ async def test_process_expense_task_writes_to_real_db(
     test_session_for_pipeline,
     user_for_pipeline,
     fake_analysis,
+        audio_file
 ):
-
     user_id = user_for_pipeline.id
     chat_id = 11111
 
     mock_ai_service.return_value = fake_analysis
 
-    await async_process_receipt(
-        chat_id=chat_id,
-        db_user_id=user_id,
-        locale="ru",
-        voice_bytes=b"fake_voice_binary_data",
-    )
+    with patch(
+        "services.pipelines.get_isolated_session",
+        return_value=test_session_for_pipeline,
+    ), patch(
+        "services.pipelines.get_shared_bot", return_value=mock_bot
+    ), patch(
+        "services.pipelines.Redis.from_url"
+    ):
+        await async_process_receipt(
+            chat_id=chat_id,
+            db_user_id=user_id,
+            locale="ru",
+            voice_file_path=audio_file,  # тут нужен реальный файл на диске
+        )
 
     stmt = select(Transactions).where(Transactions.user_id == user_id)
     result = await test_session_for_pipeline.execute(stmt)
@@ -51,7 +65,7 @@ async def test_process_expense_task_writes_to_real_db(
     assert "250" in call_kwargs["text"]
     assert call_kwargs["reply_markup"] is not None
 
-
+# fails
 def test_process_expense_task_success():
 
     celery_app.conf.task_always_eager = True
@@ -73,7 +87,7 @@ def test_process_expense_task_success():
         assert result.result == expected_output
         mock_pipeline.assert_called_once_with(12345, 42, "ru", fake_voice)
 
-
+# fails
 def test_process_expense_task_retry_on_openai_error():
 
     celery_app.conf.task_always_eager = True
@@ -93,99 +107,72 @@ def test_process_expense_task_retry_on_openai_error():
         assert result.failed()
 
 
-def test_process_expense_task_network_error_rolls_back_db():
 
-    celery_app.conf.task_always_eager = True
-    celery_app.conf.task_eager_propagates = False
+def test_process_expense_task_network_error_rolls_back_db(
+    celery_eager,
+        mock_isolated_session,
+        mock_voice_processing,
+        mock_pipeline_infra,
+        audio_file,
+        mock_bot
+):
 
     mock_worker_session = AsyncMock()
+    mock_isolated_session.return_value = mock_worker_session
+    mock_voice_processing.side_effect = openai.APITimeoutError("Request timed out")
 
-    session_created = False
-
-    def side_effect_session():
-        nonlocal session_created
-        session_created = True
-        return mock_worker_session
-
-    with patch(
-        "services.utils_pipelines.get_isolated_session", side_effect=side_effect_session
-    ), patch(
-        "services.client.ai_service.process_voice_message", new_callable=AsyncMock
-    ) as mock_openai_call:
-
-        mock_openai_call.side_effect = openai.APITimeoutError("Request timed out")
-
-        result = process_expense_task.delay(
-            chat_id=12345, db_user_id=42, locale="ru", voice_bytes=b"dummy_voice"
+    with pytest.raises(Retry):
+        process_expense_task.delay(
+            chat_id=CHAT_ID,
+            db_user_id=DB_USER_ID,
+            locale="ru",
+            voice_file_path=audio_file,
+            status_message_id=STATUS_MESSAGE_ID,
         )
 
-        if session_created:
-            mock_worker_session.rollback.assert_called()
-            assert mock_worker_session.__aexit__.called
-        else:
-            mock_worker_session.__aenter__.assert_not_called()
-            mock_worker_session.rollback.assert_not_called()
+    mock_isolated_session.assert_called_once()
+    mock_worker_session.rollback.assert_awaited_once()
+    mock_worker_session.close.assert_awaited_once()
+    mock_voice_processing.assert_awaited_once()
 
-        assert mock_openai_call.call_count == 4
-        assert result.failed()
+    mock_bot.edit_message_text.assert_not_awaited()
+    mock_bot.send_message.assert_not_awaited()
 
 
 def test_process_expense_task_garbage_audio_sends_joke_and_no_db_write(
-    test_session_for_pipeline, mock_bot, celery_eager
+    test_session_for_pipeline,
+        mock_bot,
+        celery_eager,
+        audio_file,
+        mock_isolated_session,
+        mock_voice_processing,
+        mock_pipeline_infra,
+        mock_save_receipt
 ):
-
-    fake_path = "/tmp/fake_garbage.ogg"
-    with open(fake_path, "wb") as f:
-        f.write(b"fake_audio_bytes")
-
-    mock_ai_response = ReceiptListAnalysisSchema(
+    mock_isolated_session.return_value = AsyncMock()
+    mock_voice_processing.return_value = ReceiptListAnalysisSchema(
         is_shopping_related=False,
-        error_message="You sing a fine tune! But where are the expenses? Let's get down to business.",
+        error_message="You sing a fine tune! But where are the expenses?",
         transactions=[],
     )
 
-    mock_bot.close = AsyncMock()
+    result = process_expense_task.delay(
+        chat_id=CHAT_ID,
+        db_user_id=DB_USER_ID,
+        locale="ru",
+        voice_file_path=audio_file,
+        status_message_id=STATUS_MESSAGE_ID,
+    )
 
-    with patch(
-            "services.utils_pipelines.get_isolated_session",
-            return_value=test_session_for_pipeline,
-    ), patch(
-        "services.client.ai_service.process_voice_message",  # Убедись, что путь к ai_service точный!
-        new_callable=AsyncMock,
-        return_value=mock_ai_response,
-    ), patch(
-        "aiogram.client.session.aiohttp.AiohttpSession.close", new_callable=AsyncMock
-    ), patch(
-        "services.pipelines.save_receipt_to_db", new_callable=AsyncMock
-    ) as mock_save_db, patch(
-        "services.pipelines.get_shared_bot", return_value=mock_bot
-    ):
+    assert result.successful()
+    mock_bot.edit_message_text.assert_awaited_once()
 
-        try:
-            result = process_expense_task.delay(
-                chat_id=12345,
-                db_user_id=42,
-                locale="ru",
-                voice_file_path=fake_path,  # Передаем реальный созданный путь
-                status_message_id=12345
-            )
+    _, kwargs = mock_bot.edit_message_text.call_args
+    assert kwargs["chat_id"] == CHAT_ID
+    assert kwargs["message_id"] == STATUS_MESSAGE_ID
+    assert kwargs["text"] == f"❌ {mock_voice_processing.return_value.error_message}"
 
-            assert result.successful()
-
-            assert mock_bot.edit_message_text.await_count == 1
-            args, kwargs = mock_bot.edit_message_text.call_args
-
-            assert kwargs.get("chat_id") == 12345
-            assert kwargs.get("message_id") == 12345
-            assert "❌" in kwargs.get("text", "")
-            assert "You sing a fine tune!" in kwargs.get("text", "")
-            assert mock_ai_response.error_message in kwargs.get("text", "")
-
-            mock_save_db.assert_not_called()
-
-        finally:
-            if os.path.exists(fake_path):
-                os.remove(fake_path)
+    mock_save_receipt.assert_not_awaited()
 
 
 async def test_delete_check_idempotency_on_double_click(
@@ -268,3 +255,123 @@ def test_merge_transactions_by_category_logic(data_for_merge_by_cat):
     names = [item.name for item in food_tx.items]
     assert "Молоко" in names
     assert "Хлеб" in names
+
+
+def test_all_amounts_non_positive_reports_no_transactions(
+    celery_eager, audio_file, mock_bot, mock_pipeline_infra,
+    mock_isolated_session, mock_voice_processing, mock_save_receipt,
+):
+    mock_isolated_session.return_value = AsyncMock()
+    mock_voice_processing.return_value = ReceiptListAnalysisSchema(
+        is_shopping_related=True,
+        error_message=None,
+        transactions=[
+            ReceiptAnalysisSchema(
+                amount=0,
+                category="food",
+                items=[
+                    ReceiptItemSchema(name="Milk", price=0),
+                    ReceiptItemSchema(name="Water", price=-0)
+                ],
+                type="expense"
+            )
+
+        ],
+    )
+
+    result = process_expense_task.delay(
+        chat_id=CHAT_ID,
+        db_user_id=DB_USER_ID,
+        locale="",
+        voice_file_path=audio_file,
+        status_message_id=STATUS_MESSAGE_ID,
+    )
+
+    assert result.successful()
+    mock_save_receipt.assert_not_awaited()
+
+    _, kwargs = mock_bot.edit_message_text.call_args
+    assert "No transactions found" in kwargs["text"]
+
+
+def test_missing_audio_file_rolls_back_gracefully(
+    celery_eager, mock_bot, mock_pipeline_infra,
+    mock_isolated_session, mock_voice_processing,
+):
+    session = AsyncMock()
+    mock_isolated_session.return_value = session
+
+    result = process_expense_task.delay(
+        chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="ru",
+        voice_file_path="/nonexistent/path.ogg", status_message_id=STATUS_MESSAGE_ID,
+    )
+
+    assert result.successful()
+    session.rollback.assert_awaited_once()
+    session.close.assert_awaited_once()
+    # До вызова AI дело не должно было дойти
+    mock_voice_processing.assert_not_awaited()
+
+
+
+def test_successful_save_survives_cache_invalidation_failure(
+    celery_eager, audio_file, mock_bot, mock_pipeline_infra,
+    mock_isolated_session, mock_voice_processing, mock_save_receipt,
+    mock_redis_cache,
+):
+    session = AsyncMock()
+    mock_isolated_session.return_value = session
+    mock_voice_processing.return_value = ReceiptListAnalysisSchema(
+        is_shopping_related=True,
+        error_message=None,
+        transactions=[ReceiptAnalysisSchema(
+                amount=15.5,
+                category="food",
+                items=[
+                    ReceiptItemSchema(name="Milk", price=5),
+                    ReceiptItemSchema(name="Water", price=-10)
+                ],
+                type="expense"
+            )],
+    )
+    mock_redis_cache.side_effect = ConnectionError("redis down")
+
+    result = process_expense_task.delay(
+        chat_id=CHAT_ID,
+        db_user_id=DB_USER_ID,
+        locale="ru",
+        voice_file_path=audio_file,
+        status_message_id=STATUS_MESSAGE_ID,
+    )
+
+    assert result.successful()
+    mock_save_receipt.assert_awaited_once()
+    session.rollback.assert_not_awaited()
+    session.close.assert_awaited_once()
+
+
+    mock_bot.edit_message_text.assert_awaited_once()
+
+
+def test_unexpected_error_rolls_back_and_shows_generic_message(
+    celery_eager, audio_file, mock_bot, mock_pipeline_infra,
+    mock_isolated_session, mock_voice_processing,
+):
+    session = AsyncMock()
+    mock_isolated_session.return_value = session
+    mock_voice_processing.side_effect = ValueError("unexpected schema mismatch")
+
+    result = process_expense_task.delay(
+        chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="ru",
+        voice_file_path=audio_file, status_message_id=STATUS_MESSAGE_ID,
+    )
+
+    # В отличие от network error, тут задача завершается успешно (без re-raise)
+    assert result.successful()
+
+    session.rollback.assert_awaited_once()
+    session.close.assert_awaited_once()
+
+    mock_bot.edit_message_text.assert_awaited_once()
+    _, kwargs = mock_bot.edit_message_text.call_args
+    assert "couldn't recognize your receipt" in kwargs["text"]
