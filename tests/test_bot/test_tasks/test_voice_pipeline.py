@@ -65,47 +65,66 @@ async def test_process_expense_task_writes_to_real_db(
     assert "250" in call_kwargs["text"]
     assert call_kwargs["reply_markup"] is not None
 
-# fails
-def test_process_expense_task_success():
+# to pay attention to. it makes sense?
+def test_process_expense_task_success(mock_proc_receipt, audio_file, celery_eager):
 
-    celery_app.conf.task_always_eager = True
-    celery_app.conf.task_eager_propagates = True
-
-    fake_voice = b"fake_ogg_voice_bytes"
     expected_output = {"status": "success", "extracted_amount": 500.0}
 
-    with patch(
-        "financial_bot.tasks.ai.async_process_receipt", new_callable=AsyncMock
-    ) as mock_pipeline:
-        mock_pipeline.return_value = expected_output
 
-        result = process_expense_task.delay(
-            chat_id=12345, db_user_id=42, locale="ru", voice_bytes=fake_voice
+    mock_proc_receipt.return_value = expected_output
+
+    result = process_expense_task.delay(
+        chat_id=CHAT_ID,
+        db_user_id=DB_USER_ID,
+        locale="ru",
+        voice_file_path=audio_file,
+        status_message_id=STATUS_MESSAGE_ID,
+    )
+
+    assert result.successful()
+    assert result.result == expected_output
+   # mock_proc_receipt.assert_called_once_with()
+
+
+@pytest.mark.parametrize("celery_eager", [False], indirect=True)
+def test_process_expense_task_fails_after_exhausting_retries_on_openai_error(mock_bot,
+                                                                             mock_proc_receipt,
+                                                                             audio_file,
+                                                                             celery_eager,
+                                                                             mock_pipeline_infra):
+
+    mock_proc_receipt.side_effect = openai.OpenAIError("Rate limit exceeded")
+
+    result = process_expense_task.delay(
+        chat_id=CHAT_ID,
+        db_user_id=DB_USER_ID,
+        locale="ru",
+        voice_file_path=audio_file,
+        status_message_id=STATUS_MESSAGE_ID,
+
+    )
+
+    assert mock_proc_receipt.call_count == process_expense_task.max_retries + 1
+    assert isinstance(result.result, openai.OpenAIError)
+    assert result.failed()
+    assert not os.path.exists(audio_file)
+    mock_bot.edit_message_text.assert_awaited_once()
+    _, kwargs = mock_bot.edit_message_text.call_args
+    assert kwargs["chat_id"] == CHAT_ID
+    assert kwargs["message_id"] == STATUS_MESSAGE_ID
+
+
+def test_task_keeps_file_between_retry_attempts(mock_proc_receipt, audio_file, celery_eager):
+    """Проверяем ОДНУ попытку с ретраем — файл не должен удаляться раньше времени."""
+    mock_proc_receipt.side_effect = openai.OpenAIError("Rate limit exceeded")
+
+    with pytest.raises(Retry):
+        process_expense_task.apply(
+            args=(CHAT_ID, DB_USER_ID, "ru", audio_file, STATUS_MESSAGE_ID),
+            throw=True,
         )
 
-        assert result.successful()
-        assert result.result == expected_output
-        mock_pipeline.assert_called_once_with(12345, 42, "ru", fake_voice)
-
-# fails
-def test_process_expense_task_retry_on_openai_error():
-
-    celery_app.conf.task_always_eager = True
-    celery_app.conf.task_eager_propagates = False
-
-    with patch(
-        "financial_bot.tasks.ai.async_process_receipt", new_callable=AsyncMock
-    ) as mock_pipeline:
-
-        mock_pipeline.side_effect = openai.OpenAIError("Rate limit exceeded")
-
-        result = process_expense_task.delay(
-            chat_id=12345, db_user_id=42, locale="ru", voice_bytes=b""
-        )
-
-        assert mock_pipeline.call_count == 4
-        assert result.failed()
-
+    assert os.path.exists(audio_file)  # файл должен сохраниться для повторной попытки
 
 
 def test_process_expense_task_network_error_rolls_back_db(

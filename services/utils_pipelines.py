@@ -1,8 +1,10 @@
 import base64
+import gettext
 import io
 import os
 import re
 from collections import defaultdict, Counter
+from pathlib import Path
 from typing import Dict, Callable, List
 from loguru import logger
 
@@ -684,3 +686,18 @@ def render_receipt_report(
         localized_button_label = _("❌ cancel operation")
 
     return msg_text, localized_button_label
+
+
+
+def get_translator(locale: str):
+    locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
+    try:
+        return gettext.translation(
+            domain="messages", localedir=str(locales_dir),
+            languages=[locale], fallback=True,
+        ).gettext
+    except Exception as e:
+        logger.error("Failed to load localization: {error}", error=e)
+        return gettext.NullTranslations().gettext
+
+

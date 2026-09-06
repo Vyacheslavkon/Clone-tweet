@@ -37,7 +37,7 @@ locales_path = base_dir / "financial_bot" / "locales"
 
 
 @pytest.fixture
-def mock_bot():
+def mock_bot(): # possible merger with patch get_bot()
     bot = AsyncMock(spec=Bot)
     bot.id = 12345678
 
@@ -210,8 +210,16 @@ def mock_ai_service(mocker):
 
     mocker.patch.object(ai_service, "process_voice_message", mock_method)
 
-    # Возвращаем сам мок-метод в тест
     return mock_method
+
+
+@pytest.fixture
+def mock_proc_receipt():
+    with patch(
+        "financial_bot.tasks.ai.async_process_receipt", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
 
 
 @pytest.fixture(autouse=True)
@@ -304,10 +312,13 @@ def cache_service(mock_redis_client):
 
 
 @pytest.fixture
-def celery_eager():
+def celery_eager(request):
+
+    propagates = getattr(request, "param", True)
+
     original = (celery_app.conf.task_always_eager, celery_app.conf.task_eager_propagates)
     celery_app.conf.task_always_eager = True
-    celery_app.conf.task_eager_propagates = True
+    celery_app.conf.task_eager_propagates = propagates
     yield
     celery_app.conf.task_always_eager, celery_app.conf.task_eager_propagates = original
 

@@ -19,7 +19,8 @@ from services.utils_pipelines import (
     merge_transactions_by_category,
     render_weekly_top,
     render_monthly_tree,
-    render_receipt_report
+    render_receipt_report,
+    get_translator
 )
 
 redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
@@ -223,19 +224,21 @@ async def async_process_receipt(
         voice_file_path: str,
         status_message_id: int = None
 ):
-    locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
-    try:
-        lang = gettext.translation(
-            domain="messages",
-            localedir=str(locales_dir),
-            languages=[locale],
-            fallback=True,
-        )
-    except Exception as e:
-        logger.error("Failed to load localization: {error}", error=e)
-        lang = gettext.NullTranslations()
+    # locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
+    # try:
+    #     lang = gettext.translation(
+    #         domain="messages",
+    #         localedir=str(locales_dir),
+    #         languages=[locale],
+    #         fallback=True,
+    #     )
+    # except Exception as e:
+    #     logger.error("Failed to load localization: {error}", error=e)
+    #     lang = gettext.NullTranslations()
+    #
+    # _ = lang.gettext
 
-    _ = lang.gettext
+    _ = get_translator(locale)
 
 
     bot = get_shared_bot()
@@ -340,3 +343,23 @@ async def async_process_receipt(
 
     finally:
         await session.close()
+
+
+
+async def _notify_user_final_failure(chat_id: int, status_message_id: int, locale: str, db_user_id: int):
+
+    _ = get_translator(locale)
+    bot = get_shared_bot()
+
+    text = _("❌ We couldn't process your receipt after several attempts. Please try again later.")
+
+    try:
+        if status_message_id:
+            await bot.edit_message_text(chat_id=chat_id, message_id=status_message_id, text=text)
+        else:
+            await bot.send_message(chat_id=chat_id, text=text)
+    except Exception as e:
+        logger.error(
+            "Failed to notify user {user_id} about final failure: {error}",
+            user_id=db_user_id, error=e,
+        )
