@@ -193,7 +193,7 @@ async def save_receipt_to_db(
                 batch_id=batch_id,
             )
             session.add(db_transaction)
-            await session.flush()  # Получаем id для One-to-Many
+            await session.flush()
 
             if group.type == "expense" and group.items:
                 db_items = [
@@ -212,7 +212,6 @@ async def save_receipt_to_db(
     except Exception as e:  # noqa: PIE786
 
         await session.rollback()
-        # logger.error(f"Error saving batch {batch_id} to DB: {e}", exc_info=True)
         logger.error(
             "Error saving batch {batch_id} to DB: {error}",
             batch_id=batch_id,

@@ -1,7 +1,7 @@
 import os
 import uuid
 from unittest.mock import AsyncMock, patch
-
+import uuid as uuid_module
 import openai
 import pytest
 from celery.exceptions import Retry
@@ -36,18 +36,24 @@ async def test_process_expense_task_writes_to_real_db(
     mock_ai_service.return_value = fake_analysis
 
     with patch(
-        "services.pipelines.get_isolated_session",
-        return_value=test_session_for_pipeline,
+            "services.pipelines.get_isolated_session",
+            return_value=test_session_for_pipeline,
     ), patch(
         "services.pipelines.get_shared_bot", return_value=mock_bot
     ), patch(
         "services.pipelines.Redis.from_url"
-    ):
+    ) as mock_redis_from_url, patch(
+            "services.pipelines.FinancialCacheService.invalidate_user_cache",
+            new_callable=AsyncMock,
+        ) as mock_invalidate:
+        mock_redis_from_url.return_value.__aenter__.return_value = AsyncMock()
+
         await async_process_receipt(
             chat_id=chat_id,
             db_user_id=user_id,
             locale="ru",
-            voice_file_path=audio_file,  # тут нужен реальный файл на диске
+            voice_file_path=audio_file,
+            status_message_id=STATUS_MESSAGE_ID
         )
 
     stmt = select(Transactions).where(Transactions.user_id == user_id)
@@ -57,19 +63,22 @@ async def test_process_expense_task_writes_to_real_db(
     assert len(db_transactions) == 1
     assert db_transactions[0].amount == 250.0
     assert db_transactions[0].category == "food"
-    assert db_transactions[0].batch_id is not None
+    assert uuid_module.UUID(db_transactions[0].batch_id)
 
-    mock_bot.send_message.assert_called_once()
-    call_kwargs = mock_bot.send_message.call_args.kwargs
+    mock_invalidate.assert_awaited_once_with(user_id=user_id)
+    mock_bot.edit_message_text.assert_awaited_once()
+    call_kwargs = mock_bot.edit_message_text.call_args.kwargs
     assert call_kwargs["chat_id"] == chat_id
+    assert call_kwargs["message_id"] == STATUS_MESSAGE_ID
     assert "250" in call_kwargs["text"]
     assert call_kwargs["reply_markup"] is not None
+
+
 
 # to pay attention to. it makes sense?
 def test_process_expense_task_success(mock_proc_receipt, audio_file, celery_eager):
 
     expected_output = {"status": "success", "extracted_amount": 500.0}
-
 
     mock_proc_receipt.return_value = expected_output
 

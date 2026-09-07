@@ -224,19 +224,6 @@ async def async_process_receipt(
         voice_file_path: str,
         status_message_id: int = None
 ):
-    # locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
-    # try:
-    #     lang = gettext.translation(
-    #         domain="messages",
-    #         localedir=str(locales_dir),
-    #         languages=[locale],
-    #         fallback=True,
-    #     )
-    # except Exception as e:
-    #     logger.error("Failed to load localization: {error}", error=e)
-    #     lang = gettext.NullTranslations()
-    #
-    # _ = lang.gettext
 
     _ = get_translator(locale)
 
