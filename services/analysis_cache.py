@@ -75,3 +75,24 @@ class FinancialCacheService:
             logger.info("Successfully invalidated cache keys %s for user %s", keys, user_id)
         except RedisError as redis_err:
             logger.error("Failed to invalidate Redis cache for user %s: %s", user_id, redis_err)
+
+
+_worker_cache_service: FinancialCacheService | None = None
+_worker_redis_client: Redis | None = None
+
+
+def get_worker_cache_service() -> FinancialCacheService:
+    """Синглтон в рамках одного процесса Celery worker.
+    Redis-клиент создаётся один раз при первом обращении и живёт
+    всё время жизни воркера, вместо пересоздания на каждый таск."""
+    global _worker_cache_service, _worker_redis_client
+
+    if _worker_cache_service is None:
+        _worker_redis_client = Redis.from_url(
+            red_url,
+            decode_responses=True,
+            max_connections=20,  # пул на весь воркер, не на один вызов
+        )
+        _worker_cache_service = FinancialCacheService(redis_client=_worker_redis_client)
+
+    return _worker_cache_service

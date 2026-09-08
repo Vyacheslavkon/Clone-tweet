@@ -6,6 +6,8 @@ import re
 from collections import defaultdict, Counter
 from pathlib import Path
 from typing import Dict, Callable, List
+
+from aiogram import Bot
 from loguru import logger
 
 from dotenv import load_dotenv
@@ -701,3 +703,15 @@ def get_translator(locale: str):
         return gettext.NullTranslations().gettext
 
 
+async def _reply(
+    bot: Bot, chat_id: int, status_message_id: int | None,
+    text: str, reply_markup=None,
+) -> None:
+
+    if status_message_id:
+        await bot.edit_message_text(
+            chat_id=chat_id, message_id=status_message_id,
+            text=text, reply_markup=reply_markup,
+        )
+    else:
+        await bot.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup)

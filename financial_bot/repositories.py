@@ -181,7 +181,10 @@ async def save_receipt_to_db(
     batch_id: str,
     photo_url: str | None = None,
 ):
-    try:
+
+
+        db_transactions = []
+
         for group in analysis_result.transactions:
             db_transaction = Transactions(
                 user_id=user_id,
@@ -192,32 +195,24 @@ async def save_receipt_to_db(
                 text_check=raw_text,
                 batch_id=batch_id,
             )
-            session.add(db_transaction)
-            await session.flush()
+
 
             if group.type == "expense" and group.items:
-                db_items = [
+                db_transaction.items = [
                     TransactionItems(
-                        transaction_id=db_transaction.id,
                         name=item.name,
                         price=item.price,
                         category=group.category,
                     )
                     for item in group.items
                 ]
-                session.add_all(db_items)
 
-        await session.commit()
+            db_transactions.append(db_transaction)
 
-    except Exception as e:  # noqa: PIE786
+        session.add_all(db_transactions)
 
-        await session.rollback()
-        logger.error(
-            "Error saving batch {batch_id} to DB: {error}",
-            batch_id=batch_id,
-            error=str(e),
-            exc_info=True,
-        )
+        await session.flush()
+
 
 
 async def delete_check(session: AsyncSession, batch_id: str):

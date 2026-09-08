@@ -7,6 +7,7 @@ from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramAPIError
 from loguru import logger
 from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.keyboards.inline import get_delete_keyboard, get_detailed_report
 from financial_bot.highload_bot import get_shared_bot
@@ -20,7 +21,8 @@ from services.utils_pipelines import (
     render_weekly_top,
     render_monthly_tree,
     render_receipt_report,
-    get_translator
+    get_translator,
+    _reply
 )
 
 redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
@@ -226,10 +228,8 @@ async def async_process_receipt(
 ):
 
     _ = get_translator(locale)
-
-
     bot = get_shared_bot()
-    session = get_isolated_session()
+    session: AsyncSession | None = None
 
     try:
 
@@ -250,26 +250,29 @@ async def async_process_receipt(
         if not analysis_result.is_shopping_related:
             joke_text = analysis_result.error_message or _("Unable to recognize the purchase amount.")
 
-            if status_message_id:
-                await bot.edit_message_text(chat_id=chat_id, message_id=status_message_id, text=f"❌ {joke_text}")
-            else:
-                await bot.send_message(chat_id=chat_id, text="❌ {}".format(joke_text))
+            # if status_message_id:
+            #     await bot.edit_message_text(chat_id=chat_id, message_id=status_message_id, text=f"❌ {joke_text}")
+            # else:
+            #     await bot.send_message(chat_id=chat_id, text="❌ {}".format(joke_text))
+            await _reply(bot, chat_id, status_message_id, f"❌ {joke_text}")
 
             return {"status": "cancelled", "message": joke_text}
 
-        valid_transactions = [t for t in analysis_result.transactions if t.amount > 0]
-        analysis_result.transactions = valid_transactions
+        analysis_result.transactions = [t for t in analysis_result.transactions if t.amount > 0]
 
         if not analysis_result.transactions:
-            if status_message_id:
-                await bot.edit_message_text(chat_id=chat_id, message_id=status_message_id,
-                                            text=_("❌ No transactions found to save."))
-            else:
-                await bot.send_message(chat_id=chat_id, text=_("❌ No transactions found to save."))
+            await _reply(bot, chat_id, status_message_id, _("❌ No transactions found to save."))
+            # if status_message_id:
+            #     await bot.edit_message_text(chat_id=chat_id, message_id=status_message_id,
+            #                                 text=_("❌ No transactions found to save."))
+            # else:
+            #     await bot.send_message(chat_id=chat_id, text=_("❌ No transactions found to save."))
             return {"status": "cancelled", "message": "Empty transactions list"}
 
         final_analysis_result = merge_transactions_by_category(analysis_result)
         message_batch_id = str(uuid.uuid4())
+
+        session = get_isolated_session()
 
         await save_receipt_to_db(
             session=session,
@@ -280,56 +283,71 @@ async def async_process_receipt(
             batch_id=message_batch_id,
         )
 
+        await session.commit()
 
         try:
             async with Redis.from_url(redis_url, decode_responses=True, max_connections=5) as task_redis_client:
                 cache_service = FinancialCacheService(redis_client=task_redis_client)
                 await cache_service.invalidate_user_cache(user_id=db_user_id)
-        except Exception as e:
-            logger.error("Failed to invalidate cache: %s", e)
+
+        except Exception as cache_err:
+            logger.error("Failed to invalidate cache: {error}", error=cache_err)
 
 
         msg_text, localized_button_label = render_receipt_report(analysis_result, _)
 
+        await _reply(
+            bot, chat_id, status_message_id, msg_text,
+            reply_markup=get_delete_keyboard(batch_id=message_batch_id, button_text=localized_button_label),
+        )
+        return {"status": "success", "batch_id": message_batch_id}
 
-        if status_message_id:
-            await bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=status_message_id,
-                text=msg_text,
-                reply_markup=get_delete_keyboard(batch_id=message_batch_id, button_text=localized_button_label),
-            )
-        else:
-            await bot.send_message(
-                chat_id=chat_id,
-                text=msg_text,
-                reply_markup=get_delete_keyboard(batch_id=message_batch_id, button_text=localized_button_label),
-            )
+        # if status_message_id:
+        #     await bot.edit_message_text(
+        #         chat_id=chat_id,
+        #         message_id=status_message_id,
+        #         text=msg_text,
+        #         reply_markup=get_delete_keyboard(batch_id=message_batch_id, button_text=localized_button_label),
+        #     )
+        # else:
+        #     await bot.send_message(
+        #         chat_id=chat_id,
+        #         text=msg_text,
+        #         reply_markup=get_delete_keyboard(batch_id=message_batch_id, button_text=localized_button_label),
+        #     )
 
     except openai.OpenAIError as net_err:
         logger.warning("OpenAI API network failure. Retrying the task in Celery.")
-        await session.rollback()
-        raise net_err
+        if session:
+            await session.rollback()
+        raise
 
     except Exception:
         logger.exception("Error processing check for user {user_id}", user_id=db_user_id)
-        await session.rollback()
+        if session:
+            await session.rollback()
 
+        await _reply(
+            bot, chat_id, status_message_id,
+            _("❌ Unfortunately, we couldn't recognize your receipt. Please try again."),
+        )
+        raise
 
-        if status_message_id:
-            await bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=status_message_id,
-                text=_("❌ Unfortunately, we couldn't recognize your receipt. Please try again.")
-            )
-        else:
-            await bot.send_message(
-                chat_id=chat_id,
-                text=_("❌ Unfortunately, we couldn't recognize your receipt. Please try again.")
-            )
+        # if status_message_id:
+        #     await bot.edit_message_text(
+        #         chat_id=chat_id,
+        #         message_id=status_message_id,
+        #         text=_("❌ Unfortunately, we couldn't recognize your receipt. Please try again.")
+        #     )
+        # else:
+        #     await bot.send_message(
+        #         chat_id=chat_id,
+        #         text=_("❌ Unfortunately, we couldn't recognize your receipt. Please try again.")
+        #     )
 
     finally:
-        await session.close()
+        if session:
+            await session.close()
 
 
 
