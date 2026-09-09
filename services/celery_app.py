@@ -6,9 +6,10 @@ from dotenv import load_dotenv
 import asyncio
 from celery.signals import worker_shutdown
 from logger_config import setup_logging
-
+from loguru import logger as log
 from financial_bot.highload_bot import close_shared_bot
-
+from services.analysis_cache import close_worker_cache
+from services.worker_loop import get_worker_loop, close_worker_loop
 load_dotenv()
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
@@ -35,19 +36,35 @@ def setup_celery_logger(logger, *args, **kwargs):
     setup_logging()
 
 
+# @worker_shutdown.connect
+# def on_worker_shutdown(sender, **kwargs):
+#
+#     print("Celery worker is shutting down. Cleaning up global resources...")
+#
+#     try:
+#         loop = asyncio.get_event_loop()
+#     except RuntimeError:
+#         loop = asyncio.new_event_loop()
+#         asyncio.set_event_loop(loop)
+#
+#     if loop.is_running():
+#         asyncio.ensure_future(close_shared_bot())
+#
+#     else:
+#         loop.run_until_complete(close_shared_bot())
+#
+#
+#
+# @worker_shutdown.connect
+# def on_worker_shutdown(**kwargs):
+#     asyncio.run(close_worker_cache())
+
 @worker_shutdown.connect
-def on_worker_shutdown(sender, **kwargs):
-
-    print("Celery worker is shutting down. Cleaning up global resources...")
-
+def on_worker_shutdown(**kwargs):
+    """Порядок важен: сначала закрываем то, что использует loop (Redis),
+    потом сам loop."""
+    loop = get_worker_loop()
     try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-    if loop.is_running():
-        asyncio.ensure_future(close_shared_bot())
-
-    else:
-        loop.run_until_complete(close_shared_bot())
+        loop.run_until_complete(close_worker_cache())
+    finally:
+        close_worker_loop()

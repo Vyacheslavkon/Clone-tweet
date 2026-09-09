@@ -13,7 +13,7 @@ from financial_bot.keyboards.inline import get_delete_keyboard, get_detailed_rep
 from financial_bot.highload_bot import get_shared_bot
 from financial_bot.repositories import save_receipt_to_db, get_user_by_id, get_user_financial_summary
 from services.client import ai_service
-from services.analysis_cache import FinancialCacheService
+from services.analysis_cache import FinancialCacheService, get_worker_cache_service
 from services.schemas import ReceiptListAnalysisSchema, MonthlyAnalysisResponse, WeeklyAnalysisResponse
 from services.utils_pipelines import (
     get_isolated_session,
@@ -22,7 +22,8 @@ from services.utils_pipelines import (
     render_monthly_tree,
     render_receipt_report,
     get_translator,
-    _reply
+    _reply,
+    render_analysis_report
 )
 
 redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
@@ -35,11 +36,15 @@ async def process_test_1_analysis_financial(
         chat_id: int,
         days: int,
 ):
+    bot = get_shared_bot()
     session = get_isolated_session()
 
-
-    user = await get_user_by_id(session, user_id)
-    locale = user.language_code
+    try:
+        user = await get_user_by_id(session, user_id)
+        locale = user.language_code
+        data = await get_user_financial_summary(session, user.id, days, user)
+    finally:
+        await session.close()
 
     locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
 
@@ -60,13 +65,13 @@ async def process_test_1_analysis_financial(
 
     _ = lang.gettext
 
-    token = os.getenv("BOT_TOKEN")
-    if not token:
-        raise ValueError("The BOT_TOKEN environment variable is not set!")
+    # token = os.getenv("BOT_TOKEN")
+    # if not token:
+    #     raise ValueError("The BOT_TOKEN environment variable is not set!")
 
-    bot = get_shared_bot()
+    #bot = get_shared_bot()
 
-    data = await get_user_financial_summary(session, user.id, days, user)
+    #data = await get_user_financial_summary(session, user.id, days, user)
 
     if not data:
 
@@ -98,124 +103,144 @@ async def process_test_1_analysis_financial(
 
     actual_days = data["days_period"]
 
+    #try:
+
+    response_schema = WeeklyAnalysisResponse if days == 7 else MonthlyAnalysisResponse
+
+    cache_service = get_worker_cache_service()
+
+    analysis_result = await cache_service.get_cached_analysis(user.id, days, response_schema)
+
+    if analysis_result:
+        logger.info("🚀 [CACHE HIT] OpenAI report successfully retrieved from cache for user. {}".format(user.id))
+
+    else:
+        logger.info("⏳ [CACHE MISS] There is no cache. We are sending a heavy request to OpenAI for the user. {}".format(user.id))
+
+        analysis_result = await ai_service.analysis_financial(
+            summary_data=data,
+            response_schema=response_schema,
+            days=days,
+            actual_days=actual_days,
+            locale=locale
+        )
+
+        await cache_service.set_analysis_cache(user.id, days, analysis_result)
+    #new solution
     try:
-
-        response_schema = WeeklyAnalysisResponse if days == 7 else MonthlyAnalysisResponse
-
-
-        async with Redis.from_url(redis_url, decode_responses=True, max_connections=5) as task_redis_client:
-            cache_service = FinancialCacheService(redis_client=task_redis_client)
-            analysis_result = await cache_service.get_cached_analysis(user.id, days, response_schema)
-
-            if analysis_result:
-                logger.info("🚀 [CACHE HIT] OpenAI report successfully retrieved from cache for user. {}".format(user.id))
-            else:
-                logger.info("⏳ [CACHE MISS] There is no cache. We are sending a heavy request to OpenAI for the user. {}".format(user.id))
-
-                analysis_result = await ai_service.analysis_financial(
-                    summary_data=data,
-                    response_schema=response_schema,
-                    days=days,
-                    actual_days=actual_days,
-                    locale=locale
-                )
-
-                await cache_service.set_analysis_cache(user.id, days, analysis_result)
-
-
-        currency = data.get("user_config", {}).get("currency", "руб.")
-
-
-        lines = [
-            _("📊 <b>Comprehensive financial analysis</b>\n"),
-            _("💰 <b>Total Income:</b> {income} {curr}").format(
-                income=data.get('total_income', 0.0), curr=currency),
-            _("🛒 <b>Total Expense:</b> {expense} {curr}").format(
-                expense=data.get('total_amount', 0.0), curr=currency),
-            _("⚖️ <b>Net Balance:</b> {balance} {curr}\n").format(
-                balance=data.get('net_balance', 0.0), curr=currency),
-        ]
-
-        budget_status = getattr(analysis_result, "budget_status", None) or getattr(analysis_result,
-                                                                                   "weekly_balance_status", None)
-        if budget_status:
-            lines.append(_("📈 <b>Budget status:</b> {status}").format(status=budget_status))
-
-        budget_usage_percent = getattr(analysis_result, "budget_usage_percent", None)
-        if budget_usage_percent is not None:
-            lines.append(_("📊 <b>Budget used:</b> {percent}%\n").format(percent=round(budget_usage_percent, 1)))
-        else:
-            lines.append("")
-
-        lines.extend([
-            "{summary}\n".format(summary=analysis_result.summary),
-        ])
-
-
-        lines.append(_("🎯 <b>Categorizing top expenses by importance:</b>"))
-
-        if days == 7:
-            lines.extend(render_weekly_top(data, _))
-
-        else:
-
-            lines.extend(render_monthly_tree(data, _))
-
-
-        if analysis_result.recommendations:
-            lines.append(_("\n💡 <b>Optimization recommendations:</b>"))
-
-            for i, rec in enumerate(analysis_result.recommendations, 1):
-                if days == 7:
-
-                    lines.append(
-                        _("\n{num}. <b>{target}</b>\n"
-                          "└ {reason}\n"
-                          "└ <i>Possible savings: {saving}</i>").format(
-                            num=i,
-                            target=getattr(rec, "target_item", _("Optimization")),
-                            reason=rec.reason,
-                            saving=rec.potential_saving
-                        )
-                    )
-                else:
-
-                    lines.append(
-                        _("\n{num}. <b>{target}</b> — <b>{freq}</b>\n"
-                          "└ {reason}\n"
-                          "└ <i>Possible savings: {saving}</i>").format(
-                            num=i,
-                            target=getattr(rec, "target_habit_pattern", _("Optimization")),
-                            freq=getattr(rec, "frequency_metric", ""),
-                            reason=rec.reason,
-                            saving=rec.potential_saving
-                        )
-                    )
-
-        msg_text = "\n".join(lines)
-
+        msg_text = render_analysis_report(data, analysis_result, days, _)
         await bot.send_message(
             chat_id=chat_id,
             text=msg_text,
-            parse_mode=ParseMode.HTML,
-            reply_markup= get_detailed_report(days, _)
-        )
-
+            reply_markup=get_detailed_report(days, _)
+    )
     except TelegramAPIError as tg_err:
-        logger.error("Error sending analytics to Telegram for chat_id {}: {}".format(chat_id, tg_err))
-    except Exception as e:  # noqa
-        logger.exception("Critical error while generating AI analytics for chat_id {}".format(chat_id))
+        logger.error(f"Error sending analytics to Telegram for chat_id {chat_id}: {tg_err}")
+
+    except Exception as e:
+        logger.exception(f"Critical error rendering/sending AI analytics for chat_id {chat_id}: {e}")
+
         try:
-            error_msg = _("❌ <b>An error occurred while generating the report.</b>\nPlease try again later.")
-            await bot.send_message(
-                chat_id=chat_id,
-                text=error_msg,
-                parse_mode=ParseMode.HTML
-            )
-        except Exception as send_err:
-            logger.error("Failed to send the error message to the user: {}".format(send_err))
-    finally:
-        await session.close()
+            await bot.send_message(chat_id=chat_id, text=_("❌ <b>An error occurred.</b>\nPlease try again later."))
+
+        except Exception:
+            pass
+
+
+
+    #     currency = data.get("user_config", {}).get("currency", "руб.")
+    #
+    #
+    #     lines = [
+    #         _("📊 <b>Comprehensive financial analysis</b>\n"),
+    #         _("💰 <b>Total Income:</b> {income} {curr}").format(
+    #             income=data.get('total_income', 0.0), curr=currency),
+    #         _("🛒 <b>Total Expense:</b> {expense} {curr}").format(
+    #             expense=data.get('total_amount', 0.0), curr=currency),
+    #         _("⚖️ <b>Net Balance:</b> {balance} {curr}\n").format(
+    #             balance=data.get('net_balance', 0.0), curr=currency),
+    #     ]
+    #
+    #     budget_status = getattr(analysis_result, "budget_status", None) or getattr(analysis_result,
+    #                                                                                "weekly_balance_status", None)
+    #     if budget_status:
+    #         lines.append(_("📈 <b>Budget status:</b> {status}").format(status=budget_status))
+    #
+    #     budget_usage_percent = getattr(analysis_result, "budget_usage_percent", None)
+    #     if budget_usage_percent is not None:
+    #         lines.append(_("📊 <b>Budget used:</b> {percent}%\n").format(percent=round(budget_usage_percent, 1)))
+    #     else:
+    #         lines.append("")
+    #
+    #     lines.extend([
+    #         "{summary}\n".format(summary=analysis_result.summary),
+    #     ])
+    #
+    #
+    #     lines.append(_("🎯 <b>Categorizing top expenses by importance:</b>"))
+    #
+    #     if days == 7:
+    #         lines.extend(render_weekly_top(data, _))
+    #
+    #     else:
+    #
+    #         lines.extend(render_monthly_tree(data, _))
+    #
+    #
+    #     if analysis_result.recommendations:
+    #         lines.append(_("\n💡 <b>Optimization recommendations:</b>"))
+    #
+    #         for i, rec in enumerate(analysis_result.recommendations, 1):
+    #             if days == 7:
+    #
+    #                 lines.append(
+    #                     _("\n{num}. <b>{target}</b>\n"
+    #                       "└ {reason}\n"
+    #                       "└ <i>Possible savings: {saving}</i>").format(
+    #                         num=i,
+    #                         target=getattr(rec, "target_item", _("Optimization")),
+    #                         reason=rec.reason,
+    #                         saving=rec.potential_saving
+    #                     )
+    #                 )
+    #             else:
+    #
+    #                 lines.append(
+    #                     _("\n{num}. <b>{target}</b> — <b>{freq}</b>\n"
+    #                       "└ {reason}\n"
+    #                       "└ <i>Possible savings: {saving}</i>").format(
+    #                         num=i,
+    #                         target=getattr(rec, "target_habit_pattern", _("Optimization")),
+    #                         freq=getattr(rec, "frequency_metric", ""),
+    #                         reason=rec.reason,
+    #                         saving=rec.potential_saving
+    #                     )
+    #                 )
+    #
+    #     msg_text = "\n".join(lines)
+    #
+    #     await bot.send_message(
+    #         chat_id=chat_id,
+    #         text=msg_text,
+    #         parse_mode=ParseMode.HTML,
+    #         reply_markup= get_detailed_report(days, _)
+    #     )
+    #
+    # except TelegramAPIError as tg_err:
+    #     logger.error("Error sending analytics to Telegram for chat_id {}: {}".format(chat_id, tg_err))
+    # except Exception as e:  # noqa
+    #     logger.exception("Critical error while generating AI analytics for chat_id {}".format(chat_id))
+    #     try:
+    #         error_msg = _("❌ <b>An error occurred while generating the report.</b>\nPlease try again later.")
+    #         await bot.send_message(
+    #             chat_id=chat_id,
+    #             text=error_msg,
+    #             parse_mode=ParseMode.HTML
+    #         )
+    #     except Exception as send_err:
+    #         logger.error("Failed to send the error message to the user: {}".format(send_err))
+    # finally:
+    #     await session.close()
 
 
 
@@ -250,10 +275,6 @@ async def async_process_receipt(
         if not analysis_result.is_shopping_related:
             joke_text = analysis_result.error_message or _("Unable to recognize the purchase amount.")
 
-            # if status_message_id:
-            #     await bot.edit_message_text(chat_id=chat_id, message_id=status_message_id, text=f"❌ {joke_text}")
-            # else:
-            #     await bot.send_message(chat_id=chat_id, text="❌ {}".format(joke_text))
             await _reply(bot, chat_id, status_message_id, f"❌ {joke_text}")
 
             return {"status": "cancelled", "message": joke_text}
@@ -262,11 +283,7 @@ async def async_process_receipt(
 
         if not analysis_result.transactions:
             await _reply(bot, chat_id, status_message_id, _("❌ No transactions found to save."))
-            # if status_message_id:
-            #     await bot.edit_message_text(chat_id=chat_id, message_id=status_message_id,
-            #                                 text=_("❌ No transactions found to save."))
-            # else:
-            #     await bot.send_message(chat_id=chat_id, text=_("❌ No transactions found to save."))
+
             return {"status": "cancelled", "message": "Empty transactions list"}
 
         final_analysis_result = merge_transactions_by_category(analysis_result)
@@ -285,11 +302,10 @@ async def async_process_receipt(
 
         await session.commit()
 
-        try:
-            async with Redis.from_url(redis_url, decode_responses=True, max_connections=5) as task_redis_client:
-                cache_service = FinancialCacheService(redis_client=task_redis_client)
-                await cache_service.invalidate_user_cache(user_id=db_user_id)
 
+        try:
+            cache_service = get_worker_cache_service()
+            await cache_service.invalidate_user_cache(user_id=db_user_id)
         except Exception as cache_err:
             logger.error("Failed to invalidate cache: {error}", error=cache_err)
 
@@ -302,19 +318,6 @@ async def async_process_receipt(
         )
         return {"status": "success", "batch_id": message_batch_id}
 
-        # if status_message_id:
-        #     await bot.edit_message_text(
-        #         chat_id=chat_id,
-        #         message_id=status_message_id,
-        #         text=msg_text,
-        #         reply_markup=get_delete_keyboard(batch_id=message_batch_id, button_text=localized_button_label),
-        #     )
-        # else:
-        #     await bot.send_message(
-        #         chat_id=chat_id,
-        #         text=msg_text,
-        #         reply_markup=get_delete_keyboard(batch_id=message_batch_id, button_text=localized_button_label),
-        #     )
 
     except openai.OpenAIError as net_err:
         logger.warning("OpenAI API network failure. Retrying the task in Celery.")
@@ -333,17 +336,6 @@ async def async_process_receipt(
         )
         raise
 
-        # if status_message_id:
-        #     await bot.edit_message_text(
-        #         chat_id=chat_id,
-        #         message_id=status_message_id,
-        #         text=_("❌ Unfortunately, we couldn't recognize your receipt. Please try again.")
-        #     )
-        # else:
-        #     await bot.send_message(
-        #         chat_id=chat_id,
-        #         text=_("❌ Unfortunately, we couldn't recognize your receipt. Please try again.")
-        #     )
 
     finally:
         if session:

@@ -96,3 +96,13 @@ def get_worker_cache_service() -> FinancialCacheService:
         _worker_cache_service = FinancialCacheService(redis_client=_worker_redis_client)
 
     return _worker_cache_service
+
+
+async def close_worker_cache() -> None:
+    """Публичный метод очистки — инкапсулирует детали реализации синглтона."""
+    global _worker_cache_service, _worker_redis_client
+    if _worker_redis_client is not None:
+        await _worker_redis_client.aclose()
+        logger.info("Worker Redis cache client closed.")
+    _worker_cache_service = None
+    _worker_redis_client = None

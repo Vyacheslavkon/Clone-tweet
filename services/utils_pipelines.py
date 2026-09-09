@@ -715,3 +715,48 @@ async def _reply(
         )
     else:
         await bot.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup)
+
+
+def render_analysis_report(data: dict, analysis_result, days: int, _) -> str:
+    currency = data.get("user_config", {}).get("currency", "руб.")
+
+    lines = [
+        _("📊 <b>Comprehensive financial analysis</b>\n"),
+        _("💰 <b>Total Income:</b> {income} {curr}").format(income=data.get('total_income', 0.0), curr=currency),
+        _("🛒 <b>Total Expense:</b> {expense} {curr}").format(expense=data.get('total_amount', 0.0), curr=currency),
+        _("⚖️ <b>Net Balance:</b> {balance} {curr}\n").format(balance=data.get('net_balance', 0.0), curr=currency),
+    ]
+
+    budget_status = getattr(analysis_result, "budget_status", None) or getattr(analysis_result, "weekly_balance_status",
+                                                                               None)
+    if budget_status:
+        lines.append(_("📈 <b>Budget status:</b> {status}").format(status=budget_status))
+
+    budget_usage_percent = getattr(analysis_result, "budget_usage_percent", None)
+    if budget_usage_percent is not None:
+        lines.append(_("📊 <b>Budget used:</b> {percent}%\n").format(percent=round(budget_usage_percent, 1)))
+
+    lines.append(f"{analysis_result.summary}\n")
+    lines.append(_("🎯 <b>Categorizing top expenses by importance:</b>"))
+
+    if days == 7:
+        lines.extend(render_weekly_top(data, _))
+    else:
+        lines.extend(render_monthly_tree(data, _))
+
+    if analysis_result.recommendations:
+        lines.append(_("\n💡 <b>Optimization recommendations:</b>"))
+        for i, rec in enumerate(analysis_result.recommendations, 1):
+            if days == 7:
+                lines.append(_("\n{num}. <b>{target}</b>\n└ {reason}\n└ <i>Possible savings: {saving}</i>").format(
+                    num=i, target=getattr(rec, "target_item", _("Optimization")), reason=rec.reason,
+                    saving=rec.potential_saving
+                ))
+            else:
+                lines.append(
+                    _("\n{num}. <b>{target}</b> — <b>{freq}</b>\n└ {reason}\n└ <i>Possible savings: {saving}</i>").format(
+                        num=i, target=getattr(rec, "target_habit_pattern", _("Optimization")),
+                        freq=getattr(rec, "frequency_metric", ""), reason=rec.reason, saving=rec.potential_saving
+                    ))
+
+    return "\n".join(lines)
