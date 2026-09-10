@@ -6,25 +6,24 @@ import openai
 from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramAPIError
 from loguru import logger
-from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.keyboards.inline import get_delete_keyboard, get_detailed_report
 from financial_bot.highload_bot import get_shared_bot
 from financial_bot.repositories import save_receipt_to_db, get_user_by_id, get_user_financial_summary
 from services.client import ai_service
-from services.analysis_cache import FinancialCacheService, get_worker_cache_service
+from services.analysis_cache import get_worker_cache_service
 from services.schemas import ReceiptListAnalysisSchema, MonthlyAnalysisResponse, WeeklyAnalysisResponse
 from services.utils_pipelines import (
-    get_isolated_session,
+    #get_isolated_session,
     merge_transactions_by_category,
-    render_weekly_top,
-    render_monthly_tree,
     render_receipt_report,
     get_translator,
     _reply,
     render_analysis_report
 )
+from core.db_worker import get_isolated_session
+
 
 redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
 if not redis_url:
@@ -65,14 +64,6 @@ async def process_test_1_analysis_financial(
 
     _ = lang.gettext
 
-    # token = os.getenv("BOT_TOKEN")
-    # if not token:
-    #     raise ValueError("The BOT_TOKEN environment variable is not set!")
-
-    #bot = get_shared_bot()
-
-    #data = await get_user_financial_summary(session, user.id, days, user)
-
     if not data:
 
         msg_text = _("You don't have enough transactions for analysis yet. We need more data! 🧾")
@@ -87,23 +78,21 @@ async def process_test_1_analysis_financial(
 
     actual_items_count = len(data.get("top_items", []))
 
-    # if actual_items_count < min_items_required:
-    #
-    #     msg_text =  _("🧾 *Not enough data for deep analysis!* \n"
-    #           "You have too few expenses logged for this period. "
-    #           "Keep logging your expenditures via voice, and I will prepare a smart audit soon! 🤖")
-    #
-    #     await bot.send_message(
-    #         chat_id=chat_id,
-    #         text=msg_text,
-    #         parse_mode=ParseMode.HTML
-    #     )
-    #
-    #     return
+    if actual_items_count < min_items_required:
+
+        msg_text =  _("🧾 *Not enough data for deep analysis!* \n"
+              "You have too few expenses logged for this period. "
+              "Keep logging your expenditures via voice, and I will prepare a smart audit soon! 🤖")
+
+        await bot.send_message(
+            chat_id=chat_id,
+            text=msg_text,
+            parse_mode=ParseMode.HTML
+        )
+
+        return
 
     actual_days = data["days_period"]
-
-    #try:
 
     response_schema = WeeklyAnalysisResponse if days == 7 else MonthlyAnalysisResponse
 
@@ -145,102 +134,6 @@ async def process_test_1_analysis_financial(
 
         except Exception:
             pass
-
-
-
-    #     currency = data.get("user_config", {}).get("currency", "руб.")
-    #
-    #
-    #     lines = [
-    #         _("📊 <b>Comprehensive financial analysis</b>\n"),
-    #         _("💰 <b>Total Income:</b> {income} {curr}").format(
-    #             income=data.get('total_income', 0.0), curr=currency),
-    #         _("🛒 <b>Total Expense:</b> {expense} {curr}").format(
-    #             expense=data.get('total_amount', 0.0), curr=currency),
-    #         _("⚖️ <b>Net Balance:</b> {balance} {curr}\n").format(
-    #             balance=data.get('net_balance', 0.0), curr=currency),
-    #     ]
-    #
-    #     budget_status = getattr(analysis_result, "budget_status", None) or getattr(analysis_result,
-    #                                                                                "weekly_balance_status", None)
-    #     if budget_status:
-    #         lines.append(_("📈 <b>Budget status:</b> {status}").format(status=budget_status))
-    #
-    #     budget_usage_percent = getattr(analysis_result, "budget_usage_percent", None)
-    #     if budget_usage_percent is not None:
-    #         lines.append(_("📊 <b>Budget used:</b> {percent}%\n").format(percent=round(budget_usage_percent, 1)))
-    #     else:
-    #         lines.append("")
-    #
-    #     lines.extend([
-    #         "{summary}\n".format(summary=analysis_result.summary),
-    #     ])
-    #
-    #
-    #     lines.append(_("🎯 <b>Categorizing top expenses by importance:</b>"))
-    #
-    #     if days == 7:
-    #         lines.extend(render_weekly_top(data, _))
-    #
-    #     else:
-    #
-    #         lines.extend(render_monthly_tree(data, _))
-    #
-    #
-    #     if analysis_result.recommendations:
-    #         lines.append(_("\n💡 <b>Optimization recommendations:</b>"))
-    #
-    #         for i, rec in enumerate(analysis_result.recommendations, 1):
-    #             if days == 7:
-    #
-    #                 lines.append(
-    #                     _("\n{num}. <b>{target}</b>\n"
-    #                       "└ {reason}\n"
-    #                       "└ <i>Possible savings: {saving}</i>").format(
-    #                         num=i,
-    #                         target=getattr(rec, "target_item", _("Optimization")),
-    #                         reason=rec.reason,
-    #                         saving=rec.potential_saving
-    #                     )
-    #                 )
-    #             else:
-    #
-    #                 lines.append(
-    #                     _("\n{num}. <b>{target}</b> — <b>{freq}</b>\n"
-    #                       "└ {reason}\n"
-    #                       "└ <i>Possible savings: {saving}</i>").format(
-    #                         num=i,
-    #                         target=getattr(rec, "target_habit_pattern", _("Optimization")),
-    #                         freq=getattr(rec, "frequency_metric", ""),
-    #                         reason=rec.reason,
-    #                         saving=rec.potential_saving
-    #                     )
-    #                 )
-    #
-    #     msg_text = "\n".join(lines)
-    #
-    #     await bot.send_message(
-    #         chat_id=chat_id,
-    #         text=msg_text,
-    #         parse_mode=ParseMode.HTML,
-    #         reply_markup= get_detailed_report(days, _)
-    #     )
-    #
-    # except TelegramAPIError as tg_err:
-    #     logger.error("Error sending analytics to Telegram for chat_id {}: {}".format(chat_id, tg_err))
-    # except Exception as e:  # noqa
-    #     logger.exception("Critical error while generating AI analytics for chat_id {}".format(chat_id))
-    #     try:
-    #         error_msg = _("❌ <b>An error occurred while generating the report.</b>\nPlease try again later.")
-    #         await bot.send_message(
-    #             chat_id=chat_id,
-    #             text=error_msg,
-    #             parse_mode=ParseMode.HTML
-    #         )
-    #     except Exception as send_err:
-    #         logger.error("Failed to send the error message to the user: {}".format(send_err))
-    # finally:
-    #     await session.close()
 
 
 
@@ -343,7 +236,7 @@ async def async_process_receipt(
 
 
 
-async def _notify_user_final_failure(chat_id: int, status_message_id: int, locale: str, db_user_id: int):
+async def notify_user_final_failure(chat_id: int, status_message_id: int, locale: str, db_user_id: int):
 
     _ = get_translator(locale)
     bot = get_shared_bot()

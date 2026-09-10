@@ -1,5 +1,3 @@
-import os
-
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import (
     AsyncAttrs,
@@ -7,22 +5,14 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import DeclarativeBase
+from core.config import DATABASE_URL_DOCKER, ENGINE_KWARGS
 
 load_dotenv()
 
-database_url = os.getenv("DATABASE_URL_DOCKER")
 
-if database_url is None:
-    raise ValueError("DATABASE_URL_DOCKER is not set in environment variables")
-engine = create_async_engine(database_url, echo=False, pool_pre_ping=True)
-async_session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+bot_engine = create_async_engine(DATABASE_URL_DOCKER, pool_size=20, max_overflow=10, **ENGINE_KWARGS)
+bot_session_maker = async_sessionmaker(bind=bot_engine, expire_on_commit=False, class_=AsyncSession)
 
-
-class Base(AsyncAttrs, DeclarativeBase):
-    pass
-
-
-async def get_db():
-    async with async_session() as session:
+async def get_bot_db():
+    async with bot_session_maker() as session:
         yield session

@@ -12,7 +12,7 @@ from redis.asyncio import Redis
 from loguru import logger
 
 from core.config import TOKEN_BOT
-from core.database import async_session
+from core.database import bot_session_maker
 from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.ai_consultant import ai_router
 from financial_bot.handlers.common import router
@@ -51,7 +51,7 @@ async def main():
               default=DefaultBotProperties(parse_mode=ParseMode.HTML)
               )
     dp = Dispatcher(storage=storage)
-    session_pool = async_session
+    session_pool = bot_session_maker
     scheduler = setup_scheduler(bot, session_pool, i18n)
     dp["admin_id"] = int(os.getenv("ADMIN_ID", 0))
     redis = Redis.from_url(

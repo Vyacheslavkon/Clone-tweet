@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, pool
 
 from application.models import FollowLink, Likes, Media, Tweet, User  # noqa: F401
-from core.database import Base
+from core.db_base import Base
 from financial_bot.models import Transactions, UserBot  # noqa: F401
 
 # this is the Alembic Config object, which provides
@@ -17,6 +17,8 @@ config = context.config
 load_dotenv()
 
 db_url = os.getenv("DATABASE_URL_DOCKER")
+if db_url is None:
+    raise ValueError("DATABASE_URL_DOCKER environment variable is not set")
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:

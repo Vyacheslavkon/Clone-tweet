@@ -8,7 +8,9 @@ from loguru import logger
 from services.celery_app import app
 from services.pipelines import (async_process_receipt,
 
-                                process_test_1_analysis_financial, _notify_user_final_failure)
+                                process_test_1_analysis_financial,
+                                notify_user_final_failure)
+
 from services.worker_loop import run_in_worker_loop
 
 load_dotenv()
@@ -66,7 +68,7 @@ def process_expense_task(
             "Max retries exceeded for user_id={user_id}, chat_id={chat_id}. Giving up.",
             user_id=db_user_id, chat_id=chat_id,
         )
-        run_in_worker_loop(_notify_user_final_failure(chat_id, status_message_id, locale, db_user_id))
+        run_in_worker_loop(notify_user_final_failure(chat_id, status_message_id, locale, db_user_id))
         raise
 
 

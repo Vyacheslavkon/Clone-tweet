@@ -16,7 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.database import Base
+from core.db_base import Base
 
 
 class UserBot(Base):

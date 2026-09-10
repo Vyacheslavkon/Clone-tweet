@@ -23,3 +23,14 @@ else:
 ALEMBIC_SCRIPTS = BASE_DIR / "migrations"
 
 TOKEN_BOT = os.getenv("BOT_TOKEN")
+
+#new
+DATABASE_URL_DOCKER = os.getenv("DATABASE_URL_DOCKER")
+if DATABASE_URL_DOCKER is None:
+    raise ValueError("DATABASE_URL_DOCKER is not set in environment variables")
+
+ENGINE_KWARGS = dict(
+    echo=False,
+    pool_pre_ping=True,
+    pool_recycle=1800,
+)

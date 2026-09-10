@@ -32,7 +32,12 @@ class SessionMiddleware(BaseMiddleware):
 
             data["session"] = session
 
-            return await handler(event, data)
+            try:
+                return await handler(event, data)
+            except Exception:
+                await session.rollback()
+                raise
+
 
 
 class MyI18nMiddleware(I18nMiddleware):

@@ -4,8 +4,8 @@ import pytest
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool.impl import NullPool
-
-from core.database import Base, get_db
+from core.db_base import Base
+from core.database import get_bot_db
 from main import app
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
@@ -41,7 +41,7 @@ async def test_session():
             async def override_get_db():
                 yield session
 
-            app.dependency_overrides[get_db] = override_get_db
+            app.dependency_overrides[get_bot_db()] = override_get_db
             yield session
 
             await session.close()
