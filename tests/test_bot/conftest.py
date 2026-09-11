@@ -155,6 +155,8 @@ async def test_dp(test_session, test_redis, test_i18n, cache_service):
     return dp
 
 
+
+
 @pytest.fixture
 def create_mock_update(mock_bot):
     def _create_message(text: str, user_id: int, update_id: int):

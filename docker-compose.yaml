@@ -66,6 +66,8 @@ services:
 
     entrypoint: ./entrypoint.sh
     volumes:
+      - ./application:/application/application
+      - ./main.py:/application/main.py
       - ./financial_bot:/application/financial_bot
       - ./migrations:/application/migrations
       - ./alembic.ini:/application/alembic.ini

@@ -13,7 +13,7 @@ from starlette.staticfiles import StaticFiles
 from application.exceptions import setup_exception_handlers
 from application.routes import router
 from core.config import CSS_DIR, JS_DIR, MEDIA_DIR, STATIC_DIR
-from core.database import engine
+from core.database import bot_engine # new
 from logger_config import setup_logging
 from migrations import utils
 
@@ -25,7 +25,7 @@ async def lifespan(_: FastAPI):
 
     yield
 
-    await engine.dispose()
+    await bot_engine.dispose()
 
 
 setup_logging()

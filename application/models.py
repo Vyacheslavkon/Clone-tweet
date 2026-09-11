@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.database import Base
+from core.db_base import Base
 
 
 class Tweet(Base):
@@ -84,3 +84,4 @@ class User(Base):
     )
 
     likes: Mapped[list["Likes"]] = relationship(back_populates="user")
+# MARKER_TEST_999
