@@ -15,7 +15,6 @@ from services.client import ai_service
 from services.analysis_cache import get_worker_cache_service
 from services.schemas import ReceiptListAnalysisSchema, MonthlyAnalysisResponse, WeeklyAnalysisResponse
 from services.utils_pipelines import (
-    #get_isolated_session,
     merge_transactions_by_category,
     render_receipt_report,
     get_translator,

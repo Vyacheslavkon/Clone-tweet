@@ -2,7 +2,7 @@ import copy
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, MagicMock
 
 import pytest
 from aiogram import Bot, Dispatcher
@@ -124,36 +124,63 @@ class MyI18nMiddleware(I18nMiddleware):
         return self.i18n.default_locale
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_i18n():
     """Отдельная фикстура для объекта I18n"""
     return I18n(path="financial_bot/locales", default_locale="en", domain="messages")
 
 
-@pytest.fixture
-async def test_dp(test_session, test_redis, test_i18n, cache_service):
-    # add cache_service
-    storage = RedisStorage(redis=test_redis)
-    dp = Dispatcher(storage=storage)
-    dp["cache_service"] = cache_service
+# @pytest.fixture
+# async def test_dp(test_session, test_redis, test_i18n, cache_service):
+#     # add cache_service
+#     storage = RedisStorage(redis=test_redis)
+#     dp = Dispatcher(storage=storage)
+#     dp["cache_service"] = cache_service
+#     i18n_middleware = MyI18nMiddleware(i18n=test_i18n)
+#     dp.update.outer_middleware(i18n_middleware)
+#
+#     dp.update.middleware(SessionMiddleware(session_pool=test_session))
+#
+#     for r in [router, router_tr, router_data, report_rout, history_rout]:
+#         if r is not None:
+#
+#             new_router = copy.deepcopy(r)
+#             dp.include_router(new_router)
+#         else:
+#             raise ValueError(
+#                 "One of the routers (router или router_tr) "
+#                 "is not imported or is equal None"
+#             )
+#
+#     return dp
+@pytest.fixture(scope="session")
+def dp_with_routers(test_i18n):  # требует test_i18n тоже scope="session"
+    dp = Dispatcher()
+
     i18n_middleware = MyI18nMiddleware(i18n=test_i18n)
     dp.update.outer_middleware(i18n_middleware)
-
-    dp.update.middleware(SessionMiddleware(session_pool=test_session))
+    dp.update.middleware(SessionMiddleware())
 
     for r in [router, router_tr, router_data, report_rout, history_rout]:
-        if r is not None:
-
-            new_router = copy.deepcopy(r)
-            dp.include_router(new_router)
-        else:
-            raise ValueError(
-                "One of the routers (router или router_tr) "
-                "is not imported or is equal None"
-            )
-
+        if r is None:
+            raise ValueError("One of the routers is not imported or is None")
+        dp.include_router(r)
     return dp
 
+
+
+@pytest.fixture
+async def test_dp(dp_with_routers, test_session, test_redis, cache_service):
+    dp = dp_with_routers
+    dp.fsm.storage = RedisStorage(redis=test_redis)  # ← подтверждено рабочим
+
+    dp["cache_service"] = cache_service
+    dp["session_pool"] = test_session
+    dp["admin_id"] = 12345678
+
+    yield dp
+
+    dp.workflow_data.clear()
 
 
 
@@ -298,12 +325,26 @@ async def data_for_merge_by_cat():
     )
 
 
+# @pytest.fixture
+# def mock_redis_client():
+#
+#     client = AsyncMock()
+#     pipeline_mock = AsyncMock()
+#     client.pipeline.return_value.__aenter__.return_value = pipeline_mock
+#     return client
+
+
 @pytest.fixture
 def mock_redis_client():
-
     client = AsyncMock()
     pipeline_mock = AsyncMock()
-    client.pipeline.return_value.__aenter__.return_value = pipeline_mock
+
+    client.pipeline = MagicMock(return_value=pipeline_mock)
+    pipeline_mock.__aenter__.return_value = pipeline_mock
+    pipeline_mock.__aexit__.return_value = None
+
+    pipeline_mock.delete = MagicMock()
+
     return client
 
 
@@ -327,6 +368,7 @@ def celery_eager(request):
 
 @pytest.fixture
 def mock_isolated_session():
+    #with patch("services.pipelines.get_isolated_session") as mock:
     with patch("services.pipelines.get_isolated_session") as mock:
         yield mock
 
@@ -365,12 +407,11 @@ def mock_save_receipt():
         yield mock
 
 
+
 @pytest.fixture
 def mock_redis_cache():
     """Инвалидация кэша не должна ронять основной флоу — по умолчанию тихо успешна."""
-    with patch("services.pipelines.Redis.from_url") as mock_from_url, patch(
-        "services.pipelines.FinancialCacheService.invalidate_user_cache",
-        new_callable=AsyncMock,
-    ) as mock_invalidate:
-        mock_from_url.return_value.__aenter__.return_value = AsyncMock()
-        yield mock_invalidate
+    with patch("services.pipelines.get_worker_cache_service") as mock_get_service:
+        mock_cache_service = AsyncMock()
+        mock_get_service.return_value = mock_cache_service
+        yield mock_cache_service.invalidate_user_cache

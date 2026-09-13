@@ -11,33 +11,55 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from financial_bot.repositories import get_user_by_id
 
 
-class SessionMiddleware(BaseMiddleware):
+# class SessionMiddleware(BaseMiddleware):
+#
+#     def __init__(self, session_pool: async_sessionmaker | AsyncSession):
+#         self.session_pool = session_pool
+#
+#     async def __call__(
+#         self,
+#         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+#         event: TelegramObject,
+#         data: Dict[str, Any],
+#     ) -> Any:
+#
+#         if isinstance(self.session_pool, AsyncSession):
+#             data["session"] = self.session_pool
+#
+#             return await handler(event, data)
+#
+#         async with self.session_pool() as session:
+#
+#             data["session"] = session
+#
+#             try:
+#                 return await handler(event, data)
+#             except Exception:
+#                 await session.rollback()
+#                 raise
 
-    def __init__(self, session_pool: async_sessionmaker | AsyncSession):
+
+class SessionMiddleware(BaseMiddleware):
+    def __init__(self, session_pool: async_sessionmaker | AsyncSession | None = None):
         self.session_pool = session_pool
 
-    async def __call__(
-        self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-        event: TelegramObject,
-        data: Dict[str, Any],
-    ) -> Any:
+    async def __call__(self, handler, event, data):
+        current_pool = data.get("session_pool") or self.session_pool
 
-        if isinstance(self.session_pool, AsyncSession):
-            data["session"] = self.session_pool
+        if not current_pool:
+            raise ValueError("Database session pool is not configured in middleware or workflow data!")
 
+        if isinstance(current_pool, AsyncSession):
+            data["session"] = current_pool
             return await handler(event, data)
 
-        async with self.session_pool() as session:
-
+        async with current_pool() as session:
             data["session"] = session
-
             try:
                 return await handler(event, data)
             except Exception:
                 await session.rollback()
                 raise
-
 
 
 class MyI18nMiddleware(I18nMiddleware):

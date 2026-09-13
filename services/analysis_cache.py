@@ -82,9 +82,7 @@ _worker_redis_client: Redis | None = None
 
 
 def get_worker_cache_service() -> FinancialCacheService:
-    """Синглтон в рамках одного процесса Celery worker.
-    Redis-клиент создаётся один раз при первом обращении и живёт
-    всё время жизни воркера, вместо пересоздания на каждый таск."""
+
     global _worker_cache_service, _worker_redis_client
 
     if _worker_cache_service is None:

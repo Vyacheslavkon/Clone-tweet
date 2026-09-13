@@ -35,18 +35,17 @@ async def test_process_expense_task_writes_to_real_db(
 
     mock_ai_service.return_value = fake_analysis
 
+    mock_cache_service = AsyncMock()  # эмулирует FinancialCacheService целиком
+
     with patch(
             "services.pipelines.get_isolated_session",
             return_value=test_session_for_pipeline,
     ), patch(
         "services.pipelines.get_shared_bot", return_value=mock_bot
     ), patch(
-        "services.pipelines.Redis.from_url"
-    ) as mock_redis_from_url, patch(
-            "services.pipelines.FinancialCacheService.invalidate_user_cache",
-            new_callable=AsyncMock,
-        ) as mock_invalidate:
-        mock_redis_from_url.return_value.__aenter__.return_value = AsyncMock()
+        "services.pipelines.get_worker_cache_service",
+        return_value=mock_cache_service,
+    ):
 
         await async_process_receipt(
             chat_id=chat_id,
@@ -65,7 +64,7 @@ async def test_process_expense_task_writes_to_real_db(
     assert db_transactions[0].category == "food"
     assert uuid_module.UUID(db_transactions[0].batch_id)
 
-    mock_invalidate.assert_awaited_once_with(user_id=user_id)
+    mock_cache_service.invalidate_user_cache.assert_awaited_once_with(user_id=user_id)
     mock_bot.edit_message_text.assert_awaited_once()
     call_kwargs = mock_bot.edit_message_text.call_args.kwargs
     assert call_kwargs["chat_id"] == chat_id
@@ -136,35 +135,24 @@ def test_task_keeps_file_between_retry_attempts(mock_proc_receipt, audio_file, c
     assert os.path.exists(audio_file)  # файл должен сохраниться для повторной попытки
 
 
-def test_process_expense_task_network_error_rolls_back_db(
-    celery_eager,
-        mock_isolated_session,
-        mock_voice_processing,
-        mock_pipeline_infra,
-        audio_file,
-        mock_bot
-):
 
-    mock_worker_session = AsyncMock()
-    mock_isolated_session.return_value = mock_worker_session
+def test_process_expense_task_network_error_no_db_session_opened(
+    celery_eager, mock_isolated_session, mock_voice_processing,
+    mock_pipeline_infra, audio_file, mock_bot,
+):
     mock_voice_processing.side_effect = openai.APITimeoutError("Request timed out")
 
     with pytest.raises(Retry):
         process_expense_task.delay(
-            chat_id=CHAT_ID,
-            db_user_id=DB_USER_ID,
-            locale="ru",
-            voice_file_path=audio_file,
-            status_message_id=STATUS_MESSAGE_ID,
+            chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="ru",
+            voice_file_path=audio_file, status_message_id=STATUS_MESSAGE_ID,
         )
 
-    mock_isolated_session.assert_called_once()
-    mock_worker_session.rollback.assert_awaited_once()
-    mock_worker_session.close.assert_awaited_once()
+    mock_isolated_session.assert_not_called()  # сессия не должна открываться вообще
     mock_voice_processing.assert_awaited_once()
-
     mock_bot.edit_message_text.assert_not_awaited()
     mock_bot.send_message.assert_not_awaited()
+
 
 
 def test_process_expense_task_garbage_audio_sends_joke_and_no_db_write(
@@ -322,23 +310,30 @@ def test_all_amounts_non_positive_reports_no_transactions(
     assert "No transactions found" in kwargs["text"]
 
 
-def test_missing_audio_file_rolls_back_gracefully(
+
+@pytest.mark.parametrize("celery_eager", [False], indirect=True)
+def test_missing_audio_file_fails_before_opening_db_session(
     celery_eager, mock_bot, mock_pipeline_infra,
     mock_isolated_session, mock_voice_processing,
 ):
-    session = AsyncMock()
-    mock_isolated_session.return_value = session
-
     result = process_expense_task.delay(
         chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="ru",
         voice_file_path="/nonexistent/path.ogg", status_message_id=STATUS_MESSAGE_ID,
     )
 
-    assert result.successful()
-    session.rollback.assert_awaited_once()
-    session.close.assert_awaited_once()
-    # До вызова AI дело не должно было дойти
+    assert result.failed()
+    assert isinstance(result.result, FileNotFoundError)
+
+    mock_isolated_session.assert_not_called()
+
     mock_voice_processing.assert_not_awaited()
+
+    # Пользователь получает сообщение об ошибке ДО того, как исключение пробросится в Celery
+    mock_bot.edit_message_text.assert_awaited_once()
+    _, kwargs = mock_bot.edit_message_text.call_args
+    assert kwargs["chat_id"] == CHAT_ID
+    assert kwargs["message_id"] == STATUS_MESSAGE_ID
+    assert "couldn't recognize your receipt" in kwargs["text"]
 
 
 
@@ -381,12 +376,11 @@ def test_successful_save_survives_cache_invalidation_failure(
     mock_bot.edit_message_text.assert_awaited_once()
 
 
-def test_unexpected_error_rolls_back_and_shows_generic_message(
+@pytest.mark.parametrize("celery_eager", [False], indirect=True)
+def test_unexpected_error_fails_before_opening_db_session(
     celery_eager, audio_file, mock_bot, mock_pipeline_infra,
     mock_isolated_session, mock_voice_processing,
 ):
-    session = AsyncMock()
-    mock_isolated_session.return_value = session
     mock_voice_processing.side_effect = ValueError("unexpected schema mismatch")
 
     result = process_expense_task.delay(
@@ -394,12 +388,42 @@ def test_unexpected_error_rolls_back_and_shows_generic_message(
         voice_file_path=audio_file, status_message_id=STATUS_MESSAGE_ID,
     )
 
-    # В отличие от network error, тут задача завершается успешно (без re-raise)
-    assert result.successful()
+    assert result.failed()
+    assert isinstance(result.result, ValueError)
 
+    # Ошибка происходит на этапе AI-вызова, до открытия сессии
+    mock_isolated_session.assert_not_called()
+
+    mock_bot.edit_message_text.assert_awaited_once()
+    _, kwargs = mock_bot.edit_message_text.call_args
+    assert kwargs["chat_id"] == CHAT_ID
+    assert kwargs["message_id"] == STATUS_MESSAGE_ID
+    assert "couldn't recognize your receipt" in kwargs["text"]
+
+
+@pytest.mark.parametrize("celery_eager", [False], indirect=True)
+def test_unexpected_error_after_session_opened_rolls_back(
+    celery_eager, audio_file, mock_bot, mock_pipeline_infra,
+    mock_isolated_session, mock_voice_processing, fake_analysis,
+):
+    session = AsyncMock()
+    mock_isolated_session.return_value = session
+    mock_voice_processing.return_value = fake_analysis  # успешный AI-ответ
+
+    with patch(
+        "services.pipelines.save_receipt_to_db",
+        side_effect=ValueError("unexpected db mapping error"),
+    ):
+        result = process_expense_task.delay(
+            chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="ru",
+            voice_file_path=audio_file, status_message_id=STATUS_MESSAGE_ID,
+        )
+
+    assert result.failed()
+    assert isinstance(result.result, ValueError)
+
+    mock_isolated_session.assert_called_once()  # тут сессия ДОЛЖНА открыться
     session.rollback.assert_awaited_once()
     session.close.assert_awaited_once()
 
     mock_bot.edit_message_text.assert_awaited_once()
-    _, kwargs = mock_bot.edit_message_text.call_args
-    assert "couldn't recognize your receipt" in kwargs["text"]
