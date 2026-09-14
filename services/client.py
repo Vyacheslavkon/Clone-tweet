@@ -9,7 +9,7 @@ from openai import AsyncOpenAI
 from pydantic import BaseModel
 
 from services.prompts import get_voice_message, get_analysis_financial
-
+from services.exceptions import TruncatedResponseError
 
 load_dotenv()
 
@@ -47,9 +47,20 @@ class AIService:
             ],
 
             response_format={"type": "json_object"},
-            max_completion_tokens=200,
+            max_completion_tokens=800,
             temperature=0.0,
         )
+
+        choice = completion.choices[0]
+
+        if choice.finish_reason == "length":
+            logger.warning(
+                "OpenAI response truncated due to max_completion_tokens limit. "
+                "Consider increasing the limit or shortening input."
+            )
+            raise TruncatedResponseError(
+                "Response was truncated because it exceeded the token limit"
+            )
 
         raw_json = completion.choices[0].message.content
         return response_schema.model_validate_json(raw_json)

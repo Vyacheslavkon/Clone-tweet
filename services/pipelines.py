@@ -22,7 +22,7 @@ from services.utils_pipelines import (
     render_analysis_report
 )
 from core.db_worker import get_isolated_session
-
+from services.exceptions import TruncatedResponseError
 
 redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
 if not redis_url:
@@ -178,7 +178,7 @@ async def async_process_receipt(
 
             return {"status": "cancelled", "message": "Empty transactions list"}
 
-        final_analysis_result = merge_transactions_by_category(analysis_result)
+        final_analysis_result = merge_transactions_by_category(analysis_result)# The possible cause
         message_batch_id = str(uuid.uuid4())
 
         session = get_isolated_session()
@@ -216,6 +216,17 @@ async def async_process_receipt(
         if session:
             await session.rollback()
         raise
+
+    except TruncatedResponseError:
+        logger.warning(
+            "AI response truncated for user_id={user_id}, chat_id={chat_id}",
+            user_id=db_user_id, chat_id=chat_id,
+        )
+        await _reply(
+            bot, chat_id, status_message_id,
+            _("❌ Too many transactions in one message. Please split it into 2-3 shorter voice messages."),
+        )
+        return {"status": "cancelled", "message": "AI response truncated"}
 
     except Exception:
         logger.exception("Error processing check for user {user_id}", user_id=db_user_id)
