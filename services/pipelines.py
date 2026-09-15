@@ -4,7 +4,7 @@ import uuid
 from pathlib import Path
 import openai
 from aiogram.enums import ParseMode
-from aiogram.exceptions import TelegramAPIError
+from aiogram.exceptions import TelegramAPIError, TelegramForbiddenError, TelegramBadRequest
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,8 +29,8 @@ if not redis_url:
     raise ValueError("CRITICAL: ANALYSIS_CACHE_REDIS environment variable is not set!")
 
 
-async def process_test_1_analysis_financial(
-        user_id: int,
+async def process_analysis_financial(
+        tg_id: int,
         chat_id: int,
         days: int,
 ):
@@ -38,7 +38,7 @@ async def process_test_1_analysis_financial(
     session = get_isolated_session()
 
     try:
-        user = await get_user_by_id(session, user_id)
+        user = await get_user_by_id(session, tg_id)
         locale = user.language_code
         data = await get_user_financial_summary(session, user.id, days, user)
     finally:
@@ -94,10 +94,13 @@ async def process_test_1_analysis_financial(
     actual_days = data["days_period"]
 
     response_schema = WeeklyAnalysisResponse if days == 7 else MonthlyAnalysisResponse
+    analysis_result = None
 
-    cache_service = get_worker_cache_service()
-
-    analysis_result = await cache_service.get_cached_analysis(user.id, days, response_schema)
+    try:
+        cache_service = get_worker_cache_service()
+        analysis_result = await cache_service.get_cached_analysis(user.id, days, response_schema)
+    except Exception as cache_err:
+        logger.error("Failed to read analysis cache: {error}", error=cache_err)
 
     if analysis_result:
         logger.info("🚀 [CACHE HIT] OpenAI report successfully retrieved from cache for user. {}".format(user.id))
@@ -113,8 +116,12 @@ async def process_test_1_analysis_financial(
             locale=locale
         )
 
-        await cache_service.set_analysis_cache(user.id, days, analysis_result)
-    #new solution
+        try:
+            cache_service = get_worker_cache_service()
+            await cache_service.set_analysis_cache(user.id, days, analysis_result)
+        except Exception as cache_err:
+            logger.error("Failed to write analysis cache: {error}", error=cache_err)
+
     try:
         msg_text = render_analysis_report(data, analysis_result, days, _)
         await bot.send_message(
@@ -122,17 +129,37 @@ async def process_test_1_analysis_financial(
             text=msg_text,
             reply_markup=get_detailed_report(days, _)
     )
-    except TelegramAPIError as tg_err:
-        logger.error(f"Error sending analytics to Telegram for chat_id {chat_id}: {tg_err}")
+    except TelegramForbiddenError:
+        logger.info(f"User blocked the bot or deleted chat, chat_id={chat_id}")
 
-    except Exception as e:
-        logger.exception(f"Critical error rendering/sending AI analytics for chat_id {chat_id}: {e}")
+    except TelegramBadRequest as bad_request:
+        logger.error(f"Bad request sending analytics to chat_id {chat_id}: {bad_request}")
+        try:
+            await bot.send_message(
+                chat_id=chat_id,
+                text=_("❌ We prepared your analysis, but couldn't display it properly. Please try again."),
+            )
+        except Exception:
+            pass
+
+    except TelegramAPIError as tg_err:
+        logger.error(f"Telegram API error sending analytics to chat_id {chat_id}: {tg_err}")
+        try:
+            await bot.send_message(
+                chat_id=chat_id,
+                text=_("❌ We couldn't deliver your analysis right now. Please try again later."),
+            )
+        except Exception:
+            pass
+
+    except Exception:
+        logger.exception(f"Critical error rendering/sending AI analytics for chat_id {chat_id}")
 
         try:
             await bot.send_message(chat_id=chat_id, text=_("❌ <b>An error occurred.</b>\nPlease try again later."))
-
         except Exception:
             pass
+        raise
 
 
 
@@ -262,4 +289,18 @@ async def notify_user_final_failure(chat_id: int, status_message_id: int, locale
         logger.error(
             "Failed to notify user {user_id} about final failure: {error}",
             user_id=db_user_id, error=e,
+        )
+
+async def notify_user_analysis_final_failure(chat_id: int, tg_id: int, locale: str):
+    bot = get_shared_bot()
+    _ = get_translator(locale)
+    try:
+        await bot.send_message(
+            chat_id=chat_id,
+            text="❌ We couldn't generate your financial analysis after several attempts. Please try again later.",
+        )
+    except Exception as e:
+        logger.error(
+            "Failed to notify user {user_id} about analysis final failure: {error}",
+            user_id=tg_id, error=e,
         )

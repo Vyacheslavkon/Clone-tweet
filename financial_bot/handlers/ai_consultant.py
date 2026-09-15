@@ -266,9 +266,10 @@ async def handle_analytics_request(message: Message, state: FSMContext):
 
 
     process_analysis_expense_task.delay(
-        user_id=message.from_user.id,
+        tg_id=message.from_user.id,
         chat_id=message.chat.id,
         days=days,
+        locale=message.from_user.language_code or "en"
 
     )
 

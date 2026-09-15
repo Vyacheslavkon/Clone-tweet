@@ -8,8 +8,9 @@ from loguru import logger
 from services.celery_app import app
 from services.pipelines import (async_process_receipt,
 
-                                process_test_1_analysis_financial,
-                                notify_user_final_failure)
+                                process_analysis_financial,
+                                notify_user_final_failure,
+                                notify_user_analysis_final_failure)
 
 from services.worker_loop import run_in_worker_loop
 
@@ -91,36 +92,60 @@ def process_expense_task(
 
 @celery_app.task(name="financial_bot.ai.process_analysis_expense_task", bind=True, max_retries=3)
 def process_analysis_expense_task(
-    self,  user_id: int, chat_id: int, days: int
+    self,  tg_id: int, chat_id: int, days: int, locale: str
 ):
 
     try:
         result = run_in_worker_loop(
-           process_test_1_analysis_financial(user_id, chat_id, days)
+           process_analysis_financial(tg_id, chat_id, days)
         )# test
 
         logger.info(
             "Successfully finished process_expense_analysis_task for user_id={user_id}",
-            user_id=user_id,
+            user_id=tg_id,
         )
         return result
 
     except openai.OpenAIError as exc:
+        if self.request.retries < self.max_retries:
+            current_retry = self.request.retries + 1
+            logger.warning(
+                "OpenAI API failure. Retry attempt {retry}/{max}. Error: {error_msg}",
+                retry=current_retry, max=self.max_retries, error_msg=str(exc),
+            )
+            countdown = 2 ** self.request.retries
+            raise self.retry(exc=exc, countdown=countdown)
 
-        current_retry = self.request.retries + 1
-
-        logger.warning(
-            "OpenAI API failure. Retry attempt {retry}/3. Error: {error_msg}",
-            retry=current_retry,
-            error_msg=str(exc),
+        logger.error(
+            "Max retries exceeded for user_id={user_id}, chat_id={chat_id}. Giving up.",
+            user_id=tg_id, chat_id=chat_id,
         )
+        run_in_worker_loop(
+            notify_user_analysis_final_failure(chat_id, tg_id, locale)
+        )
+        raise
 
+    except Exception:
+        logger.exception("Critical unhandled error in the task for user_id={user_id}", user_id=tg_id)
+        raise
 
-        countdown = 2**self.request.retries
+    # except openai.OpenAIError as exc:
+    #
+    #     current_retry = self.request.retries + 1
+    #
+    #     logger.warning(
+    #         "OpenAI API failure. Retry attempt {retry}/3. Error: {error_msg}",
+    #         retry=current_retry,
+    #         error_msg=str(exc),
+    #     )
+    #
+    #
+    #     countdown = 2**self.request.retries
+    #
+    #
+    #     raise self.retry(exc=exc, countdown=countdown)
+    #
+    # except Exception as e:
+    #     logger.error("Critical unhandled error in the task: {error}", error=e)
+    #     raise e
 
-
-        raise self.retry(exc=exc, countdown=countdown)
-
-    except Exception as e:
-        logger.error("Critical unhandled error in the task: {error}", error=e)
-        raise e

@@ -27,7 +27,7 @@ from services.client import ai_service
 from services.schemas import (
     ReceiptAnalysisSchema,
     ReceiptItemSchema,
-    ReceiptListAnalysisSchema,
+    ReceiptListAnalysisSchema, WeeklyAnalysisResponse, MonthlyAnalysisResponse,
 )
 from services.celery_app import app as celery_app
 
@@ -368,7 +368,6 @@ def celery_eager(request):
 
 @pytest.fixture
 def mock_isolated_session():
-    #with patch("services.pipelines.get_isolated_session") as mock:
     with patch("services.pipelines.get_isolated_session") as mock:
         yield mock
 
@@ -415,3 +414,68 @@ def mock_redis_cache():
         mock_cache_service = AsyncMock()
         mock_get_service.return_value = mock_cache_service
         yield mock_cache_service.invalidate_user_cache
+
+#______________the new fixture______________________________________________
+
+
+@pytest.fixture
+def mock_analysis_ai_service():
+    with patch(
+        "services.pipelines.ai_service.analysis_financial", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_cache_service_analysis():
+    """Аналог mock_redis_cache, но возвращает полный AsyncMock cache_service,
+    чтобы настраивать и get_cached_analysis, и set_analysis_cache отдельно."""
+    with patch("services.pipelines.get_worker_cache_service") as mock_get_service:
+        mock_cache_service = AsyncMock()
+        mock_get_service.return_value = mock_cache_service
+        yield mock_cache_service
+
+
+@pytest.fixture
+def mock_get_user_financial_summary():
+    with patch(
+        "services.pipelines.get_user_financial_summary", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_get_user_by_id():
+    with patch(
+        "services.pipelines.get_user_by_id", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
+
+
+def make_weekly_analysis_response(**overrides):
+    defaults = {
+        "summary": "test summary",
+        "weekly_balance_status": "Дисциплина на высоте! 🔥",
+        "classified_items": [],
+        "recommendations": [],
+    }
+    defaults.update(overrides)
+    return WeeklyAnalysisResponse(**defaults)
+
+
+def make_monthly_analysis_response(**overrides):
+    defaults = {
+        "summary": "test summary",
+        "budget_status": "Perfectly within limits",
+        "classified_items": [],
+        "recommendations": [],
+    }
+    defaults.update(overrides)
+    return MonthlyAnalysisResponse(**defaults)
+
+
+ANALYSIS_SCHEMA_FACTORIES = {
+    7: (WeeklyAnalysisResponse, 5, make_weekly_analysis_response),
+    30: (MonthlyAnalysisResponse, 12, make_monthly_analysis_response),
+}
