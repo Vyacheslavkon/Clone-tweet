@@ -129,23 +129,5 @@ def process_analysis_expense_task(
         logger.exception("Critical unhandled error in the task for user_id={user_id}", user_id=tg_id)
         raise
 
-    # except openai.OpenAIError as exc:
-    #
-    #     current_retry = self.request.retries + 1
-    #
-    #     logger.warning(
-    #         "OpenAI API failure. Retry attempt {retry}/3. Error: {error_msg}",
-    #         retry=current_retry,
-    #         error_msg=str(exc),
-    #     )
-    #
-    #
-    #     countdown = 2**self.request.retries
-    #
-    #
-    #     raise self.retry(exc=exc, countdown=countdown)
-    #
-    # except Exception as e:
-    #     logger.error("Critical unhandled error in the task: {error}", error=e)
-    #     raise e
+
 

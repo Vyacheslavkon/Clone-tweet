@@ -50,7 +50,7 @@ async def test_process_expense_task_writes_to_real_db(
         await async_process_receipt(
             chat_id=chat_id,
             db_user_id=user_id,
-            locale="ru",
+            locale="en",
             voice_file_path=audio_file,
             status_message_id=STATUS_MESSAGE_ID
         )
@@ -74,7 +74,7 @@ async def test_process_expense_task_writes_to_real_db(
 
 
 
-# to pay attention to. it makes sense?
+
 def test_process_expense_task_success(mock_proc_receipt, audio_file, celery_eager):
 
     expected_output = {"status": "success", "extracted_amount": 500.0}
@@ -84,14 +84,14 @@ def test_process_expense_task_success(mock_proc_receipt, audio_file, celery_eage
     result = process_expense_task.delay(
         chat_id=CHAT_ID,
         db_user_id=DB_USER_ID,
-        locale="ru",
+        locale="en",
         voice_file_path=audio_file,
         status_message_id=STATUS_MESSAGE_ID,
     )
 
     assert result.successful()
     assert result.result == expected_output
-   # mock_proc_receipt.assert_called_once_with()
+
 
 
 @pytest.mark.parametrize("celery_eager", [False], indirect=True)
@@ -106,7 +106,7 @@ def test_process_expense_task_fails_after_exhausting_retries_on_openai_error(moc
     result = process_expense_task.delay(
         chat_id=CHAT_ID,
         db_user_id=DB_USER_ID,
-        locale="ru",
+        locale="en",
         voice_file_path=audio_file,
         status_message_id=STATUS_MESSAGE_ID,
 
@@ -123,12 +123,12 @@ def test_process_expense_task_fails_after_exhausting_retries_on_openai_error(moc
 
 
 def test_task_keeps_file_between_retry_attempts(mock_proc_receipt, audio_file, celery_eager):
-    """Проверяем ОДНУ попытку с ретраем — файл не должен удаляться раньше времени."""
+
     mock_proc_receipt.side_effect = openai.OpenAIError("Rate limit exceeded")
 
     with pytest.raises(Retry):
         process_expense_task.apply(
-            args=(CHAT_ID, DB_USER_ID, "ru", audio_file, STATUS_MESSAGE_ID),
+            args=(CHAT_ID, DB_USER_ID, "en", audio_file, STATUS_MESSAGE_ID),
             throw=True,
         )
 
@@ -144,11 +144,11 @@ def test_process_expense_task_network_error_no_db_session_opened(
 
     with pytest.raises(Retry):
         process_expense_task.delay(
-            chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="ru",
+            chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="en",
             voice_file_path=audio_file, status_message_id=STATUS_MESSAGE_ID,
         )
 
-    mock_isolated_session.assert_not_called()  # сессия не должна открываться вообще
+    mock_isolated_session.assert_not_called()
     mock_voice_processing.assert_awaited_once()
     mock_bot.edit_message_text.assert_not_awaited()
     mock_bot.send_message.assert_not_awaited()
@@ -175,7 +175,7 @@ def test_process_expense_task_garbage_audio_sends_joke_and_no_db_write(
     result = process_expense_task.delay(
         chat_id=CHAT_ID,
         db_user_id=DB_USER_ID,
-        locale="ru",
+        locale="en",
         voice_file_path=audio_file,
         status_message_id=STATUS_MESSAGE_ID,
     )
@@ -264,7 +264,6 @@ def test_merge_transactions_by_category_logic(data_for_merge_by_cat):
         food_tx.description == "Супермаркет, Рынок"
     ), "The category descriptions did not merge correctly."
 
-    # Проверка Товаров: Массивы items должны объединиться
     assert (
         len(food_tx.items) == 2
     ), "Items from different receipts were not combined into a single category"
@@ -317,7 +316,7 @@ def test_missing_audio_file_fails_before_opening_db_session(
     mock_isolated_session, mock_voice_processing,
 ):
     result = process_expense_task.delay(
-        chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="ru",
+        chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="en",
         voice_file_path="/nonexistent/path.ogg", status_message_id=STATUS_MESSAGE_ID,
     )
 
@@ -328,7 +327,6 @@ def test_missing_audio_file_fails_before_opening_db_session(
 
     mock_voice_processing.assert_not_awaited()
 
-    # Пользователь получает сообщение об ошибке ДО того, как исключение пробросится в Celery
     mock_bot.edit_message_text.assert_awaited_once()
     _, kwargs = mock_bot.edit_message_text.call_args
     assert kwargs["chat_id"] == CHAT_ID
@@ -362,7 +360,7 @@ def test_successful_save_survives_cache_invalidation_failure(
     result = process_expense_task.delay(
         chat_id=CHAT_ID,
         db_user_id=DB_USER_ID,
-        locale="ru",
+        locale="en",
         voice_file_path=audio_file,
         status_message_id=STATUS_MESSAGE_ID,
     )
@@ -384,14 +382,14 @@ def test_unexpected_error_fails_before_opening_db_session(
     mock_voice_processing.side_effect = ValueError("unexpected schema mismatch")
 
     result = process_expense_task.delay(
-        chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="ru",
+        chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="en",
         voice_file_path=audio_file, status_message_id=STATUS_MESSAGE_ID,
     )
 
     assert result.failed()
     assert isinstance(result.result, ValueError)
 
-    # Ошибка происходит на этапе AI-вызова, до открытия сессии
+
     mock_isolated_session.assert_not_called()
 
     mock_bot.edit_message_text.assert_awaited_once()
@@ -408,21 +406,21 @@ def test_unexpected_error_after_session_opened_rolls_back(
 ):
     session = AsyncMock()
     mock_isolated_session.return_value = session
-    mock_voice_processing.return_value = fake_analysis  # успешный AI-ответ
+    mock_voice_processing.return_value = fake_analysis
 
     with patch(
         "services.pipelines.save_receipt_to_db",
         side_effect=ValueError("unexpected db mapping error"),
     ):
         result = process_expense_task.delay(
-            chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="ru",
+            chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="en",
             voice_file_path=audio_file, status_message_id=STATUS_MESSAGE_ID,
         )
 
     assert result.failed()
     assert isinstance(result.result, ValueError)
 
-    mock_isolated_session.assert_called_once()  # тут сессия ДОЛЖНА открыться
+    mock_isolated_session.assert_called_once()
     session.rollback.assert_awaited_once()
     session.close.assert_awaited_once()
 

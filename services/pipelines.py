@@ -55,7 +55,7 @@ async def process_analysis_financial(
         )
     except Exception as e:  # noqa: PIE786
         logger.error(
-            "Не удалось загрузить локализацию из {locales}: {error}",
+            "Failed to load location from {locales}: {error}",
             locales=locales_dir,
             error=e,
         )
