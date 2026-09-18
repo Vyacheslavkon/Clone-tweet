@@ -47,8 +47,8 @@ async def report_two_weeks(callback: CallbackQuery, session: AsyncSession, bot: 
 
     report_text = format_multi_report(
         [
-            {"data": cur_data, "period_name": cur_week},
-            {"data": last_data, "period_name": last_week},
+            {"data": cur_data, "period_name": cur_week, "period_key": "week"},
+            {"data": last_data, "period_name": last_week, "period_key": "week"},
         ]
     )
 
@@ -130,7 +130,7 @@ async def process_end_date(
         data = await get_report_period(
             session, callback.from_user.id, start_date, end_date
         )
-        report_text = formatters(data, f"{start_date:%d.%m.%y} - {end_date:%d.%m.%y}")
+        report_text = formatters(data, f"{start_date:%d.%m.%y} - {end_date:%d.%m.%y}", period_key="custom_range")
 
         await bot.send_message(
             text=report_text, chat_id=callback.from_user.id, parse_mode="HTML"

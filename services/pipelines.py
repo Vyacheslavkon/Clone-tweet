@@ -304,3 +304,5 @@ async def notify_user_analysis_final_failure(chat_id: int, tg_id: int, locale: s
             "Failed to notify user {user_id} about analysis final failure: {error}",
             user_id=tg_id, error=e,
         )
+
+

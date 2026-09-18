@@ -21,7 +21,9 @@ app = Celery(
     "financial_worker",
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
-    include=["financial_bot.tasks.ai"],
+    include=["financial_bot.tasks.ai",
+             "financial_bot.tasks.vehicle_reports"
+             ]
 )
 
 app.conf.update(

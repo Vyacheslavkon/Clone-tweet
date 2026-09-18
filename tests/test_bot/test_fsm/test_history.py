@@ -83,8 +83,8 @@ async def test_history_two_week(
 
         expected_data = format_multi_report(
             [
-                {"data": data_cur_week, "period_name": cur_week},
-                {"data": data_last_week, "period_name": last_week},
+                {"data": data_cur_week, "period_name": cur_week, "period_key": "week"},
+                {"data": data_last_week, "period_name": last_week, "period_key": "week"},
             ]
         )
 
@@ -181,7 +181,7 @@ async def test_history_arbitrary_period(
             test_session, test_user.tg_id, expected_start, expected_end
         )
         expected_report_text = formatters(
-            db_data, f"{expected_start:%d.%m.%y} - {expected_end:%d.%m.%y}"
+            db_data, f"{expected_start:%d.%m.%y} - {expected_end:%d.%m.%y}", period_key="custom_range"
         )
 
         assert final_kwargs["text"] == expected_report_text

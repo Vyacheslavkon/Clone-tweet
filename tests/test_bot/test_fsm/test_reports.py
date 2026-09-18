@@ -79,7 +79,7 @@ async def test_report_periods(
             test_session, test_user.tg_id, today_start, today_end
         )
 
-        expected_data = formatters(data, period)
+        expected_data = formatters(data, period, period_key="custom_range")
         mock_bot.edit_message_text.assert_called_once()
         _, kwargs = mock_bot.edit_message_text.call_args
 
@@ -122,7 +122,7 @@ async def test_report_month(
         )
         planned_data = await get_planned_goals(test_session, test_user.tg_id)
 
-        expected_data = formatters(data, period, planned_data)
+        expected_data = formatters(data, period, period_key="month", plan=planned_data)
         mock_bot.edit_message_text.assert_called_once()
         _, kwargs = mock_bot.edit_message_text.call_args
 

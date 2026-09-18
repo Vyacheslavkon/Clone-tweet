@@ -9,7 +9,7 @@ from financial_bot.handlers.utils import (
     get_week_boundaries,
 )
 from financial_bot.repositories import get_planned_goals, get_report_period
-from financial_bot.tasks.scheduled import send_monthly_stats, send_weekly_stats
+from services.scheduled_reports import send_monthly_stats, send_weekly_stats
 
 
 async def test_send_weekly_stats(

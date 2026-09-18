@@ -49,7 +49,6 @@ async def blocked_user(session: AsyncSession, user_tg_id: int):
 
     if user:
         user.is_active = False
-        await session.commit()
 
     else:
         error_message = _(
@@ -399,45 +398,6 @@ async def get_user_financial_summary(
     ]
 
 
-    # if days == 7:
-    #     items_stmt = (
-    #         select(
-    #             TransactionItems.name,
-    #             TransactionItems.price.label("item_amount"),
-    #             Transactions.category.label("associated_category"),
-    #             Transactions.created_at.label("date")
-    #         )
-    #         .join(Transactions, TransactionItems.transaction_id == Transactions.id)
-    #         .where(
-    #             Transactions.user_id == user_id,
-    #             Transactions.type == "expense",
-    #             Transactions.created_at >= start_date,
-    #             Transactions.created_at < end_date
-    #         )
-    #         .order_by(desc(TransactionItems.price))
-    #         .limit(30)
-    #     )
-    #
-    # else:
-    #     items_stmt = (
-    #         select(
-    #             TransactionItems.name,
-    #             TransactionItems.price.label("item_amount"),
-    #             Transactions.category.label("associated_category"),
-    #             Transactions.created_at.label("date")
-    #         )
-    #         .join(Transactions, TransactionItems.transaction_id == Transactions.id)
-    #         .where(
-    #             Transactions.user_id == user_id,
-    #             Transactions.type == "expense",
-    #             Transactions.created_at >= start_date,
-    #             Transactions.created_at < end_date
-    #         )
-    #         .order_by(Transactions.created_at.desc())
-    #
-    #     )
-
-    # Test:
 
     part_items = (
         select(
@@ -524,4 +484,54 @@ async def get_user_financial_summary(
         "top_items": top_items,
         "days_period": actual_days,
         "user_config": user_config
+    }
+
+
+
+async def get_reports_for_all_active_users(
+    session: AsyncSession, date_start: datetime, date_end: datetime
+) -> dict[int, list]:
+    """Batch-версия get_report_period для массовой рассылки: один запрос
+    на ВСЕХ активных пользователей вместо N отдельных запросов.
+    Возвращает {user_id: [(type, category, total), ...]}."""
+
+    query = (
+        select(
+            Transactions.user_id,
+            Transactions.type,
+            Transactions.category,
+            func.sum(Transactions.amount).label("total"),
+        )
+        .join(UserBot, UserBot.id == Transactions.user_id)
+        .where(
+            UserBot.is_active,
+            Transactions.created_at.between(date_start, date_end),
+        )
+        .group_by(Transactions.user_id, Transactions.type, Transactions.category)
+    )
+
+    result = await session.execute(query)
+    rows = result.all()
+
+    reports_by_user: dict[int, list] = {}
+    for row in rows:
+        reports_by_user.setdefault(row.user_id, []).append(row)
+
+    return reports_by_user
+
+
+
+async def get_plans_for_all_active_users(session: AsyncSession) -> dict[int, Plan]:
+    """Batch-версия get_planned_goals: один запрос вместо N."""
+    query = select(UserBot).where(UserBot.is_active)
+    result = await session.execute(query)
+    users = result.scalars().all()
+
+    return {
+        user.id: Plan(
+            monthly_budget=user.monthly_budget,
+            budget_remind_percent=user.budget_remind_percent,
+            savings_goal=user.savings_goal,
+        )
+        for user in users
     }

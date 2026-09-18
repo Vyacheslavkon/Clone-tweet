@@ -4,6 +4,7 @@ from decimal import Decimal, InvalidOperation
 
 from aiogram.utils.i18n import get_i18n
 from aiogram.utils.i18n import gettext as _
+from aiogram.utils.i18n import gettext as global_gettext
 
 from financial_bot.schemas import Plan
 
@@ -77,7 +78,14 @@ def fmt_limit_expense(expense: Decimal, plan: Plan):
     return limit_expense, balance_limit_persent
 
 
-def formatters(data: list, period_name: str, plan: Plan | None = None) -> str:
+
+def formatters(data: list,
+               period_name: str,
+               period_key: str,
+               plan: Plan | None = None,
+               translator=None) -> str:
+
+    _ = translator or global_gettext
 
     if not data:
         report_text = _("There is no data for {period} 🤷‍♂️").format(
@@ -121,7 +129,8 @@ def formatters(data: list, period_name: str, plan: Plan | None = None) -> str:
             expense_details=expense_details,
         )
 
-        if period_name != "day" and plan and period_name != "week":
+
+        if period_key == "month" and plan:
 
             def fmt(val):
                 return f"{val:,.2f}".replace(",", " ")
@@ -161,7 +170,7 @@ def format_multi_report(reports_data: list[dict]) -> str:
 
     parts = []
     for el in reports_data:
-        part = formatters(el["data"], el["period_name"])  # el.get("plan")
+        part = formatters(el["data"], el["period_name"], period_key=el.get("period_key", "week"))  # el.get("plan")
         parts.append(part)
 
     return "\n\n" + "───────────────────\n".join(parts)
@@ -208,8 +217,10 @@ def get_month_boundaries():
     return start_month, end_month, current_month
 
 
-def get_month_name(number: int) -> str:
-    month_rus = [
+def get_month_name(number: int, translator=None) -> str:
+    _ = translator or global_gettext
+
+    month_names = [
         "",
         _("January"),
         _("February"),
@@ -225,7 +236,8 @@ def get_month_name(number: int) -> str:
         _("December"),
     ]
 
-    return month_rus[number]
+    return month_names[number]
+
 
 
 def _safe_gettext(text: str) -> str:

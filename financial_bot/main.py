@@ -25,7 +25,8 @@ from financial_bot.middlewares import (
     SessionMiddleware,
     UserActivityMiddleware,
 )
-from financial_bot.tasks.scheduled import setup_scheduler
+from services.scheduled import setup_scheduler
+
 from services.analysis_cache import FinancialCacheService
 from logger_config import setup_logging
 
@@ -52,7 +53,7 @@ async def main():
               )
     dp = Dispatcher(storage=storage)
     session_pool = bot_session_maker
-    scheduler = setup_scheduler(bot, session_pool, i18n)
+    scheduler = setup_scheduler()
     dp["admin_id"] = int(os.getenv("ADMIN_ID", 0))
     redis = Redis.from_url(
         url=redis_url,
@@ -87,7 +88,7 @@ async def main():
         await redis_fsm.close()
         logger.info("Redis FSM client closed.")
 
-        scheduler.shutdown()
+        #scheduler.shutdown()
         logger.info("Scheduler stopped.")
 
         await redis.aclose()
