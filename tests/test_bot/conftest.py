@@ -130,29 +130,6 @@ def test_i18n():
     return I18n(path="financial_bot/locales", default_locale="en", domain="messages")
 
 
-# @pytest.fixture
-# async def test_dp(test_session, test_redis, test_i18n, cache_service):
-#     # add cache_service
-#     storage = RedisStorage(redis=test_redis)
-#     dp = Dispatcher(storage=storage)
-#     dp["cache_service"] = cache_service
-#     i18n_middleware = MyI18nMiddleware(i18n=test_i18n)
-#     dp.update.outer_middleware(i18n_middleware)
-#
-#     dp.update.middleware(SessionMiddleware(session_pool=test_session))
-#
-#     for r in [router, router_tr, router_data, report_rout, history_rout]:
-#         if r is not None:
-#
-#             new_router = copy.deepcopy(r)
-#             dp.include_router(new_router)
-#         else:
-#             raise ValueError(
-#                 "One of the routers (router или router_tr) "
-#                 "is not imported or is equal None"
-#             )
-#
-#     return dp
 @pytest.fixture(scope="session")
 def dp_with_routers(test_i18n):  # требует test_i18n тоже scope="session"
     dp = Dispatcher()
@@ -386,6 +363,16 @@ def audio_file(tmp_path):
     path.write_bytes(b"fake_audio_bytes")
     return str(path)
 
+@pytest.fixture
+def mock_scheduled_reports_infra(mock_bot):
+    """Инфраструктурные моки, не варьирующиеся между тестами."""
+    with patch(
+        "services.scheduled_reports.get_shared_bot", return_value=mock_bot
+    ), patch(
+        "aiogram.client.session.aiohttp.AiohttpSession.close", new_callable=AsyncMock
+    ):
+        yield
+
 
 @pytest.fixture
 def mock_pipeline_infra(mock_bot):
@@ -415,7 +402,6 @@ def mock_redis_cache():
         mock_get_service.return_value = mock_cache_service
         yield mock_cache_service.invalidate_user_cache
 
-#______________the new fixture______________________________________________
 
 
 @pytest.fixture
@@ -479,3 +465,56 @@ ANALYSIS_SCHEMA_FACTORIES = {
     7: (WeeklyAnalysisResponse, 5, make_weekly_analysis_response),
     30: (MonthlyAnalysisResponse, 12, make_monthly_analysis_response),
 }
+
+
+
+
+def make_user(id_, tg_id, language_code="en", is_active=True):
+    user = AsyncMock()
+    user.id = id_
+    user.tg_id = tg_id
+    user.language_code = language_code
+    user.is_active = is_active
+    return user
+
+
+@pytest.fixture
+def mock_get_all_users():
+    with patch("services.scheduled_reports.get_all_users", new_callable=AsyncMock) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_get_reports_for_all_active_users():
+    with patch(
+        "services.scheduled_reports.get_reports_for_all_active_users", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_get_plans_for_all_active_users():
+    with patch(
+        "services.scheduled_reports.get_plans_for_all_active_users", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_blocked_users_bulk():
+    with patch("services.scheduled_reports.blocked_users_bulk", new_callable=AsyncMock) as mock:
+        yield mock
+
+
+# @pytest.fixture(autouse=True)
+# def _configure_isolated_session(mock_isolated_session):
+#     """send_weekly_stats/send_monthly_stats открывают сессию безусловно
+#     в начале (для чтения) и опционально в конце (для batch-блокировки)."""
+#     mock_isolated_session.return_value = AsyncMock()
+
+
+@pytest.fixture(autouse=True)
+def _no_real_sleep():
+    """Не ждём реальные asyncio.sleep(0.05) между отправками в тестах."""
+    with patch("services.scheduled_reports.asyncio.sleep", new_callable=AsyncMock):
+        yield

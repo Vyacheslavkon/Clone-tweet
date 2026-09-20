@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
-from sqlalchemy import delete, func, select, desc, and_, union_all
+from sqlalchemy import delete, func, select, desc, and_, union_all, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import exists
 from sqlalchemy.orm import selectinload
@@ -535,3 +535,17 @@ async def get_plans_for_all_active_users(session: AsyncSession) -> dict[int, Pla
         )
         for user in users
     }
+
+
+async def blocked_users_bulk(session: AsyncSession, tg_ids: list[int]) -> None:
+    """Массовая деактивация пользователей одним UPDATE-запросом,
+    вместо N отдельных SELECT+UPDATE на каждого."""
+    if not tg_ids:
+        return
+
+    stmt = (
+        update(UserBot)
+        .where(UserBot.tg_id.in_(tg_ids))
+        .values(is_active=False)
+    )
+    await session.execute(stmt)
