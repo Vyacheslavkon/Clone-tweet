@@ -15,6 +15,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import CheckConstraint
 
 from core.db_base import Base
 
@@ -91,6 +92,10 @@ class Transactions(Base):
 
     user = relationship("UserBot", back_populates="transactions")
 
+    __table_args__ = (
+        CheckConstraint("amount > 0", name="ck_transactions_amount_positive"),
+    )
+
 
 class TransactionItems(Base):
 
@@ -107,3 +112,7 @@ class TransactionItems(Base):
     )  # Категория конкретного товара от ИИ
 
     transaction: Mapped["Transactions"] = relationship(back_populates="items")
+
+    __table_args__ = (
+        CheckConstraint("price >= 0", name="ck_transaction_items_price_positive"),
+    )

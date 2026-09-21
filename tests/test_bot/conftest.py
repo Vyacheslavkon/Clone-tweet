@@ -506,12 +506,6 @@ def mock_blocked_users_bulk():
         yield mock
 
 
-# @pytest.fixture(autouse=True)
-# def _configure_isolated_session(mock_isolated_session):
-#     """send_weekly_stats/send_monthly_stats открывают сессию безусловно
-#     в начале (для чтения) и опционально в конце (для batch-блокировки)."""
-#     mock_isolated_session.return_value = AsyncMock()
-
 
 @pytest.fixture(autouse=True)
 def _no_real_sleep():
