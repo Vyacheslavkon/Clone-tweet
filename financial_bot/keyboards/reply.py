@@ -7,14 +7,21 @@ def get_main_menu():
     builder = ReplyKeyboardBuilder()
     builder.row(
         KeyboardButton(text=_("Enter amount")),
-        KeyboardButton(text=_("Add/change data")),
+                KeyboardButton(text=_("Delete today's data"))
+
     )
     builder.row(
-        KeyboardButton(text=_("Generate report")), KeyboardButton(text=_("History"))
+        KeyboardButton(text=_("Generate report")),
+                KeyboardButton(text=_("History"))
     )
 
-    builder.row(KeyboardButton(text=_("Settings")), KeyboardButton(text="AI"))
-    builder.row(KeyboardButton(text=_("cancel")))
+    builder.row(KeyboardButton(text=_("Add/change data")),
+                        KeyboardButton(text="AI")
+    )
+
+    builder.row(KeyboardButton(text=_("cancel")),
+                        KeyboardButton(text=_("Settings"))
+    )
 
     return builder.as_markup(resize_keyboard=True)
 

@@ -5,6 +5,7 @@ from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from financial_bot.filters import DeleteTransactionCallback
+from financial_bot.models import Transactions
 
 
 def cancel():
@@ -165,3 +166,30 @@ def get_detailed_report(days: int, _: Callable[[str], str]):
 
 
 
+def get_transaction_carousel_keyboard(
+    transactions: list[dict], current_index: int, _
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+
+    nav_row = []
+    if current_index > 0:
+        nav_row.append(InlineKeyboardButton(text="◀️", callback_data=f"tx_nav:{current_index - 1}"))
+    nav_row.append(
+        InlineKeyboardButton(
+            text=f"{current_index + 1}/{len(transactions)}", callback_data="tx_nav:noop"
+        )
+    )
+    if current_index < len(transactions) - 1:
+        nav_row.append(InlineKeyboardButton(text="▶️", callback_data=f"tx_nav:{current_index + 1}"))
+    builder.row(*nav_row)
+
+    builder.row(
+        InlineKeyboardButton(
+            text=_("❌ Delete this transaction"),
+            #callback_data=f"tx_delete:{transactions[current_index].id}:{current_index}",
+            callback_data=f"tx_delete:{transactions[current_index]["id"]}:{current_index}",
+        )
+    )
+    builder.row(InlineKeyboardButton(text=_("Close"), callback_data="tx_close"))
+
+    return builder.as_markup()

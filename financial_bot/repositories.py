@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
-from sqlalchemy import delete, func, select, desc, and_, union_all, update
+from sqlalchemy import delete, func, select, desc, and_, union_all, update, CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import exists
 from sqlalchemy.orm import selectinload
@@ -549,3 +549,31 @@ async def blocked_users_bulk(session: AsyncSession, tg_ids: list[int]) -> None:
         .values(is_active=False)
     )
     await session.execute(stmt)
+
+
+async def get_today_transactions(session: AsyncSession, user_id: int) -> list[Transactions]:
+    today_start = datetime.combine(datetime.now(timezone.utc).date(), time.min, tzinfo=timezone.utc)
+    today_end = datetime.combine(datetime.now(timezone.utc).date(), time.max, tzinfo=timezone.utc)
+
+    query = (
+        select(Transactions)
+        .where(
+            Transactions.user_id == user_id,
+            Transactions.created_at.between(today_start, today_end),
+        )
+        .order_by(Transactions.created_at.desc())
+    )
+    result = await session.execute(query)
+    return list(result.scalars().all())
+
+
+async def delete_transaction_by_id(session: AsyncSession, tx_id: int, user_id: int) -> bool:
+    """user_id обязателен в условии — иначе пользователь A мог бы подделать
+    callback_data и удалить транзакцию пользователя B, зная только tx_id."""
+    stmt = (
+        delete(Transactions)
+        .where(Transactions.id == tx_id, Transactions.user_id == user_id)
+    )
+    result: CursorResult = await session.execute(stmt)
+
+    return result.rowcount > 0

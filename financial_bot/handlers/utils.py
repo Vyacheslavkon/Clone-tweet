@@ -6,6 +6,7 @@ from aiogram.utils.i18n import get_i18n
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.i18n import gettext as global_gettext
 
+from financial_bot.models import Transactions
 from financial_bot.schemas import Plan
 
 
@@ -245,3 +246,19 @@ def _safe_gettext(text: str) -> str:
         return get_i18n().gettext(text)
     except LookupError:
         return text
+
+
+def format_transaction_card(tx: dict, _) -> str:
+    sign = "+" if tx["type"] == "income" else "-"
+
+    created_at = datetime.fromisoformat(tx["created_at"])  # обратно из ISO-строки в datetime
+
+    lines = [
+        f"<b>{tx['category'].capitalize()}</b>",
+        f"{sign}{tx['amount']:.0f} ₽",
+        f"🕐 {created_at:%H:%M}",
+    ]
+    if tx.get("description"):
+        lines.append(f"📝 {tx['description']}")
+
+    return "\n".join(lines)
