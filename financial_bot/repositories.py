@@ -218,7 +218,6 @@ async def delete_check(session: AsyncSession, batch_id: str):
     stmt_select = select(Transactions).where(Transactions.batch_id == batch_id)
     list_transactions = await session.execute(stmt_select)
 
-    # if len(list_transactions.all()) > 0:
     if list_transactions.scalar() is not None:
         stmt = delete(Transactions).where(Transactions.batch_id == batch_id)
         await session.execute(stmt)
@@ -491,9 +490,6 @@ async def get_user_financial_summary(
 async def get_reports_for_all_active_users(
     session: AsyncSession, date_start: datetime, date_end: datetime
 ) -> dict[int, list]:
-    """Batch-версия get_report_period для массовой рассылки: один запрос
-    на ВСЕХ активных пользователей вместо N отдельных запросов.
-    Возвращает {user_id: [(type, category, total), ...]}."""
 
     query = (
         select(
@@ -522,7 +518,7 @@ async def get_reports_for_all_active_users(
 
 
 async def get_plans_for_all_active_users(session: AsyncSession) -> dict[int, Plan]:
-    """Batch-версия get_planned_goals: один запрос вместо N."""
+
     query = select(UserBot).where(UserBot.is_active)
     result = await session.execute(query)
     users = result.scalars().all()
@@ -538,8 +534,7 @@ async def get_plans_for_all_active_users(session: AsyncSession) -> dict[int, Pla
 
 
 async def blocked_users_bulk(session: AsyncSession, tg_ids: list[int]) -> None:
-    """Массовая деактивация пользователей одним UPDATE-запросом,
-    вместо N отдельных SELECT+UPDATE на каждого."""
+
     if not tg_ids:
         return
 
@@ -557,6 +552,7 @@ async def get_today_transactions(session: AsyncSession, user_id: int) -> list[Tr
 
     query = (
         select(Transactions)
+        .options(selectinload(Transactions.items)) # new
         .where(
             Transactions.user_id == user_id,
             Transactions.created_at.between(today_start, today_end),
@@ -568,8 +564,7 @@ async def get_today_transactions(session: AsyncSession, user_id: int) -> list[Tr
 
 
 async def delete_transaction_by_id(session: AsyncSession, tx_id: int, user_id: int) -> bool:
-    """user_id обязателен в условии — иначе пользователь A мог бы подделать
-    callback_data и удалить транзакцию пользователя B, зная только tx_id."""
+
     stmt = (
         delete(Transactions)
         .where(Transactions.id == tx_id, Transactions.user_id == user_id)

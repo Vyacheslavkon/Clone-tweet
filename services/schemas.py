@@ -76,8 +76,8 @@ class ReceiptAnalysisSchema(BaseModel):
         category = data.get("category")
         tx_type = data.get("type")
 
-        if not data.get("description"):
-            data["description"] = "income" if tx_type == "income" else "expense"
+        # if not data.get("description"):
+        #     data["description"] = "income" if tx_type == "income" else "expense"
 
         if isinstance(category, str):
             cleaned_category = category.strip().lower()

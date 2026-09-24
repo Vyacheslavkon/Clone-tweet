@@ -110,9 +110,12 @@ def formatters(data: list,
             else:
                 translated_category = _(row.category.capitalize())
                 expense_total += row.total
-                expense_details += _("  • {category}: {formated_amount}\n").format(
+                expense_details += "  • {category}: {formated_amount}\n".format(
                     category=translated_category, formated_amount=formated_amount
                 )
+                # expense_details += _("  • {category}: {formated_amount}\n").format(
+                #     category=translated_category, formated_amount=formated_amount
+                # )
 
         total_inc_str = f"{income_total:,.2f}".replace(",", " ")
         total_exp_str = f"{expense_total:,.2f}".replace(",", " ")
@@ -248,17 +251,41 @@ def _safe_gettext(text: str) -> str:
         return text
 
 
+CATEGORY_EMOJI = {
+    "food": "🍔",
+    "transport": "🚗",
+    "health": "💊",
+    "entertainment": "🎉",
+    "home": "🏠",
+    "other": "📦",
+}
+
+
+def get_category_display(category: str, _) -> str:
+    emoji = CATEGORY_EMOJI.get(category, "📦")
+    return f"{emoji} {_(category.capitalize())}"
+
+
 def format_transaction_card(tx: dict, _) -> str:
     sign = "+" if tx["type"] == "income" else "-"
-
-    created_at = datetime.fromisoformat(tx["created_at"])  # обратно из ISO-строки в datetime
+    created_at = datetime.fromisoformat(tx["created_at"])
+    category_display = get_category_display(tx["category"], _)
 
     lines = [
-        f"<b>{tx['category'].capitalize()}</b>",
+        f"<b>{category_display}</b>",
         f"{sign}{tx['amount']:.0f} ₽",
         f"🕐 {created_at:%H:%M}",
     ]
+
+
+
     if tx.get("description"):
         lines.append(f"📝 {tx['description']}")
 
+
+    if tx.get("items"):
+        items_text = ", ".join(item["name"] for item in tx["items"])
+        lines.append(f"🛒 {items_text}")
+
     return "\n".join(lines)
+

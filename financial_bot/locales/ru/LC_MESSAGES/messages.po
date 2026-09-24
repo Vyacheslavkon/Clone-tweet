@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-23 20:51+1000\n"
+"POT-Creation-Date: 2026-09-24 19:50+1000\n"
 "PO-Revision-Date: 2026-04-05 19:51+1000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -104,7 +104,6 @@ msgid "User not found. Please enter /start."
 msgstr "Профиль не найден. Пожалуйста, введите /start"
 
 #: financial_bot/handlers/ai_consultant.py:131
-#, fuzzy
 msgid ""
 "❌ The voice message is too long. Please dictate a shorter message (up to "
 "30 seconds)."
@@ -196,26 +195,25 @@ msgstr "Общая ошибка API Telegram при отправке уведо�
 msgid "⚠️ An error occurred. I've already reported it to the developer."
 msgstr "⚠️ Произошла ошибка. Я уже сообщил об этом разработчику."
 
-#: financial_bot/handlers/del_transactions.py:20
-#, fuzzy
-msgid "Delete today's data"
-msgstr "🗑 Удалить сегодняшние данные"
-
-#: financial_bot/handlers/del_transactions.py:29
+#: financial_bot/handlers/del_transactions.py:30
 msgid "You have no transactions logged today. 🤷"
 msgstr "❌ Не найдено транзакций для сохранения."
 
-#: financial_bot/handlers/del_transactions.py:87
+#: financial_bot/handlers/del_transactions.py:89
 msgid "Already deleted."
 msgstr "Уже удалено."
 
-#: financial_bot/handlers/del_transactions.py:99
+#: financial_bot/handlers/del_transactions.py:101
 msgid "✅ Deleted. No more transactions for today."
 msgstr "✅ Удалено. На сегодня транзакций больше нет."
 
-#: financial_bot/handlers/del_transactions.py:112
+#: financial_bot/handlers/del_transactions.py:114
 msgid "✅ Deleted"
 msgstr "✅ Удалено"
+
+#: financial_bot/handlers/del_transactions.py:119
+msgid "Closed."
+msgstr "Закрыть"
 
 #: financial_bot/handlers/history.py:27
 msgid "Please, select period"
@@ -506,9 +504,9 @@ msgstr "🔎 Подробный отчет"
 
 #: financial_bot/keyboards/inline.py:188
 msgid "❌ Delete this transaction"
-msgstr ""
+msgstr "❌ Удалить эту транзакцию"
 
-#: financial_bot/keyboards/inline.py:192
+#: financial_bot/keyboards/inline.py:193
 msgid "Close"
 msgstr "Закрыть"
 

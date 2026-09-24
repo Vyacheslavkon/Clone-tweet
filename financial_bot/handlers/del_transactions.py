@@ -38,6 +38,7 @@ async def handle_delete_today_request(message: Message, session: AsyncSession, s
             "type": tx.type,
             "created_at": tx.created_at.isoformat(),
             "description": tx.description,
+            "items": [{"name": item.name, "price": float(item.price)} for item in tx.items],
         }
         for tx in transactions
     ]
