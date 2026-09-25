@@ -214,7 +214,6 @@ async def async_process_receipt(
             session=session,
             user_id=db_user_id,
             analysis_result=final_analysis_result,
-            photo_url=None,
             raw_text=analysis_result.model_dump_json(),
             batch_id=message_batch_id,
         )

@@ -178,7 +178,7 @@ async def save_receipt_to_db(
     analysis_result: ReceiptListAnalysisSchema,
     raw_text: str,
     batch_id: str,
-    photo_url: str | None = None,
+
 ):
 
 

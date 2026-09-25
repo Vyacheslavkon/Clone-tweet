@@ -52,52 +52,52 @@ async def waiting_check(message: Message, state: FSMContext):
     await state.set_state(AIState.waiting_for_receipt)
 
 
-@ai_router.message(F.photo, AIState.waiting_for_receipt)
-async def handle_receipt_photo(
-    message: Message, state: FSMContext, session: AsyncSession
-):
-    if not message.from_user:
-        return
-
-    user = await get_user_by_id(session, message.from_user.id)
-
-    if not user:
-        logger.error("User with id {} not found in database", message.from_user.id)
-        return
-
-    user_locale = user.language_code
-
-    if not message.photo:
-        return
-
-    photo = message.photo[-1]
-
-    # 2. Запрашиваем инфо о файле СРАЗУ в основном цикле бота (to improve productivity)
-    # file_info = await message.bot.get_file(photo.file_id)
-    # telegram_file_path = file_info.file_path
-
-    file_in_io = io.BytesIO()
-
-    if not message.bot:
-        return
-
-    await message.bot.download(photo, destination=file_in_io)
-    file_bytes = file_in_io.getvalue()
-
-    process_receipt_task.delay(
-        chat_id=message.chat.id,
-        db_user_id=user.id,
-        # file_id=photo.file_id,
-        locale=user_locale,
-        image_bytes=file_bytes,
-        # file_path = file_info.file_path  # Передаем путь(to improve productivity)
-    )
-
-    await message.answer(
-        "⏳  Чек принят на анализ, это займет несколько секунд...",
-        reply_markup=get_main_menu(),
-    )
-    await state.clear()
+# @ai_router.message(F.photo, AIState.waiting_for_receipt)
+# async def handle_receipt_photo(
+#     message: Message, state: FSMContext, session: AsyncSession
+# ):
+#     if not message.from_user:
+#         return
+#
+#     user = await get_user_by_id(session, message.from_user.id)
+#
+#     if not user:
+#         logger.error("User with id {} not found in database", message.from_user.id)
+#         return
+#
+#     user_locale = user.language_code
+#
+#     if not message.photo:
+#         return
+#
+#     photo = message.photo[-1]
+#
+#     # 2. Запрашиваем инфо о файле СРАЗУ в основном цикле бота (to improve productivity)
+#     # file_info = await message.bot.get_file(photo.file_id)
+#     # telegram_file_path = file_info.file_path
+#
+#     file_in_io = io.BytesIO()
+#
+#     if not message.bot:
+#         return
+#
+#     await message.bot.download(photo, destination=file_in_io)
+#     file_bytes = file_in_io.getvalue()
+#
+#     process_receipt_task.delay(
+#         chat_id=message.chat.id,
+#         db_user_id=user.id,
+#         # file_id=photo.file_id,
+#         locale=user_locale,
+#         image_bytes=file_bytes,
+#         # file_path = file_info.file_path  # Передаем путь(to improve productivity)
+#     )
+#
+#     await message.answer(
+#         "⏳  Чек принят на анализ, это займет несколько секунд...",
+#         reply_markup=get_main_menu(),
+#     )
+#     await state.clear()
 
 
 @ai_router.message(I18nTextFilter("data entry"), AIState.waiting_for_request)

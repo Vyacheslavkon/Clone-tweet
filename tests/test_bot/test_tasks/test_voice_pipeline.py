@@ -201,7 +201,6 @@ async def test_delete_check_idempotency_on_double_click(
         session=test_session_for_pipeline,
         user_id=user_for_pipeline.id,
         analysis_result=data_transaction_ai,
-        photo_url="http://fake.url",
         raw_text=data_transaction_ai.model_dump_json(),
         batch_id=test_batch_id,
     )
