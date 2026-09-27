@@ -24,7 +24,8 @@ async def handle_delete_today_request(message: Message, session: AsyncSession, s
     if not user:
         return
 
-    transactions = await get_today_transactions(session, user.id)
+    #transactions = await get_today_transactions(session, user.id)
+    transactions = await get_today_transactions(session, user.id, user.timezone) # test
 
     if not transactions:
         await message.answer(_("You have no transactions logged today. 🤷"))
@@ -44,13 +45,18 @@ async def handle_delete_today_request(message: Message, session: AsyncSession, s
     ]
 
     await state.set_state(DeleteTodayState.browsing)
-    await state.update_data(tx_data=tx_data, current_index=0)
+    #await state.update_data(tx_data=tx_data, current_index=0)
+    await state.update_data(tx_data=tx_data, current_index=0, user_timezone=user.timezone)# test
 
     await message.answer(
-        format_transaction_card(tx_data[0], _),
+        #format_transaction_card(tx_data[0], _),
+        format_transaction_card(tx_data[0], _, user_timezone=user.timezone),# test
         reply_markup=get_transaction_carousel_keyboard(tx_data, 0, _),
         parse_mode="HTML",
     )
+
+
+
 
 
 @router_del_transactions.callback_query(F.data.startswith("tx_nav:"), DeleteTodayState.browsing)
@@ -63,11 +69,13 @@ async def handle_carousel_navigation(callback: CallbackQuery, state: FSMContext)
     new_index = int(raw_index)
     data = await state.get_data()
     tx_data = data["tx_data"]
+    user_timezone = data.get("user_timezone", "UTC") #test
 
     await state.update_data(current_index=new_index)
 
     await callback.message.edit_text(
-        format_transaction_card(tx_data[new_index], _),
+        #format_transaction_card(tx_data[new_index], _),
+        format_transaction_card(tx_data[new_index], _, user_timezone=user_timezone),# test
         reply_markup=get_transaction_carousel_keyboard(tx_data, new_index, _),
         parse_mode="HTML",
     )
@@ -95,7 +103,8 @@ async def handle_carousel_delete(
         logger.error("Failed to invalidate cache: {error}", error=e)
 
     data = await state.get_data()
-    tx_data = [tx for tx in data["tx_data"] if tx["id"] != tx_id]  # убираем удалённую из локального списка
+    tx_data = [tx for tx in data["tx_data"] if tx["id"] != tx_id]
+    user_timezone = data.get("user_timezone", "UTC")  # test
 
     if not tx_data:
         await callback.message.edit_text(_("✅ Deleted. No more transactions for today."))
@@ -107,7 +116,8 @@ async def handle_carousel_delete(
     await state.update_data(tx_data=tx_data, current_index=current_index)
 
     await callback.message.edit_text(
-        format_transaction_card(tx_data[current_index], _),
+        #format_transaction_card(tx_data[current_index], _),
+        format_transaction_card(tx_data[current_index], _, user_timezone=user_timezone),  # test
         reply_markup=get_transaction_carousel_keyboard(tx_data, current_index, _),
         parse_mode="HTML",
     )

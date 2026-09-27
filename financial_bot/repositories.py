@@ -12,7 +12,7 @@ from financial_bot.exceptions import UserNotFoundError
 from financial_bot.models import TransactionItems, Transactions, UserBot
 from financial_bot.schemas import AddData, CreateUser, Plan
 from services.schemas import ReceiptListAnalysisSchema
-
+from financial_bot.general_utils import get_today_boundaries_utc
 
 async def create_user(session: AsyncSession, data: CreateUser):
 
@@ -546,16 +546,18 @@ async def blocked_users_bulk(session: AsyncSession, tg_ids: list[int]) -> None:
     await session.execute(stmt)
 
 
-async def get_today_transactions(session: AsyncSession, user_id: int) -> list[Transactions]:
-    today_start = datetime.combine(datetime.now(timezone.utc).date(), time.min, tzinfo=timezone.utc)
-    today_end = datetime.combine(datetime.now(timezone.utc).date(), time.max, tzinfo=timezone.utc)
+#new
+async def get_today_transactions(
+    session: AsyncSession, user_id: int, user_timezone: str = "UTC"
+) -> list[Transactions]:
+    today_start_utc, today_end_utc = get_today_boundaries_utc(user_timezone)
 
     query = (
         select(Transactions)
-        .options(selectinload(Transactions.items)) # new
+        .options(selectinload(Transactions.items))
         .where(
             Transactions.user_id == user_id,
-            Transactions.created_at.between(today_start, today_end),
+            Transactions.created_at.between(today_start_utc, today_end_utc),
         )
         .order_by(Transactions.created_at.desc())
     )

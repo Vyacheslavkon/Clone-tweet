@@ -50,3 +50,17 @@ def request_ai():
     builder.row(KeyboardButton(text=_("cancel")))
 
     return builder.as_markup(resize_keyboard=True)
+
+
+
+def settings():
+    builder = ReplyKeyboardBuilder()
+    builder.row(
+        KeyboardButton(text=_("Change timezone")),
+        KeyboardButton(text=_("Change language"))
+
+    )
+
+    builder.row(KeyboardButton(text=_("cancel")))
+
+    return builder.as_markup(resize_keyboard=True)

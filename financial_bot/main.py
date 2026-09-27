@@ -21,6 +21,7 @@ from financial_bot.handlers.history import history_rout
 from financial_bot.handlers.reports import report_rout
 from financial_bot.handlers.transactions import router_tr
 from financial_bot.handlers.del_transactions import router_del_transactions
+from financial_bot.handlers.settings import settings_router
 from financial_bot.middlewares import (
     MyI18nMiddleware,
     SessionMiddleware,
@@ -76,6 +77,7 @@ async def main():
     dp.include_router(history_rout)
     dp.include_router(ai_router)
     dp.include_router(router_del_transactions)
+    dp.include_router(settings_router)
     dp.include_router(router_fallback)
 
 

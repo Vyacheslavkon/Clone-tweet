@@ -1,11 +1,13 @@
 import calendar
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, time
+from zoneinfo import ZoneInfo
+
 from decimal import Decimal, InvalidOperation
 
 from aiogram.utils.i18n import get_i18n
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.i18n import gettext as global_gettext
-
+from loguru import logger
 from financial_bot.models import Transactions
 from financial_bot.schemas import Plan
 
@@ -266,15 +268,26 @@ def get_category_display(category: str, _) -> str:
     return f"{emoji} {_(category.capitalize())}"
 
 
-def format_transaction_card(tx: dict, _) -> str:
+
+def to_local_time(dt_utc: datetime, user_timezone: str = "UTC") -> datetime:
+    """Конвертирует UTC datetime в локальное время пользователя для отображения."""
+    try:
+        tz = ZoneInfo(user_timezone)
+    except Exception:
+        return dt_utc
+    return dt_utc.astimezone(tz)
+
+
+def format_transaction_card(tx: dict, _, user_timezone: str = "UTC") -> str:
     sign = "+" if tx["type"] == "income" else "-"
     created_at = datetime.fromisoformat(tx["created_at"])
+    local_time = to_local_time(created_at, user_timezone)
     category_display = get_category_display(tx["category"], _)
 
     lines = [
         f"<b>{category_display}</b>",
         f"{sign}{tx['amount']:.0f} ₽",
-        f"🕐 {created_at:%H:%M}",
+        f"🕐 {local_time:%H:%M}" # test
     ]
 
 
@@ -288,4 +301,13 @@ def format_transaction_card(tx: dict, _) -> str:
         lines.append(f"🛒 {items_text}")
 
     return "\n".join(lines)
+
+
+def is_valid_timezone(tz_value: str) -> bool:
+    try:
+        ZoneInfo(tz_value)
+        return True
+    except Exception:
+        return False
+
 

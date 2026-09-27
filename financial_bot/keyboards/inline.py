@@ -5,6 +5,7 @@ from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from financial_bot.filters import DeleteTransactionCallback
+from financial_bot.general_utils import POPULAR_TIMEZONES
 from financial_bot.models import Transactions
 
 
@@ -33,34 +34,6 @@ def get_type():
     builder.attach(cancel_builder)
     return builder.as_markup()
 
-
-# def get_category(type_transaction: str):
-#
-#     if type_transaction == "income":
-#         categories = [_("Salary"), _("Bonus"), _("Gift"), _("Deal"), _("Other")]
-#     else:
-#         categories = [
-#             _("Food"),
-#             _("Home"),
-#             _("Entertainment"),
-#             _("Transport"),
-#             _("Health"),
-#             _("Other"),
-#         ]
-#     builder = InlineKeyboardBuilder()
-#
-#     for cat in categories:
-#         builder.add(
-#             InlineKeyboardButton(text=_(cat), callback_data=f"cat_{cat.lower()}")
-#         )
-#     builder.adjust(2)
-#
-#     back_builder = get_back_kb()
-#     cancel_builder = cancel()
-#     builder.attach(back_builder)
-#     builder.attach(cancel_builder)
-#
-#     return builder.as_markup()
 
 
 def get_category(type_transaction: str):
@@ -191,5 +164,17 @@ def get_transaction_carousel_keyboard(
         )
     )
     builder.row(InlineKeyboardButton(text=_("Close"), callback_data="tx_close"))
+
+    return builder.as_markup()
+
+
+def get_timezone_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for tz_value, tz_label in POPULAR_TIMEZONES:
+        builder.row(InlineKeyboardButton(text=tz_label, callback_data=f"set_tz:{tz_value}"))
+
+    builder.row(
+        InlineKeyboardButton(text=_("✏️ Enter manually"), callback_data="set_tz_manual")# new
+    )
 
     return builder.as_markup()
