@@ -1,6 +1,6 @@
 import calendar
 from datetime import datetime, timedelta, timezone, time
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from decimal import Decimal, InvalidOperation
 
@@ -268,14 +268,23 @@ def get_category_display(category: str, _) -> str:
     return f"{emoji} {_(category.capitalize())}"
 
 
+def _load_zone(tz_value: str) -> ZoneInfo | None:
+
+    try:
+        return ZoneInfo(tz_value)
+    except (ZoneInfoNotFoundError, ValueError, OSError):
+
+        return None
+
 
 def to_local_time(dt_utc: datetime, user_timezone: str = "UTC") -> datetime:
-    """Конвертирует UTC datetime в локальное время пользователя для отображения."""
-    try:
-        tz = ZoneInfo(user_timezone)
-    except Exception:
-        return dt_utc
-    return dt_utc.astimezone(tz)
+
+    tz = _load_zone(user_timezone)
+    return dt_utc.astimezone(tz) if tz else dt_utc
+
+
+
+
 
 
 def format_transaction_card(tx: dict, _, user_timezone: str = "UTC") -> str:
@@ -304,10 +313,9 @@ def format_transaction_card(tx: dict, _, user_timezone: str = "UTC") -> str:
 
 
 def is_valid_timezone(tz_value: str) -> bool:
-    try:
-        ZoneInfo(tz_value)
-        return True
-    except Exception:
-        return False
+
+    return _load_zone(tz_value) is not None
+
+
 
 

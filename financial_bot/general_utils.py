@@ -32,3 +32,10 @@ POPULAR_TIMEZONES = [
     ("Asia/Dubai", "🇦🇪 Dubai (UTC+4)"),
     ("Asia/Almaty", "🇰🇿 Алматы (UTC+5)"),
 ]
+
+
+SUPPORTED_LANGUAGES = [
+    ("en", "🇬🇧 English"),
+    ("ru", "🇷🇺 Русский"),
+]
+SUPPORTED_LANGUAGE_CODES = {code for code, _label in SUPPORTED_LANGUAGES}

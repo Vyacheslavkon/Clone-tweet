@@ -66,8 +66,11 @@ async def main():
     dp["cache_service"] = cache_service
     dp.message.outer_middleware(SessionMiddleware(session_pool))
     dp.callback_query.outer_middleware(SessionMiddleware(session_pool))
+    i18n_mw = MyI18nMiddleware(i18n=i18n)#new
+    dp.message.outer_middleware(i18n_mw)#new
+    dp.callback_query.outer_middleware(i18n_mw)#new
     dp.errors.middleware(SimpleI18nMiddleware(i18n))
-    dp.message.middleware(MyI18nMiddleware(i18n=i18n))
+    #dp.message.middleware(MyI18nMiddleware(i18n=i18n))
     dp.update.outer_middleware(SimpleI18nMiddleware(i18n))
     dp.update.outer_middleware(UserActivityMiddleware())
     dp.include_router(router)

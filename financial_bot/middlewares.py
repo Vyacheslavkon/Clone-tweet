@@ -11,33 +11,6 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from financial_bot.repositories import get_user_by_id
 
 
-# class SessionMiddleware(BaseMiddleware):
-#
-#     def __init__(self, session_pool: async_sessionmaker | AsyncSession):
-#         self.session_pool = session_pool
-#
-#     async def __call__(
-#         self,
-#         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-#         event: TelegramObject,
-#         data: Dict[str, Any],
-#     ) -> Any:
-#
-#         if isinstance(self.session_pool, AsyncSession):
-#             data["session"] = self.session_pool
-#
-#             return await handler(event, data)
-#
-#         async with self.session_pool() as session:
-#
-#             data["session"] = session
-#
-#             try:
-#                 return await handler(event, data)
-#             except Exception:
-#                 await session.rollback()
-#                 raise
-
 
 class SessionMiddleware(BaseMiddleware):
     def __init__(self, session_pool: async_sessionmaker | AsyncSession | None = None):
@@ -65,7 +38,7 @@ class SessionMiddleware(BaseMiddleware):
 class MyI18nMiddleware(I18nMiddleware):
 
     async def get_locale(self, event: TelegramObject, data: Dict[str, Any]) -> str:
-        # session = data.get("session")
+
         session: Optional[AsyncSession] = data.get("session")
 
         if isinstance(event, (Message, CallbackQuery)) and event.from_user:

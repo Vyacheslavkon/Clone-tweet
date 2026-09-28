@@ -5,8 +5,7 @@ from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from financial_bot.filters import DeleteTransactionCallback
-from financial_bot.general_utils import POPULAR_TIMEZONES
-from financial_bot.models import Transactions
+from financial_bot.general_utils import POPULAR_TIMEZONES, SUPPORTED_LANGUAGES
 
 
 def cancel():
@@ -176,5 +175,15 @@ def get_timezone_keyboard() -> InlineKeyboardMarkup:
     builder.row(
         InlineKeyboardButton(text=_("✏️ Enter manually"), callback_data="set_tz_manual")# new
     )
+
+    return builder.as_markup()
+
+
+def get_language_keyboard() -> InlineKeyboardMarkup:
+
+    builder = InlineKeyboardBuilder()
+
+    for code, label in SUPPORTED_LANGUAGES:
+        builder.row(InlineKeyboardButton(text=label, callback_data=f"set_lang:{code}"))
 
     return builder.as_markup()

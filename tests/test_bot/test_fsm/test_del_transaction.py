@@ -1,6 +1,5 @@
-from datetime import datetime, timezone
-from financial_bot.handlers.utils import  to_local_time, is_valid_timezone, format_transaction_card
-from financial_bot.general_utils import get_today_boundaries_utc
+from financial_bot.handlers.utils import format_transaction_card
+
 
 
 def test_format_transaction_card_with_timezone(test_i18n):
@@ -26,8 +25,7 @@ def test_format_transaction_card_shows_manual_description(test_i18n):
 
 
 def test_format_transaction_card_hides_type_leaked_as_description(test_i18n):
-    """Регрессионный тест на баг, который вы нашли: description не должен
-    показываться, если туда случайно попало 'expense'/'income'."""
+
     tx = {
         "category": "food", "amount": 500.0, "type": "expense",
         "created_at": "2026-09-24T20:00:00+00:00",

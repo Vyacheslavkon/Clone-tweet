@@ -2,11 +2,14 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.i18n import gettext as _
+from aiogram.utils.i18n.context import get_i18n
+from redis import RedisError
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
 from financial_bot.filters import I18nTextFilter
-from financial_bot.keyboards.inline import get_timezone_keyboard
+from financial_bot.general_utils import SUPPORTED_LANGUAGE_CODES
+from financial_bot.keyboards.inline import get_timezone_keyboard, get_language_keyboard
 from financial_bot.keyboards.reply import settings, get_main_menu
 from financial_bot.repositories import (
     get_user_by_id,
@@ -52,7 +55,7 @@ async def handle_timezone_selection(
 
     try:
         await cache_service.invalidate_user_cache(user_id=user.id)
-    except Exception as e:
+    except RedisError as e:
         logger.error("Failed to invalidate cache after timezone change: {error}", error=e)
 
     #await callback.message.edit_text(_("✅ Timezone updated to {tz}").format(tz=tz_value))
@@ -135,4 +138,45 @@ async def _apply_timezone(
         logger.error("Failed to invalidate cache after timezone change: {error}", error=e)
 
     await callback.message.edit_text(_("✅ Timezone updated to {tz}").format(tz=tz_value))
+    await callback.answer()
+
+
+
+@settings_router.message(I18nTextFilter("Change language"))
+async def handle_language_settings(message: Message):
+    await message.answer(_("Select your language:"), reply_markup=get_language_keyboard())
+
+
+@settings_router.callback_query(F.data.startswith("set_lang:"))
+async def handle_language_selection(
+    callback: CallbackQuery, session: AsyncSession, cache_service: FinancialCacheService
+):
+    lang = callback.data.split(":", 1)[1]
+
+    # callback_data можно подделать, поэтому белый список обязателен
+    if lang not in SUPPORTED_LANGUAGE_CODES:
+        await callback.answer(_("Unsupported language."), show_alert=True)
+        return
+
+    user = await get_user_by_id(session, callback.from_user.id)
+    if not user:
+        await callback.answer()
+        return
+
+    user.language_code = lang
+    await session.commit()
+
+    try:
+        await cache_service.invalidate_user_cache(user_id=user.id)
+    except RedisError as e:
+        logger.error("Failed to invalidate cache after language change: {error}", error=e)
+
+    # Текущий апдейт обрабатывается в СТАРОЙ локали, поэтому подтверждение
+    # и клавиатуру строим явно в новой.
+    with get_i18n().use_locale(lang):
+        confirmation = _("✅ Language updated")
+        menu = get_main_menu()
+
+    await callback.message.edit_text(confirmation)
+    await callback.message.answer(confirmation, reply_markup=menu)
     await callback.answer()
