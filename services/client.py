@@ -8,7 +8,7 @@ from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from services.prompts import get_voice_message, get_analysis_financial
+from services.prompts import get_voice_message, get_analysis_financial, language_name
 from services.exceptions import TruncatedResponseError
 
 load_dotenv()
@@ -87,6 +87,51 @@ class AIService:
             text=user_text, response_schema=response_schema, locale=locale
         )
 
+    @staticmethod
+    def build_user_context(summary_data: dict, locale: str) -> str:
+        config = summary_data.get("user_config", {})
+        currency = config.get("currency") or "USD"  # код валюты, не "руб."
+
+        categories_block = "\n".join(
+            f"- {c['category']}: {c['amount']} {currency} ({c['count']} transactions)"
+            for c in summary_data.get("categories", [])
+        )
+        items_block = "\n".join(
+            f"- Date: {i['date']} | {i['name']} | Amount: {i['total_amount']} {currency} "
+            f"| DB category: {i['category']}"
+            for i in summary_data.get("top_items", [])
+        )
+
+        config_lines = [f"- User currency: {currency}"]
+        if config.get("monthly_budget"):
+            config_lines.append(f"- Monthly spending limit: {config['monthly_budget']} {currency}")
+            config_lines.append(f"- Budget reminder threshold: {config['budget_remind_percent']}%")
+        if config.get("savings_goal"):
+            config_lines.append(f"- Monthly savings goal: {config['savings_goal']} {currency}")
+
+        return f"""
+    Analysis period: {summary_data['days_period']} days.
+    Total income: {summary_data.get('total_income', 0.0)} {currency}.
+    Total expenses: {summary_data['total_amount']} {currency} (use this number as final and unchanged in the total field).
+    Net balance (income - expenses): {summary_data.get('net_balance', 0.0)} {currency}.
+    Number of expense transactions: {summary_data['total_count']}.
+
+    === USER FINANCIAL SETTINGS AND GOALS ===
+    {chr(10).join(config_lines)}
+
+    === EXPENSES BY DB CATEGORY ===
+    {categories_block}
+
+    === CHRONOLOGICAL PURCHASES FROM RECEIPTS (GROUP SEMANTICALLY YOURSELF) ===
+    {items_block}
+
+    Use only the figures above. Do not round them or recompute totals.
+    Only the HTML tags <b>, <i>, <code> are allowed, without attributes.
+
+    RESPONSE LANGUAGE: write every free-text field strictly in {language_name(locale)}, even though
+    item names above may be in another language. Translate common item names into
+    {language_name(locale)}; keep brand names unchanged.
+    """
 
     async def analysis_financial(
             self,
@@ -95,59 +140,16 @@ class AIService:
             days: int,
             actual_days: int,
             locale: str
-    ) -> dict:
+    ) -> Type[BaseModel] | dict:
 
         if not summary_data:
             return {"error": "no_data"}
 
-
-        categories_block = "\n".join([
-            f"- {cat['category']}: {cat['amount']} руб. ({cat['count']} шт.)"
-            for cat in summary_data.get("categories", [])
-        ])
-
-
-        items_block = "\n".join([
-            f"- Дата: {item['date']} | {item['name']} | Цена: {item['total_amount']} руб. | Категория в БД: {item['category']}"
-            for item in summary_data.get("top_items", [])
-        ])
-
-
-        config = summary_data.get("user_config", {})
-        currency = config.get("currency", "руб.")
-
-        config_lines = [f"- Валюта пользователя: {currency}"]
-        if config.get("monthly_budget"):
-            config_lines.append(f"- Месячный лимит расходов: {config['monthly_budget']} {currency}")
-            config_lines.append(f"- Процент напоминания о бюджете: {config['budget_remind_percent']}%")
-        if config.get("savings_goal"):
-            config_lines.append(f"- Цель по сбережениям на месяц: {config['savings_goal']} {currency}")
-
-        config_block = "\n".join(config_lines)
-
-
-        user_context = f"""
-           Период анализа: {summary_data['days_period']} дней.
-           Всего получено доходов: {summary_data.get('total_income', 0.0)} {currency}.
-           Всего потрачено расходов: {summary_data['total_amount']} {currency} (Используй это число как финальное и неизменное в поле общего итога).
-           Чистый баланс за период (Доходы - Расходы): {summary_data.get('net_balance', 0.0)} {currency}.
-           Количество расходных транзакций: {summary_data['total_count']}.
-
-           === ФИНАНСОВЫЕ НАСТРОЙКИ И ЦЕЛИ ПОЛЬЗОВАТЕЛЯ ===
-           {config_block}
-
-           === РАСПРЕДЕЛЕНИЕ РАСХОДОВ ПО КАТЕГОРИЯМ В БД ===
-           {categories_block}
-
-           === ХРОНОЛОГИЧЕСКИЙ ПОТОК ПОКУПОК ИЗ ЧЕКОВ (СГРУППИРУЙ СЕМАНТИЧЕСКИ САМОСТОЯТЕЛЬНО) ===
-           {items_block}
-
-           В отчете используй только указанные выше цифры. Не округляй их и не пытайся пересчитать общую сумму расходов, доходов или баланса самостоятельно.
-           В тексте отчета запрещено использовать любые HTML теги, кроме <b>, <i>, <code>. Использование тегов с атрибутами (например, class или style) строго табуировано.
-           """
+        user_context = self.build_user_context(summary_data, locale)
 
         completion = await self.client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
+            #model="gpt-4o-mini",
+            model=self.model,
             messages=[
                 {"role": "system", "content": get_analysis_financial(days, actual_days, locale)},
                 {"role": "user", "content": user_context}
@@ -157,6 +159,77 @@ class AIService:
         )
 
         return completion.choices[0].message.parsed
+
+
+    # async def analysis_financial(
+    #         self,
+    #         response_schema: Type[BaseModel],
+    #         summary_data: dict,
+    #         days: int,
+    #         actual_days: int,
+    #         locale: str
+    # ) -> dict:
+    #
+    #     if not summary_data:
+    #         return {"error": "no_data"}
+    #
+    #
+    #     categories_block = "\n".join([
+    #         f"- {cat['category']}: {cat['amount']} руб. ({cat['count']} шт.)"
+    #         for cat in summary_data.get("categories", [])
+    #     ])
+    #
+    #
+    #     items_block = "\n".join([
+    #         f"- Дата: {item['date']} | {item['name']} | Цена: {item['total_amount']} руб. | Категория в БД: {item['category']}"
+    #         for item in summary_data.get("top_items", [])
+    #     ])
+    #
+    #
+    #     config = summary_data.get("user_config", {})
+    #     currency = config.get("currency", "руб.")
+    #
+    #     config_lines = [f"- Валюта пользователя: {currency}"]
+    #     if config.get("monthly_budget"):
+    #         config_lines.append(f"- Месячный лимит расходов: {config['monthly_budget']} {currency}")
+    #         config_lines.append(f"- Процент напоминания о бюджете: {config['budget_remind_percent']}%")
+    #     if config.get("savings_goal"):
+    #         config_lines.append(f"- Цель по сбережениям на месяц: {config['savings_goal']} {currency}")
+    #
+    #     config_block = "\n".join(config_lines)
+    #
+    #
+    #     user_context = f"""
+    #        Период анализа: {summary_data['days_period']} дней.
+    #        Всего получено доходов: {summary_data.get('total_income', 0.0)} {currency}.
+    #        Всего потрачено расходов: {summary_data['total_amount']} {currency} (Используй это число как финальное и неизменное в поле общего итога).
+    #        Чистый баланс за период (Доходы - Расходы): {summary_data.get('net_balance', 0.0)} {currency}.
+    #        Количество расходных транзакций: {summary_data['total_count']}.
+    #
+    #        === ФИНАНСОВЫЕ НАСТРОЙКИ И ЦЕЛИ ПОЛЬЗОВАТЕЛЯ ===
+    #        {config_block}
+    #
+    #        === РАСПРЕДЕЛЕНИЕ РАСХОДОВ ПО КАТЕГОРИЯМ В БД ===
+    #        {categories_block}
+    #
+    #        === ХРОНОЛОГИЧЕСКИЙ ПОТОК ПОКУПОК ИЗ ЧЕКОВ (СГРУППИРУЙ СЕМАНТИЧЕСКИ САМОСТОЯТЕЛЬНО) ===
+    #        {items_block}
+    #
+    #        В отчете используй только указанные выше цифры. Не округляй их и не пытайся пересчитать общую сумму расходов, доходов или баланса самостоятельно.
+    #        В тексте отчета запрещено использовать любые HTML теги, кроме <b>, <i>, <code>. Использование тегов с атрибутами (например, class или style) строго табуировано.
+    #        """
+    #
+    #     completion = await self.client.beta.chat.completions.parse(
+    #         model="gpt-4o-mini",
+    #         messages=[
+    #             {"role": "system", "content": get_analysis_financial(days, actual_days, locale)},
+    #             {"role": "user", "content": user_context}
+    #         ],
+    #         response_format=response_schema,
+    #         temperature=0.0
+    #     )
+    #
+    #     return completion.choices[0].message.parsed
 
 
 ai_service = AIService(api_key=proxy_api_key, base_url=proxy_base_url)

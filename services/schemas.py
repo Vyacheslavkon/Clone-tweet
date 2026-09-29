@@ -177,7 +177,7 @@ class MonthlyAnalysisResponse(BaseModel):
                     "CRITICAL: You are STRICTLY FORBIDDEN from generating or writing any percentage values (do NOT use the '%' symbol at all) "
                     "or calculating new balance numbers. Focus entirely on behavioral trends, lifestyle coaching, "
                     "and conceptual budget evaluation using ONLY the raw numbers passed in the context. "
-                    "Written strictly in the user's language."
+                    "Written in the response language."
     )
 
     budget_status: str = Field(
@@ -205,62 +205,103 @@ class MonthlyAnalysisResponse(BaseModel):
 
 
 
+# class AnalyzedItem(BaseModel):
+#     name: str = Field(description="Название конкретного товара из чека (например, 'Зубная паста') "
+#                      "ИЛИ название категории расходов, если детализация по товарам отсутствует (например, 'Транспорт', 'Продукты').")
+#
+#
+#     expense_type: str = Field(
+#
+#         description="Строго один из двух вариантов:\n"
+#                     "1. 'essential' (Жизненно важно: лекарства, базовая медицина, аренда, детские и школьные товары в том числе канцелярия, коммунальные услуги, ремонт критических поломок).\n"
+#                     "2. 'discretionary' (Гибкие траты: кофе на вынос, рестораны, такси повышенного класса, игры, подписки, хобби, декор, спонтанные покупки)."
+#     )
+#
+#     frequency_metric: str = Field(
+#         description=" Показатель частоты транзакций для каждого товара или категории расходов за прошедшие дни недели. "
+#                     "Формат строго: 'Х транзакций за прошедшие дни недели'."
+#
+#     )
+#
+#
+#
+# class TargetRecommendation(BaseModel):
+#
+#     target_item: str = Field(
+#         description="Название конкретного товара, услуги, привычки или категории расходов (из поля 'name' в 'top_items'), которая оптимизируется"
+#     )
+#     reason: str = Field(
+#         description="Аргументированный совет, почему и как можно оптимизировать расходы на этот товар или категорию."
+#     )
+#     potential_saving: str = Field(
+#         description="Оценка потенциала экономии в свободной форме."
+#     )
+#
+#
+#
+# class WeeklyAnalysisResponse(BaseModel):
+#     summary: str = Field(
+#         description="Краткий оперативный аудит финансового поведения за прошедшую неделю (до 4 предложений). "
+#                     "Оцени общий баланс недели ('net_balance') относительно доходов. "
+#                     "Укажи, удается ли пользователю держать баланс в плюсе. "
+#                     "ВАЖНО: Копируй числовые агрегаты строго из 'user_context' без изменений и округлений!"
+#     )
+#
+#     weekly_balance_status: str = Field(
+#         description="Короткий вердикт на текущий момент недели. Примеры: 'Расходы превысили доходы', 'Дисциплина на высоте! 🔥'"
+#
+#     )
+#
+#     classified_items: List[AnalyzedItem] = Field(
+#         description="Классификация топ-товаров пользователя за неделю по типу важности")
+#
+#     recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов СТРОГО по конкретным позициям трат (labels)")
+
 class AnalyzedItem(BaseModel):
-    name: str = Field(description="Название конкретного товара из чека (например, 'Зубная паста') "
-                     "ИЛИ название категории расходов, если детализация по товарам отсутствует (например, 'Транспорт', 'Продукты').")
+    name: str = Field(
+        description="The name of a specific item from the receipt (e.g., 'Toothpaste') "
+                    "OR the name of the expense category if itemized details are missing (e.g., 'Transport', 'Groceries')."
+    )
 
-    #original_category: str = Field(description="Категория из БД бота (food, home, health и т.д.)")
     expense_type: str = Field(
-
-        description="Строго один из двух вариантов:\n"
-                    "1. 'essential' (Жизненно важно: лекарства, базовая медицина, аренда, детские и школьные товары в том числе канцелярия, коммунальные услуги, ремонт критических поломок).\n"
-                    "2. 'discretionary' (Гибкие траты: кофе на вынос, рестораны, такси повышенного класса, игры, подписки, хобби, декор, спонтанные покупки)."
+        description="Strictly one of two options:\n"
+                    "1. 'essential' (Vital expenses: medications, basic healthcare, rent, children's and school items including stationery, utilities, repairs of critical breakdowns).\n"
+                    "2. 'discretionary' (Flexible spending: takeout coffee, restaurants, premium-class taxis, games, subscriptions, hobbies, home decor, impulse purchases)."
     )
 
     frequency_metric: str = Field(
-        description=" Показатель частоты транзакций для каждого товара или категории расходов за прошедшие дни недели. "
-                    "Формат строго: 'Х транзакций за прошедшие дни недели'."
-
+        description="The transaction frequency metric for each item or expense category over the past days of the week. "
+                    "Strict format: 'X transactions over the past days of the week'."
     )
-
 
 
 class TargetRecommendation(BaseModel):
-    # name: str = Field(
-    #     description="Название конкретного товара из чека (например, 'Зубная паста') "
-    #                 "ИЛИ название категории расходов, если детализация по товарам отсутствует (например, 'Транспорт', 'Продукты')."
-    # )
-    # expense_type: str = Field(
-    #     description="Строго один из двух вариантов:\n"
-    #                 "1. 'essential' (Жизненно важно: лекарства, коммунальные услуги, базовые продукты).\n"
-    #                 "2. 'discretionary' (Гибкие траты: кофе, рестораны, развлечения)."
-    # )
     target_item: str = Field(
-        description="Название конкретного товара, услуги, привычки или категории расходов (из поля 'name' в 'top_items'), которая оптимизируется"
+        description="The name of the specific item, service, habit, or expense category (from the 'name' field in 'top_items') that is being optimized."
     )
     reason: str = Field(
-        description="Аргументированный совет, почему и как можно оптимизировать расходы на этот товар или категорию."
+        description="A well-argued advice explaining why and how spending on this item or category can be optimized."
     )
     potential_saving: str = Field(
-        description="Оценка потенциала экономии в свободной форме."
+        description="An estimate of the potential savings in a free-text format."
     )
-
 
 
 class WeeklyAnalysisResponse(BaseModel):
     summary: str = Field(
-        description="Краткий оперативный аудит финансового поведения за прошедшую неделю (до 4 предложений). "
-                    "Оцени общий баланс недели ('net_balance') относительно доходов. "
-                    "Укажи, удается ли пользователю держать баланс в плюсе. "
-                    "ВАЖНО: Копируй числовые агрегаты строго из 'user_context' без изменений и округлений!"
+        description="Short operational audit of the user's financial behavior for the current week "
+                    "(up to 4 sentences). Evaluate the week's net balance ('net_balance') relative to income "
+                    "and say whether the user keeps the balance positive. "
+                    "IMPORTANT: copy numeric aggregates from 'user_context' exactly, without changes or rounding. "
+                    "Written in the response language."
     )
-
     weekly_balance_status: str = Field(
-        description="Короткий вердикт на текущий момент недели. Примеры: 'Расходы превысили доходы', 'Дисциплина на высоте! 🔥'"
-
+        description="Short verdict on the week so far, written in the response language. "
+                    "Examples: 'Expenses exceeded income', 'Great discipline! 🔥'."
     )
-
     classified_items: List[AnalyzedItem] = Field(
-        description="Классификация топ-товаров пользователя за неделю по типу важности")
-
-    recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов СТРОГО по конкретным позициям трат (labels)")
+        description="Classification of the user's top items this week by importance"
+    )
+    recommendations: List[TargetRecommendation] = Field(
+        description="2-3 targeted tips STRICTLY about specific spending items (labels)"
+    )
