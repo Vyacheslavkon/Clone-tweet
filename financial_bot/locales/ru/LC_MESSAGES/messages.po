@@ -665,7 +665,7 @@ msgstr "• Расходы за период отсутствуют"
 
 #: services/utils_pipelines.py:183
 msgid "transaction(s)"
-msgstr "транзакции(я/й)"
+msgstr "раз(а)"
 
 #: services/utils_pipelines.py:253
 msgid "🧾 <b>Detailed Transaction History</b>\n"

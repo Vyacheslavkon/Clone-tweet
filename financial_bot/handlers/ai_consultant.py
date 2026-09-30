@@ -104,9 +104,9 @@ async def handle_voice_receipt(message: Message, session: AsyncSession, state: F
         process_expense_task.delay(
             chat_id=message.chat.id,
             db_user_id=user.id,
-            locale=user.language_code or "ru",
-            #locale=user.language_code or "en",#test
+            locale=user.language_code or "en",
             voice_file_path=local_file_path,
+            currency=user.currency,
             status_message_id=waiting_msg.message_id
         )
 

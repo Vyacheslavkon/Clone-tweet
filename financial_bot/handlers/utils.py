@@ -10,7 +10,7 @@ from aiogram.utils.i18n import gettext as global_gettext
 from loguru import logger
 from financial_bot.models import Transactions
 from financial_bot.schemas import Plan
-
+from financial_bot.general_utils import format_amount
 
 def check_value_budget(amount: str) -> Decimal | str:
     try:
@@ -287,7 +287,7 @@ def to_local_time(dt_utc: datetime, user_timezone: str = "UTC") -> datetime:
 
 
 
-def format_transaction_card(tx: dict, _, user_timezone: str = "UTC") -> str:
+def format_transaction_card(tx: dict, _, currency: str, user_timezone: str = "UTC") -> str:
     sign = "+" if tx["type"] == "income" else "-"
     created_at = datetime.fromisoformat(tx["created_at"])
     local_time = to_local_time(created_at, user_timezone)
@@ -295,8 +295,8 @@ def format_transaction_card(tx: dict, _, user_timezone: str = "UTC") -> str:
 
     lines = [
         f"<b>{category_display}</b>",
-        f"{sign}{tx['amount']:.0f} ₽",
-        f"🕐 {local_time:%H:%M}" # test
+        f"{sign}{format_amount(tx['amount'], currency)}",
+        f"🕐 {local_time:%H:%M}"
     ]
 
 

@@ -158,7 +158,6 @@ def get_transaction_carousel_keyboard(
     builder.row(
         InlineKeyboardButton(
             text=_("❌ Delete this transaction"),
-            #callback_data=f"tx_delete:{transactions[current_index].id}:{current_index}",
             callback_data=f"tx_delete:{transactions[current_index]["id"]}:{current_index}",
         )
     )

@@ -168,6 +168,7 @@ async def async_process_receipt(
         db_user_id: int,
         locale: str,
         voice_file_path: str,
+        currency: str,
         status_message_id: int = None
 ):
 
@@ -228,7 +229,7 @@ async def async_process_receipt(
             logger.error("Failed to invalidate cache: {error}", error=cache_err)
 
 
-        msg_text, localized_button_label = render_receipt_report(analysis_result, _)
+        msg_text, localized_button_label = render_receipt_report(analysis_result, _, currency)
 
         await _reply(
             bot, chat_id, status_message_id, msg_text,

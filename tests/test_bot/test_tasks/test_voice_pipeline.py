@@ -51,6 +51,7 @@ async def test_process_expense_task_writes_to_real_db(
             chat_id=chat_id,
             db_user_id=user_id,
             locale="en",
+            currency="USD",
             voice_file_path=audio_file,
             status_message_id=STATUS_MESSAGE_ID
         )
@@ -86,6 +87,7 @@ def test_process_expense_task_success(mock_proc_receipt, audio_file, celery_eage
         db_user_id=DB_USER_ID,
         locale="en",
         voice_file_path=audio_file,
+        currency="USD",
         status_message_id=STATUS_MESSAGE_ID,
     )
 
@@ -108,6 +110,7 @@ def test_process_expense_task_fails_after_exhausting_retries_on_openai_error(moc
         db_user_id=DB_USER_ID,
         locale="en",
         voice_file_path=audio_file,
+        currency="USD",
         status_message_id=STATUS_MESSAGE_ID,
 
     )
@@ -128,7 +131,7 @@ def test_task_keeps_file_between_retry_attempts(mock_proc_receipt, audio_file, c
 
     with pytest.raises(Retry):
         process_expense_task.apply(
-            args=(CHAT_ID, DB_USER_ID, "en", audio_file, STATUS_MESSAGE_ID),
+            args=(CHAT_ID, DB_USER_ID, "en", audio_file, "USD", STATUS_MESSAGE_ID),
             throw=True,
         )
 
@@ -145,7 +148,7 @@ def test_process_expense_task_network_error_no_db_session_opened(
     with pytest.raises(Retry):
         process_expense_task.delay(
             chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="en",
-            voice_file_path=audio_file, status_message_id=STATUS_MESSAGE_ID,
+            voice_file_path=audio_file, currency="USD", status_message_id=STATUS_MESSAGE_ID,
         )
 
     mock_isolated_session.assert_not_called()
@@ -177,6 +180,7 @@ def test_process_expense_task_garbage_audio_sends_joke_and_no_db_write(
         db_user_id=DB_USER_ID,
         locale="en",
         voice_file_path=audio_file,
+        currency="USD",
         status_message_id=STATUS_MESSAGE_ID,
     )
 
@@ -298,6 +302,7 @@ def test_all_amounts_non_positive_reports_no_transactions(
         db_user_id=DB_USER_ID,
         locale="",
         voice_file_path=audio_file,
+        currency="USD",
         status_message_id=STATUS_MESSAGE_ID,
     )
 
@@ -316,7 +321,7 @@ def test_missing_audio_file_fails_before_opening_db_session(
 ):
     result = process_expense_task.delay(
         chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="en",
-        voice_file_path="/nonexistent/path.ogg", status_message_id=STATUS_MESSAGE_ID,
+        voice_file_path="/nonexistent/path.ogg", currency="USD", status_message_id=STATUS_MESSAGE_ID,
     )
 
     assert result.failed()
@@ -361,6 +366,7 @@ def test_successful_save_survives_cache_invalidation_failure(
         db_user_id=DB_USER_ID,
         locale="en",
         voice_file_path=audio_file,
+        currency="USD",
         status_message_id=STATUS_MESSAGE_ID,
     )
 
@@ -382,7 +388,7 @@ def test_unexpected_error_fails_before_opening_db_session(
 
     result = process_expense_task.delay(
         chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="en",
-        voice_file_path=audio_file, status_message_id=STATUS_MESSAGE_ID,
+        voice_file_path=audio_file, currency="USD", status_message_id=STATUS_MESSAGE_ID,
     )
 
     assert result.failed()
@@ -413,7 +419,7 @@ def test_unexpected_error_after_session_opened_rolls_back(
     ):
         result = process_expense_task.delay(
             chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="en",
-            voice_file_path=audio_file, status_message_id=STATUS_MESSAGE_ID,
+            voice_file_path=audio_file, currency="USD", status_message_id=STATUS_MESSAGE_ID,
         )
 
     assert result.failed()

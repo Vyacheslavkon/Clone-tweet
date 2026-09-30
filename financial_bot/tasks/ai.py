@@ -29,13 +29,13 @@ def process_receipt_task(
 
 @celery_app.task(name="financial_bot.ai.process_expense_task", bind=True, max_retries=3)
 def process_expense_task(
-    self, chat_id: int, db_user_id: int, locale: str, voice_file_path: str, status_message_id: int
+    self, chat_id: int, db_user_id: int, locale: str, voice_file_path: str, currency: str, status_message_id: int
 ):
     should_cleanup = True
 
     try:
         result = run_in_worker_loop(
-            async_process_receipt(chat_id, db_user_id, locale, voice_file_path, status_message_id)
+            async_process_receipt(chat_id, db_user_id, locale, voice_file_path, currency, status_message_id)
         )
 
         logger.info(
@@ -98,7 +98,7 @@ def process_analysis_expense_task(
     try:
         result = run_in_worker_loop(
            process_analysis_financial(tg_id, chat_id, days)
-        )# test
+        )
 
         logger.info(
             "Successfully finished process_expense_analysis_task for user_id={user_id}",

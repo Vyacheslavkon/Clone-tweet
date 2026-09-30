@@ -39,3 +39,8 @@ SUPPORTED_LANGUAGES = [
     ("ru", "🇷🇺 Русский"),
 ]
 SUPPORTED_LANGUAGE_CODES = {code for code, _label in SUPPORTED_LANGUAGES}
+
+
+
+def format_amount(amount: float, currency: str) -> str:
+    return f"{amount:,.0f} {currency}".replace(",", " ")

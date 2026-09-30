@@ -24,13 +24,24 @@ async def handle_delete_today_request(message: Message, session: AsyncSession, s
     if not user:
         return
 
-    #transactions = await get_today_transactions(session, user.id)
-    transactions = await get_today_transactions(session, user.id, user.timezone) # test
+    transactions = await get_today_transactions(session, user.id, user.timezone)
 
     if not transactions:
         await message.answer(_("You have no transactions logged today. 🤷"))
         return
 
+    # tx_data = [
+    #     {
+    #         "id": tx.id,
+    #         "category": tx.category,
+    #         "amount": float(tx.amount),
+    #         "type": tx.type,
+    #         "created_at": tx.created_at.isoformat(),
+    #         "description": tx.description,
+    #         "items": [{"name": item.name, "price": float(item.price)} for item in tx.items],
+    #     }
+    #     for tx in transactions
+    # ]
     tx_data = [
         {
             "id": tx.id,
@@ -39,18 +50,18 @@ async def handle_delete_today_request(message: Message, session: AsyncSession, s
             "type": tx.type,
             "created_at": tx.created_at.isoformat(),
             "description": tx.description,
+            "currency": user.currency,
             "items": [{"name": item.name, "price": float(item.price)} for item in tx.items],
         }
         for tx in transactions
     ]
 
     await state.set_state(DeleteTodayState.browsing)
-    #await state.update_data(tx_data=tx_data, current_index=0)
-    await state.update_data(tx_data=tx_data, current_index=0, user_timezone=user.timezone)# test
+    await state.update_data(tx_data=tx_data, current_index=0, user_timezone=user.timezone)
 
     await message.answer(
-        #format_transaction_card(tx_data[0], _),
-        format_transaction_card(tx_data[0], _, user_timezone=user.timezone),# test
+        #format_transaction_card(tx_data[0], _, user_timezone=user.timezone),
+        format_transaction_card(tx_data[0], _,  user.currency, user_timezone=user.timezone),#test
         reply_markup=get_transaction_carousel_keyboard(tx_data, 0, _),
         parse_mode="HTML",
     )
@@ -74,8 +85,8 @@ async def handle_carousel_navigation(callback: CallbackQuery, state: FSMContext)
     await state.update_data(current_index=new_index)
 
     await callback.message.edit_text(
-        #format_transaction_card(tx_data[new_index], _),
-        format_transaction_card(tx_data[new_index], _, user_timezone=user_timezone),# test
+        #format_transaction_card(tx_data[new_index], _, user_timezone=user_timezone),
+        format_transaction_card(tx_data[new_index], _, tx_data[new_index]["currency"], user_timezone=user_timezone),# test
         reply_markup=get_transaction_carousel_keyboard(tx_data, new_index, _),
         parse_mode="HTML",
     )
@@ -117,7 +128,7 @@ async def handle_carousel_delete(
 
     await callback.message.edit_text(
         #format_transaction_card(tx_data[current_index], _),
-        format_transaction_card(tx_data[current_index], _, user_timezone=user_timezone),  # test
+        format_transaction_card(tx_data[current_index], _, tx_data[current_index]["currency"], user_timezone=user_timezone),  # test
         reply_markup=get_transaction_carousel_keyboard(tx_data, current_index, _),
         parse_mode="HTML",
     )

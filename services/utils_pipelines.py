@@ -18,6 +18,7 @@ from sqlalchemy.pool import NullPool
 from services.schemas import ReceiptAnalysisSchema
 from typing import List, Dict, Tuple
 from services.schemas import ReceiptListAnalysisSchema
+from financial_bot.general_utils import format_amount
 
 load_dotenv()
 
@@ -302,7 +303,8 @@ def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
 
 def render_receipt_report(
         analysis_result: ReceiptListAnalysisSchema,
-        _
+        _,
+        currency: str # test
 ) -> Tuple[str, str]:
 
     income_txs = [t for t in analysis_result.transactions if t.type == "income"]
@@ -333,9 +335,11 @@ def render_receipt_report(
         for tx in income_txs:
             icon = icons.get(tx.category, "💵")
             localized_category = _(tx.description.capitalize() if tx.description else "Other")
-            items_lines = [f"  • {item.name}: <b>{item.price}</b>" for item in tx.items]
+            #items_lines = [f"  • {item.name}: <b>{item.price}</b>" for item in tx.items]
+            items_lines = [f"  • {item.name}: <b>{format_amount(item.price, currency)}</b>" for item in tx.items] # test
             items_str = "\n" + "\n".join(items_lines) if items_lines else ""
-            income_details.append(f"{icon} {localized_category}: <b>+{tx.amount}</b>{items_str}")
+            #income_details.append(f"{icon} {localized_category}: <b>+{tx.amount}</b>{items_str}")
+            income_details.append(f"{icon} {localized_category}: <b>{format_amount(tx.amount, currency)}</b>{items_str}")#test
         report_chunks.append("\n".join(income_details))
 
     if income_txs and expense_txs:
@@ -348,23 +352,33 @@ def render_receipt_report(
         for tx in expense_txs:
             icon = icons.get(tx.category, "📦")
             localized_category = _(tx.category.capitalize())
+            # items_lines = [
+            #     f"  • {item.name}: <b>{item.price}</b>" if item.price > 0 else f"  • {item.name}"
+            #     for item in tx.items
+            # ]
+
             items_lines = [
-                f"  • {item.name}: <b>{item.price}</b>" if item.price > 0 else f"  • {item.name}"
+                f"  • {item.name}: <b>-{format_amount(item.price, currency)}</b>" if item.price > 0 else f"  • {item.name}"
                 for item in tx.items
             ]
             items_str = "\n".join(items_lines)
-            expense_details.append(_("{icon} {category}: <b>-{amount}</b>\n{items}").format(
-                icon=icon, category=localized_category, amount=tx.amount, items=items_str
-            ))
+            # expense_details.append(_("{icon} {category}: <b>-{amount}</b>\n{items}").format(
+            #     icon=icon, category=localized_category, amount=tx.amount, items=items_str
+            # ))
+            expense_details.append(f"{icon} {localized_category}: <b>-{format_amount(tx.amount, currency)}</b>\n{items_str}")# test
+
+
         report_chunks.append("\n".join(expense_details))
 
 
     report_chunks.append("\n" + "─" * 20)
     meta_lines = []
     if total_income > 0:
-        meta_lines.append(_("Total Income: <b>+{total_amount}</b>").format(total_amount=total_income))
+       # meta_lines.append(_("Total Income: <b>+{total_amount}</b>").format(total_amount=total_income))
+        meta_lines.append(_(f"Total Income: <b>+{format_amount(total_income, currency)}</b>"))# test
     if total_expense > 0:
-        meta_lines.append(_("Total Expenses: <b>-{total_amount}</b>").format(total_amount=total_expense))
+        #meta_lines.append(_("Total Expenses: <b>-{total_amount}</b>").format(total_amount=total_expense))
+        meta_lines.append(_(f"Total Expenses: <b>-{format_amount(total_expense, currency)}</b>"))#test
     report_chunks.append("\n".join(meta_lines))
 
     msg_text = "\n".join(report_chunks)
