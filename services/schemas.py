@@ -7,13 +7,13 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 class ReceiptItemSchema(BaseModel):
     model_config = ConfigDict(extra="ignore")
+
     name: str = Field(
-        description="Очищенное название товара или услуги (например, 'Молоко 3.2% 1л')"
+        description="The cleaned name of the product or service (e.g., 'Milk 3.2% 1L')."
     )
     price: Decimal = Field(
-        description="Финальная стоимость этой позиции с учетом скидок"
+        description="The final total cost of this specific position/item, taking all discounts into account."
     )
-    # category: Optional[str] = Field(description="Категория этого конкретного товара (например, food, health, transport)")
 
 
 class TransactionType(str, Enum):
@@ -40,20 +40,27 @@ class IncomeCategory(str, Enum):
 
 class ReceiptAnalysisSchema(BaseModel):
     model_config = ConfigDict(extra="ignore")
+
     description: Optional[str] = Field(
         default=None,
-        description="Название магазина, бренда или организации (например, 'ВкусВилл', 'Яндекс.Такси')",
+        description="The name of the store, brand, or organization (e.g., 'Walmart', 'Uber')."
     )
-    amount: Decimal = Field(description="Итоговая сумма всего чека")
+
+    amount: Decimal = Field(
+        description="The total monetary amount for the entire receipt."
+    )
+
     category: str = Field(
-        description="Категория транзакции. Для expense строго из списка расходов, для income — из списка доходов."
-    )  # delete default=None
+        description="The category of the transaction. For 'expense', it must strictly be from the expense list; for 'income', strictly from the income list."
+    )
+
     items: List[ReceiptItemSchema] = Field(
         default=[],
-        description="Список позиций. Для обобщенных сценариев или доходов содержит ровно один элемент.",
+        description="A list of specific items/products. For generalized scenarios or income transactions, it contains exactly one element."
     )
+
     type: TransactionType = Field(
-        description="Тип транзакции: 'income' для доходов, 'expense' для расходов"
+        description="The type of transaction: 'income' for earnings, 'expense' for expenditures."
     )
 
     @model_validator(mode="before")
@@ -75,9 +82,6 @@ class ReceiptAnalysisSchema(BaseModel):
 
         category = data.get("category")
         tx_type = data.get("type")
-
-        # if not data.get("description"):
-        #     data["description"] = "income" if tx_type == "income" else "expense"
 
         if isinstance(category, str):
             cleaned_category = category.strip().lower()
@@ -101,14 +105,15 @@ class ReceiptListAnalysisSchema(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     is_shopping_related: bool = Field(
-        description="True, если в тексте есть хотя бы одна валидная финансовая операция (доход или расход) с ценой. False во всех остальных случаях."
+        description="True if the text contains at least one valid financial transaction (income or expense) with a specified amount/price. False in all other cases."
     )
     error_message: str | None = Field(
         default=None,
-        description="Если is_shopping_related=False или amount=0, напиши здесь короткий, ироничный или шутливый ответ пользователю на языке пользователя.",
+        description="If is_shopping_related=False or amount=0, write a short, ironic, or humorous response to the user in the user's native language.",
     )
     transactions: List[ReceiptAnalysisSchema] = Field(
-        default=[], description="Список транзакций, разделенных строго по категориям"
+        default=[],
+        description="A list of financial transactions, strictly separated by their respective categories."
     )
 
 
@@ -202,60 +207,6 @@ class MonthlyAnalysisResponse(BaseModel):
                     "sorted by total spending volume from highest to lowest."
     )
 
-
-
-
-# class AnalyzedItem(BaseModel):
-#     name: str = Field(description="Название конкретного товара из чека (например, 'Зубная паста') "
-#                      "ИЛИ название категории расходов, если детализация по товарам отсутствует (например, 'Транспорт', 'Продукты').")
-#
-#
-#     expense_type: str = Field(
-#
-#         description="Строго один из двух вариантов:\n"
-#                     "1. 'essential' (Жизненно важно: лекарства, базовая медицина, аренда, детские и школьные товары в том числе канцелярия, коммунальные услуги, ремонт критических поломок).\n"
-#                     "2. 'discretionary' (Гибкие траты: кофе на вынос, рестораны, такси повышенного класса, игры, подписки, хобби, декор, спонтанные покупки)."
-#     )
-#
-#     frequency_metric: str = Field(
-#         description=" Показатель частоты транзакций для каждого товара или категории расходов за прошедшие дни недели. "
-#                     "Формат строго: 'Х транзакций за прошедшие дни недели'."
-#
-#     )
-#
-#
-#
-# class TargetRecommendation(BaseModel):
-#
-#     target_item: str = Field(
-#         description="Название конкретного товара, услуги, привычки или категории расходов (из поля 'name' в 'top_items'), которая оптимизируется"
-#     )
-#     reason: str = Field(
-#         description="Аргументированный совет, почему и как можно оптимизировать расходы на этот товар или категорию."
-#     )
-#     potential_saving: str = Field(
-#         description="Оценка потенциала экономии в свободной форме."
-#     )
-#
-#
-#
-# class WeeklyAnalysisResponse(BaseModel):
-#     summary: str = Field(
-#         description="Краткий оперативный аудит финансового поведения за прошедшую неделю (до 4 предложений). "
-#                     "Оцени общий баланс недели ('net_balance') относительно доходов. "
-#                     "Укажи, удается ли пользователю держать баланс в плюсе. "
-#                     "ВАЖНО: Копируй числовые агрегаты строго из 'user_context' без изменений и округлений!"
-#     )
-#
-#     weekly_balance_status: str = Field(
-#         description="Короткий вердикт на текущий момент недели. Примеры: 'Расходы превысили доходы', 'Дисциплина на высоте! 🔥'"
-#
-#     )
-#
-#     classified_items: List[AnalyzedItem] = Field(
-#         description="Классификация топ-товаров пользователя за неделю по типу важности")
-#
-#     recommendations: List[TargetRecommendation] = Field(description="Список из 2-3 точечных советов СТРОГО по конкретным позициям трат (labels)")
 
 class AnalyzedItem(BaseModel):
     name: str = Field(

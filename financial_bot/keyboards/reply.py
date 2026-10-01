@@ -57,7 +57,8 @@ def settings():
     builder = ReplyKeyboardBuilder()
     builder.row(
         KeyboardButton(text=_("Change timezone")),
-        KeyboardButton(text=_("Change language"))
+        KeyboardButton(text=_("Change language")),
+        KeyboardButton(text=_("Change currency"))
 
     )
 

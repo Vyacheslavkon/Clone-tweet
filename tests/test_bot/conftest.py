@@ -513,3 +513,16 @@ def _no_real_sleep():
     """Не ждём реальные asyncio.sleep(0.05) между отправками в тестах."""
     with patch("services.scheduled_reports.asyncio.sleep", new_callable=AsyncMock):
         yield
+
+
+
+summary_data = {
+        "days_period": 30,
+        "total_income": 1000.0,
+        "total_amount": 800.0,
+        "net_balance": 200.0,
+        "total_count": 5,
+        "user_config": {"currency": "USD"},
+        "categories": [{"category": "food", "amount": 300.0, "count": 3}],
+        "top_items": [{"date": "2026-09-01", "name": "Bread", "total_amount": 50.0, "category": "food"}],
+    }

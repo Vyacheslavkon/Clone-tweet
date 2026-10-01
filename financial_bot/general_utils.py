@@ -41,6 +41,16 @@ SUPPORTED_LANGUAGES = [
 SUPPORTED_LANGUAGE_CODES = {code for code, _label in SUPPORTED_LANGUAGES}
 
 
+SUPPORTED_CURRENCIES = [
+    ("RUB", "🇷🇺 Российский рубль (RUB)"),
+    ("USD", "🇺🇸 Доллар США (USD)"),
+    ("EUR", "🇪🇺 Евро (EUR)"),
+    ("KZT", "🇰🇿 Тенге (KZT)"),
+    ("GBP", "🇬🇧 Фунт стерлингов (GBP)"),
+    ("AED", "🇦🇪 Дирхам ОАЭ (AED)"),
+]
+SUPPORTED_CURRENCY_CODES = {code for code, _icon in SUPPORTED_CURRENCIES}
+
 
 def format_amount(amount: float, currency: str) -> str:
     return f"{amount:,.0f} {currency}".replace(",", " ")

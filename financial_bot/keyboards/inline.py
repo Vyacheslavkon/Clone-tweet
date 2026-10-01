@@ -5,7 +5,7 @@ from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from financial_bot.filters import DeleteTransactionCallback
-from financial_bot.general_utils import POPULAR_TIMEZONES, SUPPORTED_LANGUAGES
+from financial_bot.general_utils import POPULAR_TIMEZONES, SUPPORTED_LANGUAGES, SUPPORTED_CURRENCIES
 
 
 def cancel():
@@ -185,4 +185,11 @@ def get_language_keyboard() -> InlineKeyboardMarkup:
     for code, label in SUPPORTED_LANGUAGES:
         builder.row(InlineKeyboardButton(text=label, callback_data=f"set_lang:{code}"))
 
+    return builder.as_markup()
+
+
+def get_currency_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for code, label in SUPPORTED_CURRENCIES:
+        builder.row(InlineKeyboardButton(text=label, callback_data=f"set_cur:{code}"))
     return builder.as_markup()
