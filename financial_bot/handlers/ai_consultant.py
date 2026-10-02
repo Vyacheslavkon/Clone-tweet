@@ -3,6 +3,7 @@ import os
 import uuid
 
 from aiogram import F, Router, Bot
+from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, BufferedInputFile
 from aiogram.utils.i18n import gettext as _
@@ -143,7 +144,11 @@ async def delete_batch_handler(
 ):
     user = await get_user_by_id(session, callback.from_user.id)
 
-    result = await delete_check(session, callback_data.batch_id)
+    if not user:
+        await callback.answer(_("User not found."), show_alert=True)
+        return
+
+    result = await delete_check(session, callback_data.batch_id, user.id)
 
 
     try:
@@ -155,17 +160,29 @@ async def delete_batch_handler(
             "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
             user.id, redis_err
         )
+    #test
+    if not isinstance(callback.message, Message):
+        await callback.answer()
+        return
 
     if result:
-        if isinstance(callback.message, Message):
-            await callback.message.edit_text(
-                _("❌ The record has been cancelled and removed from the database.")
-            )
+        await callback.message.edit_text(
+            _("❌ The record has been cancelled and removed from the database.")
+        )
     else:
-        if isinstance(callback.message, Message):
-            await callback.answer(_("Record not found."), show_alert=True)
+        await callback.answer(_("Record not found."), show_alert=True)
+        await callback.message.edit_reply_markup(reply_markup=None)
 
-            await callback.message.edit_reply_markup(reply_markup=None)
+    # if result:
+    #     if isinstance(callback.message, Message):
+    #         await callback.message.edit_text(
+    #             _("❌ The record has been cancelled and removed from the database.")
+    #         )
+    # else:
+    #     if isinstance(callback.message, Message):
+    #         await callback.answer(_("Record not found."), show_alert=True)
+    #
+    #         await callback.message.edit_reply_markup(reply_markup=None)
 
 
 

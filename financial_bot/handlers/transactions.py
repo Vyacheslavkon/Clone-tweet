@@ -1,3 +1,4 @@
+import uuid
 from typing import Union
 import os
 
@@ -11,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from redis.exceptions import RedisError
 
 from financial_bot.filters import I18nTextFilter
-from financial_bot.keyboards.inline import get_category, get_description, get_type
+from financial_bot.keyboards.inline import get_category, get_description, get_type, get_delete_keyboard
 from financial_bot.keyboards.reply import get_main_menu
 from financial_bot.repositories import add_transaction, get_user_by_id
 from financial_bot.schemas import AddTransaction
@@ -187,6 +188,8 @@ async def save_to_db_and_finish(
         return
 
     data["user_id"] = user.id
+    batch_id = str(uuid.uuid4())#new
+    data["batch_id"] = batch_id#new
 
     try:
         transaction = AddTransaction(**data)
@@ -195,12 +198,18 @@ async def save_to_db_and_finish(
 
 
         text = _("Data saved successfully!")
+        keyboard = get_delete_keyboard(
+            batch_id=batch_id, button_text=_("❌ cancel operation")#new
+        )
+
         if isinstance(event, CallbackQuery):
             if isinstance(event.message, Message):
-                await event.message.answer(text, reply_markup=get_main_menu())
+                await event.message.answer(text, reply_markup=keyboard)
+                await event.message.answer(_("You can continue working:"), reply_markup=get_main_menu())
             await event.answer()
         else:
-            await event.answer(text, reply_markup=get_main_menu())
+            await event.answer(text, reply_markup=keyboard)
+            await event.answer(_("You can continue working:"), reply_markup=get_main_menu())
 
         await state.clear()
     except SQLAlchemyError as e:

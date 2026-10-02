@@ -217,7 +217,9 @@ async def test_delete_check_idempotency_on_double_click(
     assert tx_count_before == 1, "The test transaction was not saved to the database!"
 
     first_click = await delete_check(
-        batch_id=test_batch_id, session=test_session_for_pipeline
+        batch_id=test_batch_id,
+        session=test_session_for_pipeline,
+        user_id=user_for_pipeline.id
     )
 
     assert first_click is True, "The first call to delete_check must return True."
@@ -239,7 +241,9 @@ async def test_delete_check_idempotency_on_double_click(
     ), "The receipt items (TransactionItems) were not deleted from the database!"
 
     second_click = await delete_check(
-        batch_id=test_batch_id, session=test_session_for_pipeline
+        batch_id=test_batch_id,
+        session=test_session_for_pipeline,
+        user_id=user_for_pipeline.id
     )
 
     assert (

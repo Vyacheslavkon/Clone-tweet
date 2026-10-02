@@ -214,12 +214,15 @@ async def save_receipt_to_db(
 
 
 
-async def delete_check(session: AsyncSession, batch_id: str):
-    stmt_select = select(Transactions).where(Transactions.batch_id == batch_id)
+async def delete_check(session: AsyncSession, batch_id: str, user_id: int):
+    stmt_select = select(Transactions).where(Transactions.batch_id == batch_id,
+                                             Transactions.user_id == user_id,)
     list_transactions = await session.execute(stmt_select)
 
     if list_transactions.scalar() is not None:
-        stmt = delete(Transactions).where(Transactions.batch_id == batch_id)
+        stmt = delete(Transactions).where(Transactions.batch_id == batch_id,
+                                          Transactions.user_id == user_id)
+
         await session.execute(stmt)
         await session.commit()
         return True
