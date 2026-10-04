@@ -15,6 +15,7 @@ from financial_bot.handlers.common import router
 from financial_bot.handlers.history import history_rout
 from financial_bot.handlers.reports import report_rout
 from financial_bot.handlers.transactions import router_tr
+from financial_bot.handlers.ai_consultant import ai_router
 from financial_bot.handlers.settings import settings_router
 from financial_bot.middlewares import SessionMiddleware
 from financial_bot.repositories import (
@@ -139,7 +140,7 @@ def dp_with_routers(test_i18n):  # требует test_i18n тоже scope="sess
     dp.update.outer_middleware(i18n_middleware)
     dp.update.middleware(SessionMiddleware())
 
-    for r in [router, router_tr, router_data, report_rout, history_rout, settings_router]:
+    for r in [router, router_tr, router_data, report_rout, history_rout, settings_router, ai_router]:
         if r is None:
             raise ValueError("One of the routers is not imported or is None")
         dp.include_router(r)
