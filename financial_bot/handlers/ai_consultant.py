@@ -173,17 +173,6 @@ async def delete_batch_handler(
         await callback.answer(_("Record not found."), show_alert=True)
         await callback.message.edit_reply_markup(reply_markup=None)
 
-    # if result:
-    #     if isinstance(callback.message, Message):
-    #         await callback.message.edit_text(
-    #             _("❌ The record has been cancelled and removed from the database.")
-    #         )
-    # else:
-    #     if isinstance(callback.message, Message):
-    #         await callback.answer(_("Record not found."), show_alert=True)
-    #
-    #         await callback.message.edit_reply_markup(reply_markup=None)
-
 
 
 @ai_router.message(I18nTextFilter("weekly data analysis", "monthly data analysis"))

@@ -25,7 +25,7 @@ async def test_full_transaction_flow(
     msg_step1 = create_message(text="500", user_id=user_id, update_id=1)
     await test_dp.feed_update(mock_bot, msg_step1)
 
-    expected_text_step1 = test_i18n.gettext("Select type")
+    expected_text_step1 = test_i18n.gettext("Select type:")
     called_bot(mock_bot, expected_text_step1)
 
     buttons_type = ["Income", "Expense", "Back", "Cancel"]
@@ -84,14 +84,7 @@ async def test_full_transaction_flow(
     assert record.batch_id is not None #new
 
     exp_text = test_i18n.gettext("❌ cancel operation")
-    exp_keyboard = "reply_markup"
-    called_bot(mock_bot, exp_text)
-    called_kb(mock_bot, exp_keyboard)
-    #Два отдельных сообщения: с inline-кнопкой отмены и с главным меню
-    # assert mock_bot.send_message.await_count == 2
-    # first_call_kwargs = mock_bot.send_message.call_args_list[0].kwargs
-    # assert first_call_kwargs.get("reply_markup") is not None
-    # assert "cancel operation" in test_i18n.gettext("❌ cancel operation")
+    called_kb(mock_bot, exp_text)
 
 
 async def test_cancel_transaction(

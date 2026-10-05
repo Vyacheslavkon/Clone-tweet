@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-24 19:50+1000\n"
+"POT-Creation-Date: 2026-10-05 22:27+1000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -77,77 +77,81 @@ msgstr ""
 msgid "You don't have a planned budget set! Set a basic planned budget first."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:38
+#: financial_bot/handlers/ai_consultant.py:39
 msgid "Please, select request!"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:44
+#: financial_bot/handlers/ai_consultant.py:45
 msgid "Sorry, you need a PRO subscription to use AI."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:51
+#: financial_bot/handlers/ai_consultant.py:52
 msgid "Please send me a photo of the receipt!"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:106
+#: financial_bot/handlers/ai_consultant.py:60
 msgid "Please tell me about your purchases!"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:121
+#: financial_bot/handlers/ai_consultant.py:75
 msgid "User not found. Please enter /start."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:131
+#: financial_bot/handlers/ai_consultant.py:85
 msgid ""
 "❌ The voice message is too long. Please dictate a shorter message (up to "
 "30 seconds)."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:136
+#: financial_bot/handlers/ai_consultant.py:90
 msgid "🧠 I am analyzing your expenses..."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:141
+#: financial_bot/handlers/ai_consultant.py:95
 msgid "❌ Failed to get download path."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:161
+#: financial_bot/handlers/ai_consultant.py:116
 msgid "⏳ Analysis started in the background. You can continue working:"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:171
+#: financial_bot/handlers/ai_consultant.py:126
 msgid "❌ Unable to process the voice message. Please try again."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:175
+#: financial_bot/handlers/ai_consultant.py:130
 msgid "You can continue working using the menu below:"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:208
+#: financial_bot/handlers/ai_consultant.py:148
+msgid "User not found."
+msgstr ""
+
+#: financial_bot/handlers/ai_consultant.py:170
 msgid "❌ The record has been cancelled and removed from the database."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:212
+#: financial_bot/handlers/ai_consultant.py:173
 msgid "Record not found."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:225
+#: financial_bot/handlers/ai_consultant.py:185
 #: financial_bot/keyboards/reply.py:44
 msgid "weekly data analysis"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:226
+#: financial_bot/handlers/ai_consultant.py:186
 #: financial_bot/keyboards/reply.py:45
 msgid "monthly data analysis"
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:279
+#: financial_bot/handlers/ai_consultant.py:240
 msgid ""
 "🤖 *AI is analyzing your spending patterns...* \n"
 "It will take five or ten seconds."
 msgstr ""
 
-#: financial_bot/handlers/ai_consultant.py:312
+#: financial_bot/handlers/ai_consultant.py:273
 msgid ""
 "🧾 <b>Your detailed report exceeded Telegram's message length limit.</b>\n"
 "I’ve packed the entire transaction history into this file! 📁"
@@ -167,11 +171,6 @@ msgstr ""
 msgid "Action canceled. Returning to main menu..."
 msgstr ""
 
-#: financial_bot/handlers/common.py:131
-#, python-brace-format
-msgid "HTML parsing or message length error: {}"
-msgstr ""
-
 #: financial_bot/handlers/common.py:135
 #, python-brace-format
 msgid "General Telegram API error when notifying admin: {error}"
@@ -185,19 +184,19 @@ msgstr ""
 msgid "You have no transactions logged today. 🤷"
 msgstr ""
 
-#: financial_bot/handlers/del_transactions.py:89
+#: financial_bot/handlers/del_transactions.py:108
 msgid "Already deleted."
 msgstr ""
 
-#: financial_bot/handlers/del_transactions.py:101
+#: financial_bot/handlers/del_transactions.py:121
 msgid "✅ Deleted. No more transactions for today."
 msgstr ""
 
-#: financial_bot/handlers/del_transactions.py:114
+#: financial_bot/handlers/del_transactions.py:135
 msgid "✅ Deleted"
 msgstr ""
 
-#: financial_bot/handlers/del_transactions.py:119
+#: financial_bot/handlers/del_transactions.py:140
 msgid "Closed."
 msgstr ""
 
@@ -229,83 +228,159 @@ msgstr ""
 msgid "please, select period"
 msgstr ""
 
-#: financial_bot/handlers/reports.py:48 financial_bot/keyboards/inline.py:118
+#: financial_bot/handlers/reports.py:48 financial_bot/keyboards/inline.py:90
 msgid "day"
 msgstr ""
 
-#: financial_bot/handlers/reports.py:67 financial_bot/keyboards/inline.py:120
+#: financial_bot/handlers/reports.py:67 financial_bot/keyboards/inline.py:92
 #: services/scheduled_reports.py:39
 msgid "week"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:42
-#: financial_bot/handlers/transactions.py:51
-#: financial_bot/handlers/transactions.py:72
+#: financial_bot/handlers/settings.py:27
+msgid "Select the required option:"
+msgstr ""
+
+#: financial_bot/handlers/settings.py:34
+msgid "Select your timezone, or enter it manually (e.g. 'Asia/Tokyo'):"
+msgstr ""
+
+#: financial_bot/handlers/settings.py:45 financial_bot/handlers/settings.py:124
+msgid "Invalid timezone."
+msgstr ""
+
+#: financial_bot/handlers/settings.py:67
+#, python-brace-format
+msgid ""
+"✅ The settings have been saved successfully. The time zone has been "
+"changed to: <b>{tz}</b>"
+msgstr ""
+
+#: financial_bot/handlers/settings.py:78
+msgid ""
+"Please type the timezone name, e.g. 'Asia/Tokyo' or 'America/Chicago'.\n"
+"\n"
+"You can find the full list here: "
+"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
+msgstr ""
+
+#: financial_bot/handlers/settings.py:93
+#, python-brace-format
+msgid ""
+"❌ '{tz}' is not a valid timezone name. Please try again, e.g. "
+"'Europe/Paris' or 'Asia/Singapore'."
+msgstr ""
+
+#: financial_bot/handlers/settings.py:112
+#: financial_bot/handlers/settings.py:140
+#, python-brace-format
+msgid "✅ Timezone updated to {tz}"
+msgstr ""
+
+#: financial_bot/handlers/settings.py:147
+msgid "Select your language:"
+msgstr ""
+
+#: financial_bot/handlers/settings.py:158
+msgid "Unsupported language."
+msgstr ""
+
+#: financial_bot/handlers/settings.py:177
+msgid "✅ Language updated"
+msgstr ""
+
+#: financial_bot/handlers/settings.py:187
+msgid ""
+"Select your currency. Note: this only changes how amounts are displayed, "
+"existing values are NOT converted."
+msgstr ""
+
+#: financial_bot/handlers/settings.py:198
+msgid "Unsupported currency."
+msgstr ""
+
+#: financial_bot/handlers/settings.py:214
+#, python-brace-format
+msgid "✅ Currency updated to {currency}"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:43
+#: financial_bot/handlers/transactions.py:52
+#: financial_bot/handlers/transactions.py:73
 msgid "Please enter the amount!"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:56
+#: financial_bot/handlers/transactions.py:57
 msgid "Select type"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:63
-#: financial_bot/handlers/transactions.py:104
+#: financial_bot/handlers/transactions.py:64
+#: financial_bot/handlers/transactions.py:105
 msgid "Select category"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:80
+#: financial_bot/handlers/transactions.py:81
 msgid "Please send a text message with a number!"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:87
+#: financial_bot/handlers/transactions.py:88
 msgid "Select type:"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:91
+#: financial_bot/handlers/transactions.py:92
 msgid "Enter a numeric value!"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:121
+#: financial_bot/handlers/transactions.py:122
 msgid "Write a comment"
 msgstr ""
 
-#: financial_bot/handlers/transactions.py:197
+#: financial_bot/handlers/transactions.py:200
 msgid "Data saved successfully!"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:55
-msgid "Please enter a valid number."
+#: financial_bot/handlers/transactions.py:202 services/utils_pipelines.py:392
+msgid "❌ cancel operation"
+msgstr ""
+
+#: financial_bot/handlers/transactions.py:208
+#: financial_bot/handlers/transactions.py:212
+msgid "You can continue working:"
 msgstr ""
 
 #: financial_bot/handlers/utils.py:57
+msgid "Please enter a valid number."
+msgstr ""
+
+#: financial_bot/handlers/utils.py:59
 msgid ""
 "You don't have a monthly planned budget set! Set a basic monthly planned "
 "budget first."
 msgstr ""
 
-#: financial_bot/handlers/utils.py:60
+#: financial_bot/handlers/utils.py:62
 msgid "This amount exceeds your planned budget."
 msgstr ""
 
-#: financial_bot/handlers/utils.py:61
+#: financial_bot/handlers/utils.py:63
 msgid "The amount must be greater than zero."
 msgstr ""
 
-#: financial_bot/handlers/utils.py:63
+#: financial_bot/handlers/utils.py:65
 msgid "An unexpected error occurred."
 msgstr ""
 
-#: financial_bot/handlers/utils.py:92
+#: financial_bot/handlers/utils.py:94
 #, python-brace-format
 msgid "There is no data for {period} 🤷‍♂️"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:107 financial_bot/handlers/utils.py:113
+#: financial_bot/handlers/utils.py:109
 #, python-brace-format
 msgid "  • {category}: {formated_amount}\n"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:121
+#: financial_bot/handlers/utils.py:126
 #, python-brace-format
 msgid ""
 "<b>Report for {period}:</b>\n"
@@ -316,78 +391,78 @@ msgid ""
 "{expense_details}"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:143
+#: financial_bot/handlers/utils.py:148
 #, python-brace-format
 msgid "  • Planned budget: {budget}"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:150
+#: financial_bot/handlers/utils.py:155
 #, python-brace-format
 msgid "  • Limit expense: {limit}"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:153
+#: financial_bot/handlers/utils.py:158
 #, python-brace-format
 msgid "  • Limit spent: {balance}%"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:157
+#: financial_bot/handlers/utils.py:162
 #, python-brace-format
 msgid "  • Savings goal: {saving_goal}"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:163
+#: financial_bot/handlers/utils.py:168
 msgid ""
 "\n"
 "\n"
 "🎯 <b>Planning:</b>\n"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:226
+#: financial_bot/handlers/utils.py:231
 msgid "January"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:227
+#: financial_bot/handlers/utils.py:232
 msgid "February"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:228
+#: financial_bot/handlers/utils.py:233
 msgid "March"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:229
+#: financial_bot/handlers/utils.py:234
 msgid "April"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:230
+#: financial_bot/handlers/utils.py:235
 msgid "May"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:231
+#: financial_bot/handlers/utils.py:236
 msgid "June"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:232
+#: financial_bot/handlers/utils.py:237
 msgid "July"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:233
+#: financial_bot/handlers/utils.py:238
 msgid "August"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:234
+#: financial_bot/handlers/utils.py:239
 msgid "September"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:235
+#: financial_bot/handlers/utils.py:240
 msgid "October"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:236
+#: financial_bot/handlers/utils.py:241
 msgid "November"
 msgstr ""
 
-#: financial_bot/handlers/utils.py:237
+#: financial_bot/handlers/utils.py:242
 msgid "December"
 msgstr ""
 
@@ -407,79 +482,83 @@ msgstr ""
 msgid "Expense"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:70
+#: financial_bot/keyboards/inline.py:42
 msgid "Salary"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:71
+#: financial_bot/keyboards/inline.py:43
 msgid "Bonus"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:72
+#: financial_bot/keyboards/inline.py:44
 msgid "Gift"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:73
+#: financial_bot/keyboards/inline.py:45
 msgid "Deal"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:74 financial_bot/keyboards/inline.py:83
-#: services/utils_pipelines.py:88 services/utils_pipelines.py:205
-#: services/utils_pipelines.py:249 services/utils_pipelines.py:335
+#: financial_bot/keyboards/inline.py:46 financial_bot/keyboards/inline.py:55
+#: services/utils_pipelines.py:89 services/utils_pipelines.py:206
+#: services/utils_pipelines.py:250 services/utils_pipelines.py:337
 msgid "Other"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:78 services/utils_pipelines.py:83
-#: services/utils_pipelines.py:200 services/utils_pipelines.py:244
+#: financial_bot/keyboards/inline.py:50 services/utils_pipelines.py:84
+#: services/utils_pipelines.py:201 services/utils_pipelines.py:245
 msgid "Food"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:79 services/utils_pipelines.py:87
-#: services/utils_pipelines.py:204 services/utils_pipelines.py:248
+#: financial_bot/keyboards/inline.py:51 services/utils_pipelines.py:88
+#: services/utils_pipelines.py:205 services/utils_pipelines.py:249
 msgid "Home"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:80 services/utils_pipelines.py:86
-#: services/utils_pipelines.py:203 services/utils_pipelines.py:247
+#: financial_bot/keyboards/inline.py:52 services/utils_pipelines.py:87
+#: services/utils_pipelines.py:204 services/utils_pipelines.py:248
 msgid "Entertainment"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:81 services/utils_pipelines.py:85
-#: services/utils_pipelines.py:202 services/utils_pipelines.py:246
+#: financial_bot/keyboards/inline.py:53 services/utils_pipelines.py:86
+#: services/utils_pipelines.py:203 services/utils_pipelines.py:247
 msgid "Transport"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:82 services/utils_pipelines.py:84
-#: services/utils_pipelines.py:201 services/utils_pipelines.py:245
+#: financial_bot/keyboards/inline.py:54 services/utils_pipelines.py:85
+#: services/utils_pipelines.py:202 services/utils_pipelines.py:246
 msgid "Health"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:102
+#: financial_bot/keyboards/inline.py:74
 msgid "Skip description"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:122
+#: financial_bot/keyboards/inline.py:94
 msgid "month"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:136
+#: financial_bot/keyboards/inline.py:108
 msgid "last two weeks"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:140
+#: financial_bot/keyboards/inline.py:112
 msgid "arbitrary period"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:162
+#: financial_bot/keyboards/inline.py:134
 msgid "🔎 Detailed report"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:188
+#: financial_bot/keyboards/inline.py:160
 msgid "❌ Delete this transaction"
 msgstr ""
 
-#: financial_bot/keyboards/inline.py:193
+#: financial_bot/keyboards/inline.py:164
 msgid "Close"
+msgstr ""
+
+#: financial_bot/keyboards/inline.py:175
+msgid "✏️ Enter manually"
 msgstr ""
 
 #: financial_bot/keyboards/reply.py:9
@@ -503,7 +582,7 @@ msgid "Add/change data"
 msgstr ""
 
 #: financial_bot/keyboards/reply.py:22 financial_bot/keyboards/reply.py:36
-#: financial_bot/keyboards/reply.py:50
+#: financial_bot/keyboards/reply.py:50 financial_bot/keyboards/reply.py:65
 msgid "cancel"
 msgstr ""
 
@@ -513,6 +592,18 @@ msgstr ""
 
 #: financial_bot/keyboards/reply.py:48
 msgid "data entry"
+msgstr ""
+
+#: financial_bot/keyboards/reply.py:59
+msgid "Change timezone"
+msgstr ""
+
+#: financial_bot/keyboards/reply.py:60
+msgid "Change language"
+msgstr ""
+
+#: financial_bot/keyboards/reply.py:61
+msgid "Change currency"
 msgstr ""
 
 #: services/pipelines.py:68
@@ -542,11 +633,11 @@ msgid ""
 "Please try again later."
 msgstr ""
 
-#: services/pipelines.py:195
+#: services/pipelines.py:196
 msgid "Unable to recognize the purchase amount."
 msgstr ""
 
-#: services/pipelines.py:204
+#: services/pipelines.py:205
 msgid "❌ No transactions found to save."
 msgstr ""
 
@@ -566,149 +657,128 @@ msgid ""
 "again later."
 msgstr ""
 
-#: services/utils_pipelines.py:124
+#: services/utils_pipelines.py:125
 #, python-brace-format
 msgid "     └ Other operations — {count}"
 msgstr ""
 
-#: services/utils_pipelines.py:131
+#: services/utils_pipelines.py:132
 msgid "Groceries and food"
 msgstr ""
 
-#: services/utils_pipelines.py:132
+#: services/utils_pipelines.py:133
 msgid "Health and Medicine"
 msgstr ""
 
-#: services/utils_pipelines.py:133
+#: services/utils_pipelines.py:134
 msgid "Transport and Automotive"
 msgstr ""
 
-#: services/utils_pipelines.py:134
+#: services/utils_pipelines.py:135
 msgid "Entertainment and leisure"
 msgstr ""
 
-#: services/utils_pipelines.py:135
+#: services/utils_pipelines.py:136
 msgid "Home and Household"
 msgstr ""
 
-#: services/utils_pipelines.py:136
+#: services/utils_pipelines.py:137
 msgid "Other expenses"
 msgstr ""
 
-#: services/utils_pipelines.py:142 services/utils_pipelines.py:232
+#: services/utils_pipelines.py:143 services/utils_pipelines.py:233
 msgid ""
 "\n"
 "🟢 <u>Necessary :</u>"
 msgstr ""
 
-#: services/utils_pipelines.py:148 services/utils_pipelines.py:159
+#: services/utils_pipelines.py:149 services/utils_pipelines.py:160
 #, python-brace-format
 msgid " • <b>{cat_name}</b> — <b>{count} transactions per month</b>"
 msgstr ""
 
-#: services/utils_pipelines.py:154 services/utils_pipelines.py:235
+#: services/utils_pipelines.py:155 services/utils_pipelines.py:236
 msgid ""
 "\n"
 "🟡 <u>Secondary :</u>"
 msgstr ""
 
-#: services/utils_pipelines.py:177
+#: services/utils_pipelines.py:178
 msgid "   • No expenses for the period"
 msgstr ""
 
-#: services/utils_pipelines.py:183
+#: services/utils_pipelines.py:184
 msgid "transaction(s)"
 msgstr ""
 
-#: services/utils_pipelines.py:253
+#: services/utils_pipelines.py:254
 msgid "🧾 <b>Detailed Transaction History</b>\n"
 msgstr ""
 
-#: services/utils_pipelines.py:297
+#: services/utils_pipelines.py:298
 msgid "No transactions found for this period."
 msgstr ""
 
-#: services/utils_pipelines.py:327
+#: services/utils_pipelines.py:329
 msgid "✅ <b>Operations successfully recorded!</b>\n"
 msgstr ""
 
-#: services/utils_pipelines.py:331
+#: services/utils_pipelines.py:333
 msgid "💰 <b>Received Income:</b>"
 msgstr ""
 
-#: services/utils_pipelines.py:346
+#: services/utils_pipelines.py:350
 msgid "📉 <b>Spent Expenses:</b>"
 msgstr ""
 
-#: services/utils_pipelines.py:356
-#, python-brace-format
-msgid ""
-"{icon} {category}: <b>-{amount}</b>\n"
-"{items}"
-msgstr ""
-
-#: services/utils_pipelines.py:365
-#, python-brace-format
-msgid "Total Income: <b>+{total_amount}</b>"
-msgstr ""
-
-#: services/utils_pipelines.py:367
-#, python-brace-format
-msgid "Total Expenses: <b>-{total_amount}</b>"
-msgstr ""
-
-#: services/utils_pipelines.py:374
+#: services/utils_pipelines.py:388
 msgid "❌ cancel income"
 msgstr ""
 
-#: services/utils_pipelines.py:376
+#: services/utils_pipelines.py:390
 msgid "❌ cancel expense"
 msgstr ""
 
-#: services/utils_pipelines.py:378
-msgid "❌ cancel operation"
-msgstr ""
-
-#: services/utils_pipelines.py:414
+#: services/utils_pipelines.py:428
 msgid "📊 <b>Comprehensive financial analysis</b>\n"
 msgstr ""
 
-#: services/utils_pipelines.py:415
+#: services/utils_pipelines.py:429
 #, python-brace-format
 msgid "💰 <b>Total Income:</b> {income} {curr}"
 msgstr ""
 
-#: services/utils_pipelines.py:416
+#: services/utils_pipelines.py:430
 #, python-brace-format
 msgid "🛒 <b>Total Expense:</b> {expense} {curr}"
 msgstr ""
 
-#: services/utils_pipelines.py:417
+#: services/utils_pipelines.py:431
 #, python-brace-format
 msgid "⚖️ <b>Net Balance:</b> {balance} {curr}\n"
 msgstr ""
 
-#: services/utils_pipelines.py:423
+#: services/utils_pipelines.py:437
 #, python-brace-format
 msgid "📈 <b>Budget status:</b> {status}"
 msgstr ""
 
-#: services/utils_pipelines.py:427
+#: services/utils_pipelines.py:441
 #, python-brace-format
 msgid "📊 <b>Budget used:</b> {percent}%\n"
 msgstr ""
 
-#: services/utils_pipelines.py:430
+#: services/utils_pipelines.py:444
 msgid "🎯 <b>Categorizing top expenses by importance:</b>"
 msgstr ""
 
-#: services/utils_pipelines.py:438
+#: services/utils_pipelines.py:452
 msgid ""
 "\n"
 "💡 <b>Optimization recommendations:</b>"
 msgstr ""
 
-#: services/utils_pipelines.py:441
+#: services/utils_pipelines.py:455
 #, python-brace-format
 msgid ""
 "\n"
@@ -717,11 +787,11 @@ msgid ""
 "└ <i>Possible savings: {saving}</i>"
 msgstr ""
 
-#: services/utils_pipelines.py:442 services/utils_pipelines.py:448
+#: services/utils_pipelines.py:456 services/utils_pipelines.py:462
 msgid "Optimization"
 msgstr ""
 
-#: services/utils_pipelines.py:447
+#: services/utils_pipelines.py:461
 #, python-brace-format
 msgid ""
 "\n"
