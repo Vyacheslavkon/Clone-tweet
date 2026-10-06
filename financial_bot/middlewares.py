@@ -23,6 +23,9 @@ class SessionMiddleware(BaseMiddleware):
             raise ValueError("Database session pool is not configured in middleware or workflow data!")
 
         if isinstance(current_pool, AsyncSession):
+            # Test path: the session and its rollback are managed externally via
+            # a savepoint transaction in the test_session fixture. In production,
+            # an AsyncSession never reaches this point directly.
             data["session"] = current_pool
             return await handler(event, data)
 
@@ -30,9 +33,16 @@ class SessionMiddleware(BaseMiddleware):
             data["session"] = session
             try:
                 return await handler(event, data)
-            except Exception:
-                await session.rollback()
+            except Exception as e:
+                logger.warning("Rolling back session due to exception in handler: {error}", error=e)
+
+                try:
+                    await session.rollback()
+                except Exception as rollback_err:
+                    logger.error("Rollback itself failed: {error}", error=rollback_err)
                 raise
+                # await session.rollback()
+                # raise
 
 
 class MyI18nMiddleware(I18nMiddleware):

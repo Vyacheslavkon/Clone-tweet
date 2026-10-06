@@ -12,7 +12,7 @@ from redis.asyncio import Redis
 from loguru import logger
 
 from core.config import TOKEN_BOT
-from core.database import bot_session_maker
+from core.database import bot_session_maker, bot_engine
 from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.ai_consultant import ai_router
 from financial_bot.handlers.common import router
@@ -66,11 +66,10 @@ async def main():
     dp["cache_service"] = cache_service
     dp.message.outer_middleware(SessionMiddleware(session_pool))
     dp.callback_query.outer_middleware(SessionMiddleware(session_pool))
-    i18n_mw = MyI18nMiddleware(i18n=i18n)#new
-    dp.message.outer_middleware(i18n_mw)#new
-    dp.callback_query.outer_middleware(i18n_mw)#new
+    i18n_mw = MyI18nMiddleware(i18n=i18n)
+    dp.message.outer_middleware(i18n_mw)
+    dp.callback_query.outer_middleware(i18n_mw)
     dp.errors.middleware(SimpleI18nMiddleware(i18n))
-    #dp.message.middleware(MyI18nMiddleware(i18n=i18n))
     dp.update.outer_middleware(SimpleI18nMiddleware(i18n))
     dp.update.outer_middleware(UserActivityMiddleware())
     dp.include_router(router)
@@ -92,10 +91,11 @@ async def main():
         logger.critical("Critical error in bot core execution: {error}", error=e, exc_info=True)
 
     finally:
-        await redis_fsm.close()
+        #await redis_fsm.close()
+        await redis_fsm.aclose()
         logger.info("Redis FSM client closed.")
 
-        #scheduler.shutdown()
+        scheduler.shutdown()
         logger.info("Scheduler stopped.")
 
         await redis.aclose()
@@ -104,7 +104,7 @@ async def main():
         await bot_session.close()
         logger.info("Bot HTTP session closed.")
 
-
+        await bot_engine.dispose() # new
 
 if __name__ == "__main__":
     asyncio.run(main())
