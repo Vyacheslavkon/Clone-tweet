@@ -1,23 +1,28 @@
+import os
 import uuid
 from typing import Union
-import os
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
+from redis.exceptions import RedisError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from redis.exceptions import RedisError
 
 from financial_bot.filters import I18nTextFilter
-from financial_bot.keyboards.inline import get_category, get_description, get_type, get_delete_keyboard
+from financial_bot.keyboards.inline import (
+    get_category,
+    get_delete_keyboard,
+    get_description,
+    get_type,
+)
 from financial_bot.keyboards.reply import get_main_menu
 from financial_bot.repositories import add_transaction, get_user_by_id
 from financial_bot.schemas import AddTransaction
 from financial_bot.states.amount_states import AmountState
-from services.analysis_cache import  FinancialCacheService
+from services.analysis_cache import FinancialCacheService
 
 router_tr = Router()
 
@@ -129,7 +134,10 @@ async def category_amount(callback: CallbackQuery, state: FSMContext):
     F.data == "skip_description", AmountState.waiting_for_description
 )
 async def end_with_callback(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession, cache_service: FinancialCacheService
+    callback: CallbackQuery,
+    state: FSMContext,
+    session: AsyncSession,
+    cache_service: FinancialCacheService,
 ):
     user = await get_user_by_id(session, callback.from_user.id)
     await state.update_data(description=None)
@@ -137,22 +145,30 @@ async def end_with_callback(
 
     try:
         await cache_service.invalidate_user_cache(user_id=user.id)
-        logger.info("Successfully invalidated cache for user: %s via manual entry", user.id)
+        logger.info(
+            "Successfully invalidated cache for user: %s via manual entry", user.id
+        )
     except RedisError as redis_err:
         # Ловим ТОЛЬКО конкретные сетевые проблемы с Redis
         logger.error(
             "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
-            user.id, redis_err
+            user.id,
+            redis_err,
         )
 
 
 @router_tr.message(AmountState.waiting_for_description)
-async def end_with_message(message: Message, state: FSMContext, session: AsyncSession, cache_service: FinancialCacheService):
+async def end_with_message(
+    message: Message,
+    state: FSMContext,
+    session: AsyncSession,
+    cache_service: FinancialCacheService,
+):
 
     if not message.from_user:
         return
 
-    user = await get_user_by_id(session,message.from_user.id)
+    user = await get_user_by_id(session, message.from_user.id)
 
     if not user:
         logger.error("User with id {} not found in database", message.from_user.id)
@@ -163,12 +179,15 @@ async def end_with_message(message: Message, state: FSMContext, session: AsyncSe
 
     try:
         await cache_service.invalidate_user_cache(user_id=user.id)
-        logger.info("Successfully invalidated cache for user: %s via manual entry", user.id)
+        logger.info(
+            "Successfully invalidated cache for user: %s via manual entry", user.id
+        )
     except RedisError as redis_err:
         # Ловим ТОЛЬКО конкретные сетевые проблемы с Redis
         logger.error(
             "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
-            user.id, redis_err
+            user.id,
+            redis_err,
         )
 
 
@@ -176,8 +195,7 @@ async def save_to_db_and_finish(
     event: Union[Message, CallbackQuery],
     state: FSMContext,
     session: AsyncSession,
-    tg_id: int
-
+    tg_id: int,
 ):
 
     data = await state.get_data()
@@ -188,28 +206,31 @@ async def save_to_db_and_finish(
         return
 
     data["user_id"] = user.id
-    batch_id = str(uuid.uuid4())#new
-    data["batch_id"] = batch_id#new
+    batch_id = str(uuid.uuid4())  # new
+    data["batch_id"] = batch_id  # new
 
     try:
         transaction = AddTransaction(**data)
 
         await add_transaction(session, transaction.model_dump())
 
-
         text = _("Data saved successfully!")
         keyboard = get_delete_keyboard(
-            batch_id=batch_id, button_text=_("❌ cancel operation")#new
+            batch_id=batch_id, button_text=_("❌ cancel operation")  # new
         )
 
         if isinstance(event, CallbackQuery):
             if isinstance(event.message, Message):
                 await event.message.answer(text, reply_markup=keyboard)
-                await event.message.answer(_("You can continue working:"), reply_markup=get_main_menu())
+                await event.message.answer(
+                    _("You can continue working:"), reply_markup=get_main_menu()
+                )
             await event.answer()
         else:
             await event.answer(text, reply_markup=keyboard)
-            await event.answer(_("You can continue working:"), reply_markup=get_main_menu())
+            await event.answer(
+                _("You can continue working:"), reply_markup=get_main_menu()
+            )
 
         await state.clear()
     except SQLAlchemyError as e:

@@ -4,8 +4,9 @@ import pytest
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool.impl import NullPool
-from core.db_base import Base
+
 from core.database import get_bot_db
+from core.db_base import Base
 from main import app
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")

@@ -1,4 +1,3 @@
-import os
 from typing import Union
 
 from aiogram import F, Router, html
@@ -74,7 +73,7 @@ async def cancel_handler(event: Union[Message, CallbackQuery], state: FSMContext
 
 @router.errors()
 async def global_error_handler(event: ErrorEvent, admin_id: int):
-    #it is necessary to implement Admin_id
+    # it is necessary to implement Admin_id
 
     # admin_id = int(os.getenv("ADMIN_ID"))
     # if not admin_id:
@@ -102,11 +101,11 @@ async def global_error_handler(event: ErrorEvent, admin_id: int):
     error_text = str(event.exception)[:500]
 
     admin_msg = (
-        f"❌ {html.bold('Критическая ошибка!')}\n\n"
-        f"👤 {html.bold('От кого:')} {user_info}\n"
-        f"🛠 {html.bold('Ошибка:')} {html.code(type(event.exception).__name__)}\n"
-        f"📝 {html.bold('Детали:')} {html.code(error_text)}\n\n"
-        f"🔗 <a href='{user_link}'>Перейти к профилю пользователя</a>"
+        f"❌ {html.bold('Critical error!')}\n\n"
+        f"👤 {html.bold('From:')} {user_info}\n"
+        f"🛠 {html.bold('Error:')} {html.code(type(event.exception).__name__)}\n"
+        f"📝 {html.bold('Details:')} {html.code(error_text)}\n\n"
+        f"🔗 <a href='{user_link}'>Go to user profile</a>"
     )
 
     if isinstance(event.exception, TelegramForbiddenError):
@@ -128,7 +127,7 @@ async def global_error_handler(event: ErrorEvent, admin_id: int):
                 chat_id=admin_id, text=admin_msg, parse_mode="HTML"
             )
     except TelegramBadRequest as e:
-        logger.error("HTML parsing or message length error: {}".format(e) )
+        logger.error("HTML parsing or message length error: %s", e)
 
     except TelegramAPIError as e:
         logger.error(

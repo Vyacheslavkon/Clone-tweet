@@ -1,10 +1,12 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from financial_bot.models import Transactions, TransactionItems
+from financial_bot.models import TransactionItems, Transactions
 
 
-async def test_transaction_amount_must_be_positive(test_session_for_pipeline, user_for_pipeline):
+async def test_transaction_amount_must_be_positive(
+    test_session_for_pipeline, user_for_pipeline
+):
     bad_transaction = Transactions(
         user_id=user_for_pipeline.id,
         amount=-100,
@@ -17,13 +19,12 @@ async def test_transaction_amount_must_be_positive(test_session_for_pipeline, us
     with pytest.raises(IntegrityError, match="ck_transactions_amount_positive"):
         await test_session_for_pipeline.flush()
 
-
-
     await test_session_for_pipeline.rollback()
 
 
-
-async def test_transaction_amount_zero_is_rejected(test_session_for_pipeline, user_for_pipeline):
+async def test_transaction_amount_zero_is_rejected(
+    test_session_for_pipeline, user_for_pipeline
+):
     bad_transaction = Transactions(
         user_id=user_for_pipeline.id,
         amount=0,
@@ -39,7 +40,9 @@ async def test_transaction_amount_zero_is_rejected(test_session_for_pipeline, us
     await test_session_for_pipeline.rollback()
 
 
-async def test_transaction_item_price_cannot_be_negative(test_session_for_pipeline, user_for_pipeline):
+async def test_transaction_item_price_cannot_be_negative(
+    test_session_for_pipeline, user_for_pipeline
+):
     transaction = Transactions(
         user_id=user_for_pipeline.id,
         amount=500,
@@ -64,7 +67,9 @@ async def test_transaction_item_price_cannot_be_negative(test_session_for_pipeli
     await test_session_for_pipeline.rollback()
 
 
-async def test_transaction_item_price_zero_is_allowed(test_session_for_pipeline, user_for_pipeline):
+async def test_transaction_item_price_zero_is_allowed(
+    test_session_for_pipeline, user_for_pipeline
+):
     """price >= 0 (не строго >), значит ноль — валидное значение."""
     transaction = Transactions(
         user_id=user_for_pipeline.id,

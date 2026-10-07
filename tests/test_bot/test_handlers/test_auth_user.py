@@ -104,7 +104,7 @@ async def test_global_error_handler_with_message(mock_bot, test_user):
         assert (
             call_kwargs["chat_id"] == admin_id
         )  # Убедитесь, что admin_id доступен в тесте
-        assert "Критическая ошибка!" in call_kwargs["text"]
+        assert "Critical error!" in call_kwargs["text"]
         assert "Ivan Ivanov" in call_kwargs["text"]
         assert "12345" in call_kwargs["text"]
 

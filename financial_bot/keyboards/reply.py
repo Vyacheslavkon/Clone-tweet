@@ -7,21 +7,15 @@ def get_main_menu():
     builder = ReplyKeyboardBuilder()
     builder.row(
         KeyboardButton(text=_("Enter amount")),
-                KeyboardButton(text=_("Delete today's data"))
-
+        KeyboardButton(text=_("Delete today's data")),
     )
     builder.row(
-        KeyboardButton(text=_("Generate report")),
-                KeyboardButton(text=_("History"))
+        KeyboardButton(text=_("Generate report")), KeyboardButton(text=_("History"))
     )
 
-    builder.row(KeyboardButton(text=_("Add/change data")),
-                        KeyboardButton(text="AI")
-    )
+    builder.row(KeyboardButton(text=_("Add/change data")), KeyboardButton(text="AI"))
 
-    builder.row(KeyboardButton(text=_("cancel")),
-                        KeyboardButton(text=_("Settings"))
-    )
+    builder.row(KeyboardButton(text=_("cancel")), KeyboardButton(text=_("Settings")))
 
     return builder.as_markup(resize_keyboard=True)
 
@@ -52,14 +46,12 @@ def request_ai():
     return builder.as_markup(resize_keyboard=True)
 
 
-
 def settings():
     builder = ReplyKeyboardBuilder()
     builder.row(
         KeyboardButton(text=_("Change timezone")),
         KeyboardButton(text=_("Change language")),
-        KeyboardButton(text=_("Change currency"))
-
+        KeyboardButton(text=_("Change currency")),
     )
 
     builder.row(KeyboardButton(text=_("cancel")))

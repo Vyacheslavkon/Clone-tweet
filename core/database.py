@@ -1,17 +1,22 @@
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import (
-    AsyncAttrs,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
+
 from core.config import DATABASE_URL_DOCKER, ENGINE_KWARGS
 
 load_dotenv()
 
-#When scaling horizontally, use PgBouncer—an external connection pooler—between the application and Postgres; it multiplexes thousands of logical application connections into a much smaller number of actual database connections.
-bot_engine = create_async_engine(DATABASE_URL_DOCKER, pool_size=20, max_overflow=10, **ENGINE_KWARGS)
-bot_session_maker = async_sessionmaker(bind=bot_engine, expire_on_commit=False, class_=AsyncSession)
+# When scaling horizontally, use PgBouncer—an external connection pooler—between the application and Postgres; it multiplexes thousands of logical application connections into a much smaller number of actual database connections.
+bot_engine = create_async_engine(
+    DATABASE_URL_DOCKER, pool_size=20, max_overflow=10, **ENGINE_KWARGS
+)
+bot_session_maker = async_sessionmaker(
+    bind=bot_engine, expire_on_commit=False, class_=AsyncSession
+)
+
 
 async def get_bot_db():
     async with bot_session_maker() as session:

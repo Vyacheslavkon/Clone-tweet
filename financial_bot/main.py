@@ -8,31 +8,32 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.utils.i18n import I18n, SimpleI18nMiddleware
 from dotenv import load_dotenv
-from redis.asyncio import Redis
 from loguru import logger
+from redis.asyncio import Redis
 
 from core.config import TOKEN_BOT
-from core.database import bot_session_maker, bot_engine
+from core.database import bot_engine, bot_session_maker
 from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.ai_consultant import ai_router
 from financial_bot.handlers.common import router
+from financial_bot.handlers.del_transactions import router_del_transactions
 from financial_bot.handlers.fallback import router_fallback
 from financial_bot.handlers.history import history_rout
 from financial_bot.handlers.reports import report_rout
-from financial_bot.handlers.transactions import router_tr
-from financial_bot.handlers.del_transactions import router_del_transactions
 from financial_bot.handlers.settings import settings_router
+from financial_bot.handlers.transactions import router_tr
 from financial_bot.middlewares import (
     MyI18nMiddleware,
     SessionMiddleware,
     UserActivityMiddleware,
 )
+from logger_config import setup_logging
+from services.analysis_cache import FinancialCacheService
 from services.scheduled import setup_scheduler
 
-from services.analysis_cache import FinancialCacheService
-from logger_config import setup_logging
-
-redis_fsm = Redis(host="redis", port=6379, db=2,  max_connections=20, decode_responses=True)
+redis_fsm = Redis(
+    host="redis", port=6379, db=2, max_connections=20, decode_responses=True
+)
 storage = RedisStorage(redis=redis_fsm)
 i18n = I18n(
     path="/application/financial_bot/locales", default_locale="en", domain="messages"
@@ -49,19 +50,16 @@ async def main():
     load_dotenv()
     setup_logging()
     bot_session = AiohttpSession()
-    bot = Bot(token=TOKEN_BOT,
-              session=bot_session,
-              default=DefaultBotProperties(parse_mode=ParseMode.HTML)
-              )
+    bot = Bot(
+        token=TOKEN_BOT,
+        session=bot_session,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
     dp = Dispatcher(storage=storage)
     session_pool = bot_session_maker
     scheduler = setup_scheduler()
     dp["admin_id"] = int(os.getenv("ADMIN_ID", 0))
-    redis = Redis.from_url(
-        url=redis_url,
-        decode_responses=True,
-        max_connections=20
-    )
+    redis = Redis.from_url(url=redis_url, decode_responses=True, max_connections=20)
     cache_service = FinancialCacheService(redis_client=redis)
     dp["cache_service"] = cache_service
     dp.message.outer_middleware(SessionMiddleware(session_pool))
@@ -82,16 +80,17 @@ async def main():
     dp.include_router(settings_router)
     dp.include_router(router_fallback)
 
-
     try:
         scheduler.start()
         await dp.start_polling(bot)
 
     except Exception as e:  # noqa
-        logger.critical("Critical error in bot core execution: {error}", error=e, exc_info=True)
+        logger.critical(
+            "Critical error in bot core execution: {error}", error=e, exc_info=True
+        )
 
     finally:
-        #await redis_fsm.close()
+        # await redis_fsm.close()
         await redis_fsm.aclose()
         logger.info("Redis FSM client closed.")
 
@@ -104,8 +103,8 @@ async def main():
         await bot_session.close()
         logger.info("Bot HTTP session closed.")
 
-        await bot_engine.dispose() # new
+        await bot_engine.dispose()  # new
+
 
 if __name__ == "__main__":
     asyncio.run(main())
-

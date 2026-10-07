@@ -1,16 +1,17 @@
 import io
 import os
 import uuid
-
-from aiogram import F, Router, Bot
-from aiogram.filters import StateFilter
-from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, BufferedInputFile
-from aiogram.utils.i18n import gettext as _
-from loguru import logger
-from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone
+
+from aiogram import Bot, F, Router
+from aiogram.exceptions import TelegramAPIError
+from aiogram.fsm.context import FSMContext
+from aiogram.types import BufferedInputFile, CallbackQuery, Message
+from aiogram.utils.i18n import gettext as _
+from celery.exceptions import CeleryError
+from loguru import logger
 from redis.exceptions import RedisError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.filters import (
     DeleteTransactionCallback,
@@ -18,12 +19,19 @@ from financial_bot.filters import (
     IsProUserFilter,
 )
 from financial_bot.keyboards.reply import get_main_menu, request_ai
-from financial_bot.repositories import delete_check, get_user_by_id, get_user_financial_summary
-from services.utils_pipelines import (render_detailed_transactions)
-from services.analysis_cache import FinancialCacheService
-# from financial_bot.tasks.ai import process_ai_request
+from financial_bot.repositories import (
+    delete_check,
+    get_user_by_id,
+    get_user_financial_summary,
+)
+
 from financial_bot.states.ai_states import AIState
-from financial_bot.tasks.ai import process_expense_task, process_receipt_task, process_analysis_expense_task
+from financial_bot.tasks.ai import (
+    process_analysis_expense_task,
+    process_expense_task,
+)
+from services.analysis_cache import FinancialCacheService
+from services.utils_pipelines import render_detailed_transactions
 
 redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
 if not redis_url:
@@ -33,6 +41,7 @@ ai_router = Router()
 
 TMP_AUDIO_DIR = "/tmp/financial_bot_stt"
 os.makedirs(TMP_AUDIO_DIR, exist_ok=True)
+
 
 @ai_router.message(I18nTextFilter("AI"), IsProUserFilter())
 async def waiting_for_request(message: Message, state: FSMContext):
@@ -45,13 +54,11 @@ async def ai_access_denied(message: Message):
     await message.answer(_("Sorry, you need a PRO subscription to use AI."))
 
 
-# @ai_router.message(F.text == "check",AIState.waiting_for_request)
 @ai_router.message(I18nTextFilter("check"), AIState.waiting_for_request)
 async def waiting_check(message: Message, state: FSMContext):
 
     await message.answer(_("Please send me a photo of the receipt!"))
     await state.set_state(AIState.waiting_for_receipt)
-
 
 
 @ai_router.message(I18nTextFilter("data entry"), AIState.waiting_for_request)
@@ -61,9 +68,10 @@ async def waiting_purchases(message: Message, state: FSMContext):
     await state.set_state(AIState.waiting_for_receipt)
 
 
-
 @ai_router.message(F.voice, AIState.waiting_for_receipt)
-async def handle_voice_receipt(message: Message, session: AsyncSession, state: FSMContext, bot: Bot):
+async def handle_voice_receipt(
+    message: Message, session: AsyncSession, state: FSMContext, bot: Bot
+):
 
     if not message.from_user:
         return
@@ -79,13 +87,13 @@ async def handle_voice_receipt(message: Message, session: AsyncSession, state: F
     if not voice:
         return
 
-
     if voice.duration > 35:
         await message.answer(
-            _("❌ The voice message is too long. Please dictate a shorter message (up to 30 seconds).")
+            _(
+                "❌ The voice message is too long. Please dictate a shorter message (up to 30 seconds)."
+            )
         )
         return
-
 
     waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
 
@@ -108,30 +116,26 @@ async def handle_voice_receipt(message: Message, session: AsyncSession, state: F
             locale=user.language_code or "en",
             voice_file_path=local_file_path,
             currency=user.currency,
-            status_message_id=waiting_msg.message_id
+            status_message_id=waiting_msg.message_id,
         )
-
 
         await message.answer(
             _("⏳ Analysis started in the background. You can continue working:"),
             reply_markup=get_main_menu(),
         )
 
-    except Exception as e:
+    except (TelegramAPIError, OSError, CeleryError) as e:
         logger.error("Error in voice handler pipeline: {error}", error=e, exc_info=True)
 
-        if 'local_file_path' in locals() and os.path.exists(local_file_path):
+        if "local_file_path" in locals() and os.path.exists(local_file_path):
             os.remove(local_file_path)
         await waiting_msg.edit_text(
             _("❌ Unable to process the voice message. Please try again.")
-
         )
         await message.answer(
             _("You can continue working using the menu below:"),
-            reply_markup=get_main_menu()
+            reply_markup=get_main_menu(),
         )
-
-
 
 
 @ai_router.callback_query(DeleteTransactionCallback.filter())
@@ -139,8 +143,7 @@ async def delete_batch_handler(
     callback: CallbackQuery,
     callback_data: DeleteTransactionCallback,
     session: AsyncSession,
-    cache_service: FinancialCacheService
-
+    cache_service: FinancialCacheService,
 ):
     user = await get_user_by_id(session, callback.from_user.id)
 
@@ -150,17 +153,19 @@ async def delete_batch_handler(
 
     result = await delete_check(session, callback_data.batch_id, user.id)
 
-
     try:
         await cache_service.invalidate_user_cache(user_id=user.id)
-        logger.info("Successfully invalidated cache for user: %s via manual entry", user.id)
+        logger.info(
+            "Successfully invalidated cache for user: %s via manual entry", user.id
+        )
     except RedisError as redis_err:
 
         logger.error(
             "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
-            user.id, redis_err
+            user.id,
+            redis_err,
         )
-    #test
+    # test
     if not isinstance(callback.message, Message):
         await callback.answer()
         return
@@ -174,72 +179,69 @@ async def delete_batch_handler(
         await callback.message.edit_reply_markup(reply_markup=None)
 
 
-
 @ai_router.message(I18nTextFilter("weekly data analysis", "monthly data analysis"))
 async def handle_analytics_request(message: Message, state: FSMContext):
 
     if not message.from_user:
         return
 
-
     weekly_text = _("weekly data analysis")
     monthly_text = _("monthly data analysis")
 
-    days_mapping = {
-        weekly_text: 7,
-        monthly_text: 30
-    }
+    days_mapping = {weekly_text: 7, monthly_text: 30}
 
     user_text = message.text
 
     days = days_mapping[user_text]
     now = datetime.now(timezone.utc)
 
-    # if days == 7:
-    #     days_passed = now.weekday() + 1
-    #     if days_passed < 3:
-    #         await state.clear()
-    #
-    #         await message.answer(
-    #             _("📊 *The period is too short to analyze the current week!* \n"
-    #               "We can only analyze the week starting from Wednesday, when enough spendings accumulate. "
-    #               "Please check back later! 🗓"),
-    #             reply_markup=get_main_menu()
-    #         )
-    #
-    #         return
-    #
-    # elif days == 30:
-    #     days_passed = now.day
-    #     if days_passed < 10:
-    #         await state.clear()
-    #
-    #         await message.answer(
-    #             _("📈 *It’s too early for monthly analytics!* \n"
-    #               "A reliable monthly analysis requires at least 10 days of data (available from the 10th). "
-    #               "Right now, try checking your weekly analytics instead! 📅"),
-    #             reply_markup=get_main_menu()
-    #         )
-    #
-    #         return
+    if days == 7:
+        days_passed = now.weekday() + 1
+        if days_passed < 3:
+            await state.clear()
 
+            await message.answer(
+                _(
+                    "📊 *The period is too short to analyze the current week!* \n"
+                    "We can only analyze the week starting from Wednesday, when enough spendings accumulate. "
+                    "Please check back later! 🗓"
+                ),
+                reply_markup=get_main_menu(),
+            )
 
+            return
+
+    elif days == 30:
+        days_passed = now.day
+        if days_passed < 5:
+            await state.clear()
+
+            await message.answer(
+                _(
+                    "📈 *It’s too early for monthly analytics!* \n"
+                    "A reliable monthly analysis requires at least 10 days of data (available from the 10th). "
+                    "Right now, try checking your weekly analytics instead! 📅"
+                ),
+                reply_markup=get_main_menu(),
+            )
+
+            return
 
     process_analysis_expense_task.delay(
         tg_id=message.from_user.id,
         chat_id=message.chat.id,
         days=days,
-        locale=message.from_user.language_code or "en"
-
-
+        locale=message.from_user.language_code or "en",
     )
 
     await state.clear()
 
     await message.answer(
-        _("🤖 *AI is analyzing your spending patterns...* \nIt will take five or ten seconds.",
-          ), reply_markup=get_main_menu())
-
+        _(
+            "🤖 *AI is analyzing your spending patterns...* \nIt will take five or ten seconds.",
+        ),
+        reply_markup=get_main_menu(),
+    )
 
 
 @ai_router.callback_query(F.data.startswith("show_detailed_report:"))
@@ -260,17 +262,17 @@ async def handle_show_detailed_report(callback: CallbackQuery, session: AsyncSes
 
     else:
 
-        file_buffer = io.BytesIO(report_text.encode('utf-8'))
+        file_buffer = io.BytesIO(report_text.encode("utf-8"))
         file_buffer.seek(0)
 
         filename = f"financial_report_{days}_days.txt"
         document = BufferedInputFile(file_buffer.read(), filename=filename)
 
-
         await callback.message.answer_document(
             document=document,
             caption=_(
-                "🧾 <b>Your detailed report exceeded Telegram's message length limit.</b>\nI’ve packed the entire transaction history into this file! 📁")
+                "🧾 <b>Your detailed report exceeded Telegram's message length limit.</b>\nI’ve packed the entire transaction history into this file! 📁"
+            ),
         )
 
     await callback.answer()

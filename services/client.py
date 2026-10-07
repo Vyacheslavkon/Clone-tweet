@@ -8,8 +8,8 @@ from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from services.prompts import get_voice_message, get_analysis_financial, language_name
 from services.exceptions import TruncatedResponseError
+from services.prompts import get_analysis_financial, get_voice_message, language_name
 
 load_dotenv()
 
@@ -33,19 +33,20 @@ class AIService:
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url, timeout=60.0)
         self.model = model
 
-
-    async def process_receipt(self, response_schema: Type[BaseModel], text: str, locale: str):
+    async def process_receipt(
+        self, response_schema: Type[BaseModel], text: str, locale: str
+    ):
 
         completion = await self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": get_voice_message(locale)},
-
-                {"role": "system",
-                 "content": f"Return JSON strictly matching this schema: {json.dumps(response_schema.model_json_schema())}"},
+                {
+                    "role": "system",
+                    "content": f"Return JSON strictly matching this schema: {json.dumps(response_schema.model_json_schema())}",
+                },
                 {"role": "user", "content": text},
             ],
-
             response_format={"type": "json_object"},
             max_completion_tokens=800,
             temperature=0.0,
@@ -64,7 +65,6 @@ class AIService:
 
         raw_json = completion.choices[0].message.content
         return response_schema.model_validate_json(raw_json)
-
 
     async def process_voice_message(
         self,
@@ -104,10 +104,16 @@ class AIService:
 
         config_lines = [f"- User currency: {currency}"]
         if config.get("monthly_budget"):
-            config_lines.append(f"- Monthly spending limit: {config['monthly_budget']} {currency}")
-            config_lines.append(f"- Budget reminder threshold: {config['budget_remind_percent']}%")
+            config_lines.append(
+                f"- Monthly spending limit: {config['monthly_budget']} {currency}"
+            )
+            config_lines.append(
+                f"- Budget reminder threshold: {config['budget_remind_percent']}%"
+            )
         if config.get("savings_goal"):
-            config_lines.append(f"- Monthly savings goal: {config['savings_goal']} {currency}")
+            config_lines.append(
+                f"- Monthly savings goal: {config['savings_goal']} {currency}"
+            )
 
         return f"""
     Analysis period: {summary_data['days_period']} days.
@@ -134,12 +140,12 @@ class AIService:
     """
 
     async def analysis_financial(
-            self,
-            response_schema: Type[BaseModel],
-            summary_data: dict,
-            days: int,
-            actual_days: int,
-            locale: str
+        self,
+        response_schema: Type[BaseModel],
+        summary_data: dict,
+        days: int,
+        actual_days: int,
+        locale: str,
     ) -> Type[BaseModel] | dict:
 
         if not summary_data:
@@ -148,18 +154,20 @@ class AIService:
         user_context = self.build_user_context(summary_data, locale)
 
         completion = await self.client.beta.chat.completions.parse(
-            #model="gpt-4o-mini",
+            # model="gpt-4o-mini",
             model=self.model,
             messages=[
-                {"role": "system", "content": get_analysis_financial(days, actual_days, locale)},
-                {"role": "user", "content": user_context}
+                {
+                    "role": "system",
+                    "content": get_analysis_financial(days, actual_days, locale),
+                },
+                {"role": "user", "content": user_context},
             ],
             response_format=response_schema,
-            temperature=0.0
+            temperature=0.0,
         )
 
         return completion.choices[0].message.parsed
-
 
     # async def analysis_financial(
     #         self,

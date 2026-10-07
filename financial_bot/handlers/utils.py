@@ -1,16 +1,15 @@
 import calendar
-from datetime import datetime, timedelta, timezone, time
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from aiogram.utils.i18n import get_i18n
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.i18n import gettext as global_gettext
-from loguru import logger
-from financial_bot.models import Transactions
-from financial_bot.schemas import Plan
+
 from financial_bot.general_utils import format_amount
+from financial_bot.schemas import Plan
+
 
 def check_value_budget(amount: str) -> Decimal | str:
     try:
@@ -81,12 +80,13 @@ def fmt_limit_expense(expense: Decimal, plan: Plan):
     return limit_expense, balance_limit_persent
 
 
-
-def formatters(data: list,
-               period_name: str,
-               period_key: str,
-               plan: Plan | None = None,
-               translator=None) -> str:
+def formatters(
+    data: list,
+    period_name: str,
+    period_key: str,
+    plan: Plan | None = None,
+    translator=None,
+) -> str:
 
     _ = translator or global_gettext
 
@@ -115,9 +115,6 @@ def formatters(data: list,
                 expense_details += "  • {category}: {formated_amount}\n".format(
                     category=translated_category, formated_amount=formated_amount
                 )
-                # expense_details += _("  • {category}: {formated_amount}\n").format(
-                #     category=translated_category, formated_amount=formated_amount
-                # )
 
         total_inc_str = f"{income_total:,.2f}".replace(",", " ")
         total_exp_str = f"{expense_total:,.2f}".replace(",", " ")
@@ -125,7 +122,7 @@ def formatters(data: list,
         report_text = _(
             "<b>Report for {period}:</b>\n\n"
             "💰 <b>Incomes: {total_inc_str}</b>\n{income_details}"
-            "\n"  # check attention
+            "\n"
             "💸 <b>Expense: {total_exp_str}</b>\n{expense_details}"
         ).format(
             period=period_name,
@@ -134,7 +131,6 @@ def formatters(data: list,
             income_details=income_details,
             expense_details=expense_details,
         )
-
 
         if period_key == "month" and plan:
 
@@ -176,7 +172,9 @@ def format_multi_report(reports_data: list[dict]) -> str:
 
     parts = []
     for el in reports_data:
-        part = formatters(el["data"], el["period_name"], period_key=el.get("period_key", "week"))  # el.get("plan")
+        part = formatters(
+            el["data"], el["period_name"], period_key=el.get("period_key", "week")
+        )  # el.get("plan")
         parts.append(part)
 
     return "\n\n" + "───────────────────\n".join(parts)
@@ -245,7 +243,6 @@ def get_month_name(number: int, translator=None) -> str:
     return month_names[number]
 
 
-
 def _safe_gettext(text: str) -> str:
     try:
         return get_i18n().gettext(text)
@@ -283,11 +280,9 @@ def to_local_time(dt_utc: datetime, user_timezone: str = "UTC") -> datetime:
     return dt_utc.astimezone(tz) if tz else dt_utc
 
 
-
-
-
-
-def format_transaction_card(tx: dict, _, currency: str, user_timezone: str = "UTC") -> str:
+def format_transaction_card(
+    tx: dict, _, currency: str, user_timezone: str = "UTC"
+) -> str:
     sign = "+" if tx["type"] == "income" else "-"
     created_at = datetime.fromisoformat(tx["created_at"])
     local_time = to_local_time(created_at, user_timezone)
@@ -296,14 +291,11 @@ def format_transaction_card(tx: dict, _, currency: str, user_timezone: str = "UT
     lines = [
         f"<b>{category_display}</b>",
         f"{sign}{format_amount(tx['amount'], currency)}",
-        f"🕐 {local_time:%H:%M}"
+        f"🕐 {local_time:%H:%M}",
     ]
-
-
 
     if tx.get("description"):
         lines.append(f"📝 {tx['description']}")
-
 
     if tx.get("items"):
         items_text = ", ".join(item["name"] for item in tx["items"])
@@ -315,7 +307,3 @@ def format_transaction_card(tx: dict, _, currency: str, user_timezone: str = "UT
 def is_valid_timezone(tz_value: str) -> bool:
 
     return _load_zone(tz_value) is not None
-
-
-
-

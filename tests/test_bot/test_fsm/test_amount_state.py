@@ -13,7 +13,13 @@ from tests.test_bot.utils import called_bot, called_kb
 
 
 async def test_full_transaction_flow(
-    test_dp, mock_bot, create_mock_update, test_session, test_i18n, test_user, cache_service
+    test_dp,
+    mock_bot,
+    create_mock_update,
+    test_session,
+    test_i18n,
+    test_user,
+    cache_service,
 ):
 
     create_message, create_callback = create_mock_update
@@ -81,7 +87,7 @@ async def test_full_transaction_flow(
     assert record.type == "expense"
     assert record.category == "food"
     assert record.description == "lunch in a cafe"
-    assert record.batch_id is not None #new
+    assert record.batch_id is not None  # new
 
     exp_text = test_i18n.gettext("❌ cancel operation")
     called_kb(mock_bot, exp_text)
@@ -158,7 +164,13 @@ async def test_back(test_dp, mock_bot, create_mock_update, test_i18n):
 
 
 async def test_manual_transaction_can_be_deleted_via_inline_button(
-    test_dp, mock_bot, create_mock_update, test_session, test_i18n, test_user, cache_service
+    test_dp,
+    mock_bot,
+    create_mock_update,
+    test_session,
+    test_i18n,
+    test_user,
+    cache_service,
 ):
     create_message, create_callback = create_mock_update
     user_id = test_user.tg_id
@@ -183,13 +195,13 @@ async def test_manual_transaction_can_be_deleted_via_inline_button(
 
     await test_dp.feed_update(mock_bot, cb_delete)
 
-
     result_after = await test_session.execute(select(Transactions))
     assert result_after.scalar_one_or_none() is None
 
-    expected_text = test_i18n.gettext("❌ The record has been cancelled and removed from the database.")
+    expected_text = test_i18n.gettext(
+        "❌ The record has been cancelled and removed from the database."
+    )
     called_bot(mock_bot, expected_text)
-
 
 
 async def test_cannot_delete_other_users_transaction(
@@ -199,14 +211,21 @@ async def test_cannot_delete_other_users_transaction(
 
     other_batch_id = str(uuid.uuid4())
     transaction = Transactions(
-        user_id=test_user.id, amount=100, type="expense",
-        category="food", batch_id=other_batch_id,
+        user_id=test_user.id,
+        amount=100,
+        type="expense",
+        category="food",
+        batch_id=other_batch_id,
     )
     test_session.add(transaction)
     await test_session.flush()
 
     attacker_tg_id = 99999
-    attacker_data = {"tg_id": attacker_tg_id, "language_code": "ru", "first_name": "Attacker"}
+    attacker_data = {
+        "tg_id": attacker_tg_id,
+        "language_code": "ru",
+        "first_name": "Attacker",
+    }
     await create_user(test_session, CreateUser(**attacker_data))
     await test_session.flush()
 
@@ -227,8 +246,11 @@ async def test_delete_survives_cache_invalidation_failure(
 
     batch_id = str(uuid.uuid4())
     transaction = Transactions(
-        user_id=test_user.id, amount=100, type="expense",
-        category="food", batch_id=batch_id,
+        user_id=test_user.id,
+        amount=100,
+        type="expense",
+        category="food",
+        batch_id=batch_id,
     )
     test_session.add(transaction)
     await test_session.flush()
@@ -246,14 +268,23 @@ async def test_delete_survives_cache_invalidation_failure(
 
 
 async def test_double_click_delete_shows_not_found(
-    test_dp, mock_bot, create_mock_update, test_session, test_user, cache_service, test_i18n
+    test_dp,
+    mock_bot,
+    create_mock_update,
+    test_session,
+    test_user,
+    cache_service,
+    test_i18n,
 ):
     create_message, create_callback = create_mock_update
 
     batch_id = str(uuid.uuid4())
     transaction = Transactions(
-        user_id=test_user.id, amount=100, type="expense",
-        category="food", batch_id=batch_id,
+        user_id=test_user.id,
+        amount=100,
+        type="expense",
+        category="food",
+        batch_id=batch_id,
     )
     test_session.add(transaction)
     await test_session.flush()
@@ -273,7 +304,9 @@ async def test_double_click_delete_shows_not_found(
 
     expected_error_text = test_i18n.gettext("Record not found.")
 
-    assert mock_bot.called, "The bot did not receive a single method call for the second click!"
+    assert (
+        mock_bot.called
+    ), "The bot did not receive a single method call for the second click!"
 
     alert_was_sent = False
 
@@ -284,7 +317,11 @@ async def test_double_click_delete_shows_not_found(
 
             if method_object.text == expected_error_text:
                 alert_was_sent = True
-                assert method_object.show_alert is True, "The show_alert flag must be True for the pop-up window!"
+                assert (
+                    method_object.show_alert is True
+                ), "The show_alert flag must be True for the pop-up window!"
                 break
 
-    assert alert_was_sent, f"A pop-up alert with the text '{expected_error_text}' was not sent via AnswerCallbackQuery!"
+    assert (
+        alert_was_sent
+    ), f"A pop-up alert with the text '{expected_error_text}' was not sent via AnswerCallbackQuery!"

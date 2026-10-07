@@ -1,4 +1,5 @@
 import asyncio
+
 from aiogram.exceptions import TelegramForbiddenError, TelegramRetryAfter
 from loguru import logger
 
@@ -6,17 +7,16 @@ from core.db_worker import get_isolated_session
 from financial_bot.handlers.utils import (
     formatters,
     get_month_boundaries,
+    get_month_name,
     get_week_boundaries,
-    get_month_name
 )
 from financial_bot.highload_bot import get_shared_bot
 from financial_bot.repositories import (
     blocked_user,
+    blocked_users_bulk,
     get_all_users,
-    get_reports_for_all_active_users,
     get_plans_for_all_active_users,
-    blocked_users_bulk
-
+    get_reports_for_all_active_users,
 )
 from services.utils_pipelines import get_translator
 
@@ -26,7 +26,9 @@ async def send_weekly_stats():
     try:
         start_day, end_day = get_week_boundaries()
         all_users = await get_all_users(session)
-        reports_by_user = await get_reports_for_all_active_users(session, start_day, end_day)
+        reports_by_user = await get_reports_for_all_active_users(
+            session, start_day, end_day
+        )
     finally:
         await session.close()
 
@@ -48,15 +50,25 @@ async def send_weekly_stats():
                 await bot.send_message(chat_id=user.tg_id, text=text, parse_mode="HTML")
 
             except Exception as e:
-                logger.error("Retry failed for user_id={user_id}: {error}", user_id=user.tg_id, error=e)
-
+                logger.error(
+                    "Retry failed for user_id={user_id}: {error}",
+                    user_id=user.tg_id,
+                    error=e,
+                )
 
         except TelegramForbiddenError:
-            logger.warning("User {user_id} blocked the bot. Scheduling removal.", user_id=user.tg_id)
+            logger.warning(
+                "User {user_id} blocked the bot. Scheduling removal.",
+                user_id=user.tg_id,
+            )
             users_to_block.append(user.tg_id)
 
         except Exception as e:
-            logger.error("Failed to send report to user_id={user_id}: {error}", user_id=user.tg_id, error=e)
+            logger.error(
+                "Failed to send report to user_id={user_id}: {error}",
+                user_id=user.tg_id,
+                error=e,
+            )
 
         await asyncio.sleep(0.05)
 
@@ -65,7 +77,10 @@ async def send_weekly_stats():
         try:
             await blocked_users_bulk(block_session, users_to_block)
             await block_session.commit()
-            logger.info("Successfully disabled {count} blocked users in batch.", count=len(users_to_block))
+            logger.info(
+                "Successfully disabled {count} blocked users in batch.",
+                count=len(users_to_block),
+            )
         except Exception as e:
             await block_session.rollback()
             logger.error("Failed to execute bulk block update: {error}", error=e)
@@ -73,13 +88,14 @@ async def send_weekly_stats():
             await block_session.close()
 
 
-
 async def send_monthly_stats():
     session = get_isolated_session()
     try:
         start_day, end_day, _month_num = get_month_boundaries()
         all_users = await get_all_users(session)
-        reports_by_user = await get_reports_for_all_active_users(session, start_day, end_day)
+        reports_by_user = await get_reports_for_all_active_users(
+            session, start_day, end_day
+        )
         plans_by_user = await get_plans_for_all_active_users(session)
     finally:
         await session.close()
@@ -91,10 +107,13 @@ async def send_monthly_stats():
         _ = get_translator(user.language_code or "en")
         data_month = reports_by_user.get(user.id, [])
         planned_data = plans_by_user.get(user.id)
-        period = get_month_name(_month_num,  translator=_)
+        period = get_month_name(_month_num, translator=_)
         text = formatters(
-            data_month, period, period_key="month",
-            plan=planned_data, translator=_,
+            data_month,
+            period,
+            period_key="month",
+            plan=planned_data,
+            translator=_,
         )
 
         try:
@@ -105,15 +124,25 @@ async def send_monthly_stats():
             try:
                 await bot.send_message(chat_id=user.tg_id, text=text, parse_mode="HTML")
             except Exception as e:
-                logger.error("Retry failed for user_id={user_id}: {error}", user_id=user.tg_id, error=e)
-
+                logger.error(
+                    "Retry failed for user_id={user_id}: {error}",
+                    user_id=user.tg_id,
+                    error=e,
+                )
 
         except TelegramForbiddenError:
-            logger.warning("User {user_id} blocked the bot. Scheduling removal.", user_id=user.tg_id)
+            logger.warning(
+                "User {user_id} blocked the bot. Scheduling removal.",
+                user_id=user.tg_id,
+            )
             users_to_block.append(user.tg_id)
 
         except Exception as e:
-            logger.error("Failed to send report to user_id={user_id}: {error}", user_id=user.tg_id, error=e)
+            logger.error(
+                "Failed to send report to user_id={user_id}: {error}",
+                user_id=user.tg_id,
+                error=e,
+            )
 
         await asyncio.sleep(0.05)
 
@@ -122,7 +151,10 @@ async def send_monthly_stats():
         try:
             await blocked_users_bulk(block_session, users_to_block)
             await block_session.commit()
-            logger.info("Successfully disabled {count} blocked users in batch.", count=len(users_to_block))
+            logger.info(
+                "Successfully disabled {count} blocked users in batch.",
+                count=len(users_to_block),
+            )
         except Exception as e:
             await block_session.rollback()
             logger.error("Failed to execute bulk block update: {error}", error=e)

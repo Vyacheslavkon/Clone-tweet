@@ -13,4 +13,5 @@ class TruncatedResponseError(Exception):
     """Поднимается, когда ответ от OpenAI был обрезан из-за лимита
     max_completion_tokens (finish_reason == 'length'), а не из-за
     реальной ошибки валидации JSON-структуры."""
+
     pass

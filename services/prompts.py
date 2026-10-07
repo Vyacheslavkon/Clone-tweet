@@ -2,6 +2,7 @@ from datetime import datetime
 
 LANGUAGE_NAMES = {"en": "English", "ru": "Russian"}
 
+
 def language_name(locale: str | None) -> str:
     code = (locale or "en").split("-")[0].lower()
     return LANGUAGE_NAMES.get(code, "English")
@@ -9,25 +10,29 @@ def language_name(locale: str | None) -> str:
 
 def get_voice_message(locale: str) -> str:
 
-    categories_expense = ["food", "transport", "home", "entertainment", "health", "other"]
+    categories_expense = [
+        "food",
+        "transport",
+        "home",
+        "entertainment",
+        "health",
+        "other",
+    ]
     categories_income = ["salary", "bonus", "gift", "deal", "other"]
     lang = language_name(locale)
     prompt_template = (
         "You are a financial accounting module. Analyze the provided user text (transcribed via STT/Whisper) "
         "and strictly extract financial transactions into the required ReceiptListAnalysisSchema structure.\n\n"
-
         "1. TRANSACTION CLASSIFICATION:\n"
         "Classify each transaction type strictly into one of the following:\n"
         "- 'expense': spending, purchases, transfers, service payments (e.g., 'bought bread for 100r', 'minus 500r for gas').\n"
         "- 'income': salary, bonuses, gifts, cashback, selling items, debt returns (e.g., 'salary 50k arrived', 'friend returned 2000').\n"
         "CRITICAL RULE: If the user mentions items from different categories or multiple distinct transactions in a single message, "
         "you MUST split them into separate transaction objects within the 'transactions' list.\n\n"
-
         "2. SIGN MARKER RULES:\n"
         "- The word 'plus' or '+' sign before a number (e.g., '+3000') strictly indicates 'income'. If the source is unknown, set category to 'other'.\n"
         "- The word 'minus' or '-' sign before a number (e.g., '-2000') strictly indicates 'expense'. If the category is unknown, set category to 'other' and item name/description to 'Other expenses'.\n"
         "- Any presence of 'plus' or 'minus' tokens with a number automatically flags the message as financial. Set 'is_shopping_related' to true.\n\n"
-
         "3. VOICE INPUT SCENARIOS:\n"
         "- [Detailed]: User lists specific items and prices across categories (e.g., 'milk 100r, powder 500r'). "
         "Split into separate categories in 'transactions'. Group specific items into the 'items' array inside the respective transaction. "
@@ -35,7 +40,6 @@ def get_voice_message(locale: str) -> str:
         "- [Aggregated]: User states only total amount and category/location (e.g., 'spent 1k on gas and 5k at Ikea'). "
         "Do not invent sub-items. Create one transaction per category. In the 'items' array, create exactly ONE object with a generic, clean name "
         "(e.g., 'Car refueling', 'Ikea shopping') and assign the total price.\n\n"
-
         "4. SPEECH CORRECTION & SPELLING RULES:\n"
         "- Convert slang/spoken numbers to digits. Examples: "
         "  Russian(e.g., 'косарь' -> 1000, 'полторы штуки' -> 1500, 'сотка' -> 100).\n"
@@ -44,7 +48,6 @@ def get_voice_message(locale: str) -> str:
         "- Fix phonetic and segmentation errors caused by STT/Whisper (split words, typos, homophones).\n"
         "- Use contextual clues for normalization. If a corrupted word is near 'таблетки' or 'от головы', infer the correct medical name (e.g., 'суп растин' + 'таблетки' -> 'Супрастин').\n"
         "- Category logic overrides literal text. If an item functions as medicine, its category is strictly 'health'.\n\n"
-
         "5. CRITICAL VALIDATION & HUMOR RULES:\n"
         f"- If text is shopping-related but NO prices or totals are mentioned: set 'is_shopping_related' to false, 'transactions' to empty, "
         f"and in 'error_message' write a short joke in language [{locale}] about missing prices and missing telepathy.\n"
@@ -53,28 +56,31 @@ def get_voice_message(locale: str) -> str:
         "- Mixed Context: Extract legitimate transactions only, ignore background noise, jokes, or off-topic talk. "
         "Set 'is_shopping_related' to true if at least one valid transaction exists.\n"
         "- Include in 'transactions' ONLY entries where a clear or deducible non-zero value exists.\n\n"
-
-                
-      
         f"6. LANGUAGE OUTPUT RULE:\n"
         f"Write ALL item names, descriptions and 'error_message' in {lang}, translating from the "
         f"spoken language when it differs. The 'category' field must stay EXACTLY one of these "
         f"English keys, never translated: expense categories [{', '.join(categories_expense)}], "
         f"income categories [{', '.join(categories_income)}].\n"
-
-
         "7. CURRENCY: amounts are in the user's currency. Ignore currency words and symbols ('$', 'dollars', 'руб'); output the number only. Never convert between currencies."
     )
-
 
     return prompt_template
 
 
-def get_analysis_financial(days: int = 30, actual_days: int = 30, user_locale: str = "ru") -> str:
-    days_of_week_en = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+def get_analysis_financial(
+    days: int = 30, actual_days: int = 30, user_locale: str = "ru"
+) -> str:
+    days_of_week_en = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
     current_date = datetime.now().strftime("%Y-%m-%d")
     current_day_name = days_of_week_en[datetime.now().weekday()]
-
 
     # base_language_rule = (
     #     f"CRITICAL LANGUAGE REQUIREMENT: The user's application locale is strictly '{user_locale}'. "
@@ -92,7 +98,6 @@ def get_analysis_financial(days: int = 30, actual_days: int = 30, user_locale: s
         f"Never mix languages. Raw database keys such as 'food' or 'health' must not be copied "
         f"as-is: translate them into natural category names in {lang}.\n\n"
     )
-
 
     if days == 7:
         instruction = base_language_rule + (
@@ -117,7 +122,6 @@ def get_analysis_financial(days: int = 30, actual_days: int = 30, user_locale: s
             f"- MONTHLY CONTROL & BUDGETING: You MUST cross-reference total expenses with 'monthly_budget', evaluate the limits against 'budget_remind_percent', and measure progress toward the 'savings_goal'.\n"
             f"- Tone & Style: Deep, empathetic, strategic, structured as an expert personal wealth coach."
         )
-
 
     system_prompt_analysis = f"""
     You are an empathetic, highly professional financial analyst and wealth coach. Your task is to perform a deep financial audit of the user's cash flows (both income and expenses).

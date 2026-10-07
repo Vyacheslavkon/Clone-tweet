@@ -30,8 +30,5 @@ if DATABASE_URL_DOCKER is None:
     raise ValueError("DATABASE_URL_DOCKER is not set in environment variables")
 
 ENGINE_KWARGS = dict(
-    echo=False,
-    pool_pre_ping=True,
-    pool_recycle=1800,
-    pool_timeout=10 #Ask Claude
+    echo=False, pool_pre_ping=True, pool_recycle=1800, pool_timeout=10  # Ask Claude
 )

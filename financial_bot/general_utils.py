@@ -1,13 +1,16 @@
-from datetime import datetime, time, timezone as dt_timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, time
+from datetime import timezone as dt_timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
 from loguru import logger
 
+
 def get_today_boundaries_utc(user_timezone: str = "UTC") -> tuple[datetime, datetime]:
-    """Возвращает начало и конец 'сегодня' в UTC, вычисленные относительно
-    часового пояса пользователя. Если пояс некорректен — fallback на UTC."""
+
     try:
         tz = ZoneInfo(user_timezone)
-    except Exception:
+
+    except ZoneInfoNotFoundError:
         logger.warning("Invalid timezone '{tz}', falling back to UTC", tz=user_timezone)
         tz = dt_timezone.utc
 
@@ -15,8 +18,9 @@ def get_today_boundaries_utc(user_timezone: str = "UTC") -> tuple[datetime, date
     today_start_local = datetime.combine(now_local.date(), time.min, tzinfo=tz)
     today_end_local = datetime.combine(now_local.date(), time.max, tzinfo=tz)
 
-    return today_start_local.astimezone(dt_timezone.utc), today_end_local.astimezone(dt_timezone.utc)
-
+    return today_start_local.astimezone(dt_timezone.utc), today_end_local.astimezone(
+        dt_timezone.utc
+    )
 
 
 POPULAR_TIMEZONES = [

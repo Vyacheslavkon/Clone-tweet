@@ -1,5 +1,11 @@
 # services/worker_resources.py (или financial_bot/core/db_worker.py) — использует ТОЛЬКО Celery
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+
 from core.config import DATABASE_URL_DOCKER, ENGINE_KWARGS
 
 _worker_engine: AsyncEngine | None = None
@@ -15,7 +21,9 @@ def get_isolated_session() -> AsyncSession:
         _worker_engine = create_async_engine(
             DATABASE_URL_DOCKER, pool_size=10, max_overflow=5, **ENGINE_KWARGS
         )
-        _worker_session_maker = async_sessionmaker(bind=_worker_engine, expire_on_commit=False, class_=AsyncSession)
+        _worker_session_maker = async_sessionmaker(
+            bind=_worker_engine, expire_on_commit=False, class_=AsyncSession
+        )
     return _worker_session_maker()
 
 

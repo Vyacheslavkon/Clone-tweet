@@ -1,7 +1,8 @@
 import os
 import uuid
-from unittest.mock import AsyncMock, patch
 import uuid as uuid_module
+from unittest.mock import AsyncMock, patch
+
 import openai
 import pytest
 from celery.exceptions import Retry
@@ -13,7 +14,9 @@ from financial_bot.tasks.ai import process_expense_task
 from services.celery_app import app as celery_app
 from services.pipelines import async_process_receipt
 from services.schemas import (
-    ReceiptListAnalysisSchema, ReceiptItemSchema, ReceiptAnalysisSchema
+    ReceiptAnalysisSchema,
+    ReceiptItemSchema,
+    ReceiptListAnalysisSchema,
 )
 from services.utils_pipelines import merge_transactions_by_category
 
@@ -28,7 +31,7 @@ async def test_process_expense_task_writes_to_real_db(
     test_session_for_pipeline,
     user_for_pipeline,
     fake_analysis,
-        audio_file
+    audio_file,
 ):
     user_id = user_for_pipeline.id
     chat_id = 11111
@@ -38,11 +41,9 @@ async def test_process_expense_task_writes_to_real_db(
     mock_cache_service = AsyncMock()  # эмулирует FinancialCacheService целиком
 
     with patch(
-            "services.pipelines.get_isolated_session",
-            return_value=test_session_for_pipeline,
-    ), patch(
-        "services.pipelines.get_shared_bot", return_value=mock_bot
-    ), patch(
+        "services.pipelines.get_isolated_session",
+        return_value=test_session_for_pipeline,
+    ), patch("services.pipelines.get_shared_bot", return_value=mock_bot), patch(
         "services.pipelines.get_worker_cache_service",
         return_value=mock_cache_service,
     ):
@@ -53,7 +54,7 @@ async def test_process_expense_task_writes_to_real_db(
             locale="en",
             currency="USD",
             voice_file_path=audio_file,
-            status_message_id=STATUS_MESSAGE_ID
+            status_message_id=STATUS_MESSAGE_ID,
         )
 
     stmt = select(Transactions).where(Transactions.user_id == user_id)
@@ -72,8 +73,6 @@ async def test_process_expense_task_writes_to_real_db(
     assert call_kwargs["message_id"] == STATUS_MESSAGE_ID
     assert "250" in call_kwargs["text"]
     assert call_kwargs["reply_markup"] is not None
-
-
 
 
 def test_process_expense_task_success(mock_proc_receipt, audio_file, celery_eager):
@@ -95,13 +94,10 @@ def test_process_expense_task_success(mock_proc_receipt, audio_file, celery_eage
     assert result.result == expected_output
 
 
-
 @pytest.mark.parametrize("celery_eager", [False], indirect=True)
-def test_process_expense_task_fails_after_exhausting_retries_on_openai_error(mock_bot,
-                                                                             mock_proc_receipt,
-                                                                             audio_file,
-                                                                             celery_eager,
-                                                                             mock_pipeline_infra):
+def test_process_expense_task_fails_after_exhausting_retries_on_openai_error(
+    mock_bot, mock_proc_receipt, audio_file, celery_eager, mock_pipeline_infra
+):
 
     mock_proc_receipt.side_effect = openai.OpenAIError("Rate limit exceeded")
 
@@ -112,7 +108,6 @@ def test_process_expense_task_fails_after_exhausting_retries_on_openai_error(moc
         voice_file_path=audio_file,
         currency="USD",
         status_message_id=STATUS_MESSAGE_ID,
-
     )
 
     assert mock_proc_receipt.call_count == process_expense_task.max_retries + 1
@@ -125,7 +120,9 @@ def test_process_expense_task_fails_after_exhausting_retries_on_openai_error(moc
     assert kwargs["message_id"] == STATUS_MESSAGE_ID
 
 
-def test_task_keeps_file_between_retry_attempts(mock_proc_receipt, audio_file, celery_eager):
+def test_task_keeps_file_between_retry_attempts(
+    mock_proc_receipt, audio_file, celery_eager
+):
 
     mock_proc_receipt.side_effect = openai.OpenAIError("Rate limit exceeded")
 
@@ -138,17 +135,24 @@ def test_task_keeps_file_between_retry_attempts(mock_proc_receipt, audio_file, c
     assert os.path.exists(audio_file)  # файл должен сохраниться для повторной попытки
 
 
-
 def test_process_expense_task_network_error_no_db_session_opened(
-    celery_eager, mock_isolated_session, mock_voice_processing,
-    mock_pipeline_infra, audio_file, mock_bot,
+    celery_eager,
+    mock_isolated_session,
+    mock_voice_processing,
+    mock_pipeline_infra,
+    audio_file,
+    mock_bot,
 ):
     mock_voice_processing.side_effect = openai.APITimeoutError("Request timed out")
 
     with pytest.raises(Retry):
         process_expense_task.delay(
-            chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="en",
-            voice_file_path=audio_file, currency="USD", status_message_id=STATUS_MESSAGE_ID,
+            chat_id=CHAT_ID,
+            db_user_id=DB_USER_ID,
+            locale="en",
+            voice_file_path=audio_file,
+            currency="USD",
+            status_message_id=STATUS_MESSAGE_ID,
         )
 
     mock_isolated_session.assert_not_called()
@@ -157,16 +161,15 @@ def test_process_expense_task_network_error_no_db_session_opened(
     mock_bot.send_message.assert_not_awaited()
 
 
-
 def test_process_expense_task_garbage_audio_sends_joke_and_no_db_write(
     test_session_for_pipeline,
-        mock_bot,
-        celery_eager,
-        audio_file,
-        mock_isolated_session,
-        mock_voice_processing,
-        mock_pipeline_infra,
-        mock_save_receipt
+    mock_bot,
+    celery_eager,
+    audio_file,
+    mock_isolated_session,
+    mock_voice_processing,
+    mock_pipeline_infra,
+    mock_save_receipt,
 ):
     mock_isolated_session.return_value = AsyncMock()
     mock_voice_processing.return_value = ReceiptListAnalysisSchema(
@@ -219,7 +222,7 @@ async def test_delete_check_idempotency_on_double_click(
     first_click = await delete_check(
         batch_id=test_batch_id,
         session=test_session_for_pipeline,
-        user_id=user_for_pipeline.id
+        user_id=user_for_pipeline.id,
     )
 
     assert first_click is True, "The first call to delete_check must return True."
@@ -243,7 +246,7 @@ async def test_delete_check_idempotency_on_double_click(
     second_click = await delete_check(
         batch_id=test_batch_id,
         session=test_session_for_pipeline,
-        user_id=user_for_pipeline.id
+        user_id=user_for_pipeline.id,
     )
 
     assert (
@@ -280,8 +283,13 @@ def test_merge_transactions_by_category_logic(data_for_merge_by_cat):
 
 
 def test_all_amounts_non_positive_reports_no_transactions(
-    celery_eager, audio_file, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_voice_processing, mock_save_receipt,
+    celery_eager,
+    audio_file,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_voice_processing,
+    mock_save_receipt,
 ):
     mock_isolated_session.return_value = AsyncMock()
     mock_voice_processing.return_value = ReceiptListAnalysisSchema(
@@ -293,11 +301,10 @@ def test_all_amounts_non_positive_reports_no_transactions(
                 category="food",
                 items=[
                     ReceiptItemSchema(name="Milk", price=0),
-                    ReceiptItemSchema(name="Water", price=-0)
+                    ReceiptItemSchema(name="Water", price=-0),
                 ],
-                type="expense"
+                type="expense",
             )
-
         ],
     )
 
@@ -317,15 +324,21 @@ def test_all_amounts_non_positive_reports_no_transactions(
     assert "No transactions found" in kwargs["text"]
 
 
-
 @pytest.mark.parametrize("celery_eager", [False], indirect=True)
 def test_missing_audio_file_fails_before_opening_db_session(
-    celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_voice_processing,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_voice_processing,
 ):
     result = process_expense_task.delay(
-        chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="en",
-        voice_file_path="/nonexistent/path.ogg", currency="USD", status_message_id=STATUS_MESSAGE_ID,
+        chat_id=CHAT_ID,
+        db_user_id=DB_USER_ID,
+        locale="en",
+        voice_file_path="/nonexistent/path.ogg",
+        currency="USD",
+        status_message_id=STATUS_MESSAGE_ID,
     )
 
     assert result.failed()
@@ -342,10 +355,14 @@ def test_missing_audio_file_fails_before_opening_db_session(
     assert "couldn't recognize your receipt" in kwargs["text"]
 
 
-
 def test_successful_save_survives_cache_invalidation_failure(
-    celery_eager, audio_file, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_voice_processing, mock_save_receipt,
+    celery_eager,
+    audio_file,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_voice_processing,
+    mock_save_receipt,
     mock_redis_cache,
 ):
     session = AsyncMock()
@@ -353,15 +370,17 @@ def test_successful_save_survives_cache_invalidation_failure(
     mock_voice_processing.return_value = ReceiptListAnalysisSchema(
         is_shopping_related=True,
         error_message=None,
-        transactions=[ReceiptAnalysisSchema(
+        transactions=[
+            ReceiptAnalysisSchema(
                 amount=15.5,
                 category="food",
                 items=[
                     ReceiptItemSchema(name="Milk", price=5),
-                    ReceiptItemSchema(name="Water", price=-10)
+                    ReceiptItemSchema(name="Water", price=-10),
                 ],
-                type="expense"
-            )],
+                type="expense",
+            )
+        ],
     )
     mock_redis_cache.side_effect = ConnectionError("redis down")
 
@@ -379,25 +398,31 @@ def test_successful_save_survives_cache_invalidation_failure(
     session.rollback.assert_not_awaited()
     session.close.assert_awaited_once()
 
-
     mock_bot.edit_message_text.assert_awaited_once()
 
 
 @pytest.mark.parametrize("celery_eager", [False], indirect=True)
 def test_unexpected_error_fails_before_opening_db_session(
-    celery_eager, audio_file, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_voice_processing,
+    celery_eager,
+    audio_file,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_voice_processing,
 ):
     mock_voice_processing.side_effect = ValueError("unexpected schema mismatch")
 
     result = process_expense_task.delay(
-        chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="en",
-        voice_file_path=audio_file, currency="USD", status_message_id=STATUS_MESSAGE_ID,
+        chat_id=CHAT_ID,
+        db_user_id=DB_USER_ID,
+        locale="en",
+        voice_file_path=audio_file,
+        currency="USD",
+        status_message_id=STATUS_MESSAGE_ID,
     )
 
     assert result.failed()
     assert isinstance(result.result, ValueError)
-
 
     mock_isolated_session.assert_not_called()
 
@@ -410,8 +435,13 @@ def test_unexpected_error_fails_before_opening_db_session(
 
 @pytest.mark.parametrize("celery_eager", [False], indirect=True)
 def test_unexpected_error_after_session_opened_rolls_back(
-    celery_eager, audio_file, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_voice_processing, fake_analysis,
+    celery_eager,
+    audio_file,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_voice_processing,
+    fake_analysis,
 ):
     session = AsyncMock()
     mock_isolated_session.return_value = session
@@ -422,8 +452,12 @@ def test_unexpected_error_after_session_opened_rolls_back(
         side_effect=ValueError("unexpected db mapping error"),
     ):
         result = process_expense_task.delay(
-            chat_id=CHAT_ID, db_user_id=DB_USER_ID, locale="en",
-            voice_file_path=audio_file, currency="USD", status_message_id=STATUS_MESSAGE_ID,
+            chat_id=CHAT_ID,
+            db_user_id=DB_USER_ID,
+            locale="en",
+            voice_file_path=audio_file,
+            currency="USD",
+            status_message_id=STATUS_MESSAGE_ID,
         )
 
     assert result.failed()

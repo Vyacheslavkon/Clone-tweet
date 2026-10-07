@@ -1,16 +1,14 @@
 import os
 
 from celery import Celery
-from celery.signals import after_setup_logger
+from celery.signals import after_setup_logger, worker_shutdown
 from dotenv import load_dotenv
-import asyncio
-from celery.signals import worker_shutdown
-from logger_config import setup_logging
 from loguru import logger as log
-from financial_bot.highload_bot import close_shared_bot
-from services.analysis_cache import close_worker_cache
-from services.worker_loop import get_worker_loop, close_worker_loop
+
 from core.db_worker import close_worker_db_engine
+from logger_config import setup_logging
+from services.analysis_cache import close_worker_cache
+from services.worker_loop import close_worker_loop, get_worker_loop
 
 load_dotenv()
 
@@ -21,9 +19,7 @@ app = Celery(
     "financial_worker",
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
-    include=["financial_bot.tasks.ai",
-             "financial_bot.tasks.vehicle_reports"
-             ]
+    include=["financial_bot.tasks.ai", "financial_bot.tasks.vehicle_reports"],
 )
 
 app.conf.update(
@@ -40,18 +36,6 @@ def setup_celery_logger(logger, *args, **kwargs):
     setup_logging()
 
 
-# @worker_shutdown.connect
-# def on_worker_shutdown(**kwargs):
-#     """Порядок важен: сначала закрываем то, что использует loop (Redis),
-#     потом сам loop."""
-#     loop = get_worker_loop()
-#     try:
-#         loop.run_until_complete(close_worker_cache())
-#     finally:
-#         close_worker_loop()
-
-
-# new
 @worker_shutdown.connect
 def on_worker_shutdown(**kwargs):
     loop = get_worker_loop()

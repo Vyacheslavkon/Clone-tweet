@@ -1,5 +1,5 @@
 import time
-from typing import Any, Awaitable, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
 from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message, TelegramObject, Update
@@ -11,7 +11,6 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from financial_bot.repositories import get_user_by_id
 
 
-
 class SessionMiddleware(BaseMiddleware):
     def __init__(self, session_pool: async_sessionmaker | AsyncSession | None = None):
         self.session_pool = session_pool
@@ -20,7 +19,9 @@ class SessionMiddleware(BaseMiddleware):
         current_pool = data.get("session_pool") or self.session_pool
 
         if not current_pool:
-            raise ValueError("Database session pool is not configured in middleware or workflow data!")
+            raise ValueError(
+                "Database session pool is not configured in middleware or workflow data!"
+            )
 
         if isinstance(current_pool, AsyncSession):
             # Test path: the session and its rollback are managed externally via
@@ -34,15 +35,15 @@ class SessionMiddleware(BaseMiddleware):
             try:
                 return await handler(event, data)
             except Exception as e:
-                logger.warning("Rolling back session due to exception in handler: {error}", error=e)
+                logger.warning(
+                    "Rolling back session due to exception in handler: {error}", error=e
+                )
 
                 try:
                     await session.rollback()
                 except Exception as rollback_err:
                     logger.error("Rollback itself failed: {error}", error=rollback_err)
                 raise
-                # await session.rollback()
-                # raise
 
 
 class MyI18nMiddleware(I18nMiddleware):

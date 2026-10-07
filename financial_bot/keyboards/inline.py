@@ -5,7 +5,11 @@ from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from financial_bot.filters import DeleteTransactionCallback
-from financial_bot.general_utils import POPULAR_TIMEZONES, SUPPORTED_LANGUAGES, SUPPORTED_CURRENCIES
+from financial_bot.general_utils import (
+    POPULAR_TIMEZONES,
+    SUPPORTED_CURRENCIES,
+    SUPPORTED_LANGUAGES,
+)
 
 
 def cancel():
@@ -32,7 +36,6 @@ def get_type():
     builder.attach(back_builder)
     builder.attach(cancel_builder)
     return builder.as_markup()
-
 
 
 def get_category(type_transaction: str):
@@ -131,11 +134,11 @@ def get_detailed_report(days: int, _: Callable[[str], str]):
     builder = InlineKeyboardBuilder()
 
     builder.add(
-        InlineKeyboardButton(text=_("🔎 Detailed report"), callback_data=f"show_detailed_report:{days}")
+        InlineKeyboardButton(
+            text=_("🔎 Detailed report"), callback_data=f"show_detailed_report:{days}"
+        )
     )
     return builder.as_markup()
-
-
 
 
 def get_transaction_carousel_keyboard(
@@ -145,14 +148,18 @@ def get_transaction_carousel_keyboard(
 
     nav_row = []
     if current_index > 0:
-        nav_row.append(InlineKeyboardButton(text="◀️", callback_data=f"tx_nav:{current_index - 1}"))
+        nav_row.append(
+            InlineKeyboardButton(text="◀️", callback_data=f"tx_nav:{current_index - 1}")
+        )
     nav_row.append(
         InlineKeyboardButton(
             text=f"{current_index + 1}/{len(transactions)}", callback_data="tx_nav:noop"
         )
     )
     if current_index < len(transactions) - 1:
-        nav_row.append(InlineKeyboardButton(text="▶️", callback_data=f"tx_nav:{current_index + 1}"))
+        nav_row.append(
+            InlineKeyboardButton(text="▶️", callback_data=f"tx_nav:{current_index + 1}")
+        )
     builder.row(*nav_row)
 
     builder.row(
@@ -169,10 +176,14 @@ def get_transaction_carousel_keyboard(
 def get_timezone_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for tz_value, tz_label in POPULAR_TIMEZONES:
-        builder.row(InlineKeyboardButton(text=tz_label, callback_data=f"set_tz:{tz_value}"))
+        builder.row(
+            InlineKeyboardButton(text=tz_label, callback_data=f"set_tz:{tz_value}")
+        )
 
     builder.row(
-        InlineKeyboardButton(text=_("✏️ Enter manually"), callback_data="set_tz_manual")# new
+        InlineKeyboardButton(
+            text=_("✏️ Enter manually"), callback_data="set_tz_manual"
+        )  # new
     )
 
     return builder.as_markup()

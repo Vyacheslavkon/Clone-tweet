@@ -96,7 +96,6 @@ async def report_monthly(callback: CallbackQuery, session: AsyncSession, bot: Bo
 
     report_text = formatters(data, period, period_key="month", plan=planned_data)
 
-
     await bot.edit_message_text(
         text=report_text,
         chat_id=callback.message.chat.id,

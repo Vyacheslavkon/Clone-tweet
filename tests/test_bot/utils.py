@@ -18,7 +18,9 @@ def called_kb_old(mock_bot, text: str):
     ), f"Button with text '{text}' not found in bot responses."
 
 
-def called_bot(mock_bot, text: str, methods: tuple[str, ...] = ("SendMessage", "EditMessageText")):
+def called_bot(
+    mock_bot, text: str, methods: tuple[str, ...] = ("SendMessage", "EditMessageText")
+):
     """Проверяет, что среди реально отправленных Telegram-методов есть
     вызов с заданным текстом. Сравнение идёт по точному типу объекта
     метода и его атрибуту .text, а не по строковому представлению вызова."""
@@ -27,12 +29,15 @@ def called_bot(mock_bot, text: str, methods: tuple[str, ...] = ("SendMessage", "
         and call.args[0].__class__.__name__ in methods
         and getattr(call.args[0], "text", None) == text
         for call in mock_bot.call_args_list
-
     )
     assert found, f"Text '{text}' not found among {methods} calls."
 
 
-def called_kb(mock_bot, button_text: str, methods: tuple[str, ...] = ("SendMessage", "EditMessageText")):
+def called_kb(
+    mock_bot,
+    button_text: str,
+    methods: tuple[str, ...] = ("SendMessage", "EditMessageText"),
+):
     """Проверяет, что среди отправленных методов есть клавиатура,
     содержащая кнопку с заданным текстом."""
     for call in mock_bot.call_args_list:
@@ -41,13 +46,14 @@ def called_kb(mock_bot, button_text: str, methods: tuple[str, ...] = ("SendMessa
         reply_markup = getattr(call.args[0], "reply_markup", None)
         if reply_markup is None:
             continue
-        for row in getattr(reply_markup, "inline_keyboard", []) or getattr(reply_markup, "keyboard", []):
+        for row in getattr(reply_markup, "inline_keyboard", []) or getattr(
+            reply_markup, "keyboard", []
+        ):
             for button in row:
                 btn_text = getattr(button, "text", None)
                 if btn_text == button_text:
                     return
     assert False, f"Button with text '{button_text}' not found among {methods} calls."
-
 
 
 def keyboard_check(kb, bot, i18n):

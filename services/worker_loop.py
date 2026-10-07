@@ -1,6 +1,6 @@
 import asyncio
-import os
 import logging
+import os
 
 from loguru import logger
 
@@ -14,7 +14,8 @@ def get_worker_loop() -> asyncio.AbstractEventLoop:
         asyncio.set_event_loop(_worker_loop)
         logger.info(
             "New worker event loop created: pid=%s, loop_id=%s",
-            os.getpid(), id(_worker_loop),
+            os.getpid(),
+            id(_worker_loop),
         )
     return _worker_loop
 

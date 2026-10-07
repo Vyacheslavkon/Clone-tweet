@@ -1,13 +1,22 @@
-import pytest
 from unittest.mock import AsyncMock, patch
+
 import openai
-from aiogram.exceptions import TelegramAPIError, TelegramBadRequest, TelegramForbiddenError
+import pytest
+from aiogram.exceptions import (
+    TelegramAPIError,
+    TelegramBadRequest,
+    TelegramForbiddenError,
+)
 
 from financial_bot.tasks.ai import process_analysis_expense_task
-from tests.test_bot.conftest import ANALYSIS_SCHEMA_FACTORIES, make_weekly_analysis_response
+from tests.test_bot.conftest import (
+    ANALYSIS_SCHEMA_FACTORIES,
+    make_weekly_analysis_response,
+)
 
 TG_ID = 1328587577
 CHAT_ID = 1328587577
+
 
 @pytest.fixture(autouse=True)
 def _configure_isolated_session(mock_isolated_session):
@@ -18,9 +27,15 @@ def _configure_isolated_session(mock_isolated_session):
 
 @pytest.mark.parametrize("days", [7, 30])
 def test_analysis_cache_hit_skips_ai_call(
-    days, celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_get_user_by_id, mock_get_user_financial_summary,
-    mock_cache_service_analysis, mock_analysis_ai_service,
+    days,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_get_user_by_id,
+    mock_get_user_financial_summary,
+    mock_cache_service_analysis,
+    mock_analysis_ai_service,
 ):
 
     response_schema_cls, min_items, make_response = ANALYSIS_SCHEMA_FACTORIES[days]
@@ -35,7 +50,10 @@ def test_analysis_cache_hit_skips_ai_call(
     mock_cache_service_analysis.get_cached_analysis.return_value = cached_result
 
     result = process_analysis_expense_task.delay(
-        tg_id=TG_ID, chat_id=CHAT_ID, days=days, locale="en",
+        tg_id=TG_ID,
+        chat_id=CHAT_ID,
+        days=days,
+        locale="en",
     )
 
     assert result.successful()
@@ -45,9 +63,15 @@ def test_analysis_cache_hit_skips_ai_call(
 
 @pytest.mark.parametrize("days", [7, 30])
 def test_analysis_cache_miss_calls_ai_and_writes_cache(
-    days, celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_get_user_by_id, mock_get_user_financial_summary,
-    mock_cache_service_analysis, mock_analysis_ai_service,
+    days,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_get_user_by_id,
+    mock_get_user_financial_summary,
+    mock_cache_service_analysis,
+    mock_analysis_ai_service,
 ):
     response_schema_cls, min_items, make_response = ANALYSIS_SCHEMA_FACTORIES[days]
 
@@ -62,7 +86,10 @@ def test_analysis_cache_miss_calls_ai_and_writes_cache(
     mock_analysis_ai_service.return_value = fresh_result
 
     result = process_analysis_expense_task.delay(
-        tg_id=TG_ID, chat_id=CHAT_ID, days=days, locale="en",
+        tg_id=TG_ID,
+        chat_id=CHAT_ID,
+        days=days,
+        locale="en",
     )
 
     assert result.successful()
@@ -73,10 +100,13 @@ def test_analysis_cache_miss_calls_ai_and_writes_cache(
     mock_bot.send_message.assert_awaited_once()
 
 
-
 def test_analysis_no_data_sends_early_message(
-    celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_get_user_by_id, mock_get_user_financial_summary,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_get_user_by_id,
+    mock_get_user_financial_summary,
     mock_analysis_ai_service,
 ):
     fake_user = AsyncMock(id=42, language_code="en")
@@ -84,7 +114,10 @@ def test_analysis_no_data_sends_early_message(
     mock_get_user_financial_summary.return_value = None
 
     result = process_analysis_expense_task.delay(
-        tg_id=TG_ID, chat_id=CHAT_ID, days=7, locale="en",
+        tg_id=TG_ID,
+        chat_id=CHAT_ID,
+        days=7,
+        locale="en",
     )
 
     assert result.successful()
@@ -101,11 +134,15 @@ def test_analysis_no_data_sends_early_message(
         (30, 8),
     ],
 )
-
 def test_analysis_not_enough_items_sends_early_message(
-    days, items_count,
-    celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_get_user_by_id, mock_get_user_financial_summary,
+    days,
+    items_count,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_get_user_by_id,
+    mock_get_user_financial_summary,
     mock_analysis_ai_service,
 ):
     fake_user = AsyncMock(id=42, language_code="en")
@@ -116,7 +153,10 @@ def test_analysis_not_enough_items_sends_early_message(
     }
 
     result = process_analysis_expense_task.delay(
-        tg_id=TG_ID, chat_id=CHAT_ID, days=days, locale="en",
+        tg_id=TG_ID,
+        chat_id=CHAT_ID,
+        days=days,
+        locale="en",
     )
 
     assert result.successful()
@@ -128,19 +168,29 @@ def test_analysis_not_enough_items_sends_early_message(
 
 @pytest.mark.parametrize("days,min_items", [(7, 5), (30, 12)])
 def test_analysis_threshold_differs_by_period(
-    days, min_items, celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_get_user_by_id, mock_get_user_financial_summary,
+    days,
+    min_items,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_get_user_by_id,
+    mock_get_user_financial_summary,
     mock_analysis_ai_service,
 ):
 
     fake_user = AsyncMock(id=42, language_code="en")
     mock_get_user_by_id.return_value = fake_user
     mock_get_user_financial_summary.return_value = {
-        "top_items": [{"name": f"item{i}"} for i in range(min_items - 1)],         "days_period": days,
+        "top_items": [{"name": f"item{i}"} for i in range(min_items - 1)],
+        "days_period": days,
     }
 
     result = process_analysis_expense_task.delay(
-        tg_id=TG_ID, chat_id=CHAT_ID, days=days, locale="en",
+        tg_id=TG_ID,
+        chat_id=CHAT_ID,
+        days=days,
+        locale="en",
     )
 
     assert result.successful()
@@ -148,9 +198,14 @@ def test_analysis_threshold_differs_by_period(
 
 
 def test_analysis_survives_cache_read_failure(
-    celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_get_user_by_id, mock_get_user_financial_summary,
-    mock_cache_service_analysis, mock_analysis_ai_service,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_get_user_by_id,
+    mock_get_user_financial_summary,
+    mock_cache_service_analysis,
+    mock_analysis_ai_service,
 ):
     fake_user = AsyncMock(id=42, language_code="en")
     mock_get_user_by_id.return_value = fake_user
@@ -158,11 +213,16 @@ def test_analysis_survives_cache_read_failure(
         "top_items": [{"name": f"item{i}"} for i in range(5)],
         "days_period": 7,
     }
-    mock_cache_service_analysis.get_cached_analysis.side_effect = ConnectionError("redis down")
+    mock_cache_service_analysis.get_cached_analysis.side_effect = ConnectionError(
+        "redis down"
+    )
     mock_analysis_ai_service.return_value = make_weekly_analysis_response(summary="ok")
 
     result = process_analysis_expense_task.delay(
-        tg_id=TG_ID, chat_id=CHAT_ID, days=7, locale="en",
+        tg_id=TG_ID,
+        chat_id=CHAT_ID,
+        days=7,
+        locale="en",
     )
 
     assert result.successful()
@@ -171,9 +231,14 @@ def test_analysis_survives_cache_read_failure(
 
 
 def test_analysis_survives_cache_write_failure(
-    celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_get_user_by_id, mock_get_user_financial_summary,
-    mock_cache_service_analysis, mock_analysis_ai_service,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_get_user_by_id,
+    mock_get_user_financial_summary,
+    mock_cache_service_analysis,
+    mock_analysis_ai_service,
 ):
     fake_user = AsyncMock(id=42, language_code="en")
     mock_get_user_by_id.return_value = fake_user
@@ -182,11 +247,16 @@ def test_analysis_survives_cache_write_failure(
         "days_period": 7,
     }
     mock_cache_service_analysis.get_cached_analysis.return_value = None
-    mock_cache_service_analysis.set_analysis_cache.side_effect = ConnectionError("redis down")
+    mock_cache_service_analysis.set_analysis_cache.side_effect = ConnectionError(
+        "redis down"
+    )
     mock_analysis_ai_service.return_value = make_weekly_analysis_response(summary="ok")
 
     result = process_analysis_expense_task.delay(
-        tg_id=TG_ID, chat_id=CHAT_ID, days=7, locale="en",
+        tg_id=TG_ID,
+        chat_id=CHAT_ID,
+        days=7,
+        locale="en",
     )
 
     assert result.successful()
@@ -195,9 +265,14 @@ def test_analysis_survives_cache_write_failure(
 
 @pytest.mark.parametrize("celery_eager", [False], indirect=True)
 def test_analysis_retries_on_openai_error(
-    celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_get_user_by_id, mock_get_user_financial_summary,
-    mock_cache_service_analysis, mock_analysis_ai_service,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_get_user_by_id,
+    mock_get_user_financial_summary,
+    mock_cache_service_analysis,
+    mock_analysis_ai_service,
 ):
     fake_user = AsyncMock(id=42, language_code="en")
     mock_get_user_by_id.return_value = fake_user
@@ -209,10 +284,16 @@ def test_analysis_retries_on_openai_error(
     mock_analysis_ai_service.side_effect = openai.APITimeoutError("timeout")
 
     result = process_analysis_expense_task.delay(
-        tg_id=TG_ID, chat_id=CHAT_ID, days=7, locale="en",
+        tg_id=TG_ID,
+        chat_id=CHAT_ID,
+        days=7,
+        locale="en",
     )
 
-    assert mock_analysis_ai_service.call_count == process_analysis_expense_task.max_retries + 1
+    assert (
+        mock_analysis_ai_service.call_count
+        == process_analysis_expense_task.max_retries + 1
+    )
     assert result.failed()
     assert isinstance(result.result, openai.OpenAIError)
     mock_bot.send_message.assert_awaited_once()
@@ -221,8 +302,12 @@ def test_analysis_retries_on_openai_error(
 
 
 def test_analysis_forbidden_error_silently_skips(
-    celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_get_user_by_id, mock_get_user_financial_summary,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_get_user_by_id,
+    mock_get_user_financial_summary,
     mock_cache_service_analysis,
 ):
     fake_user = AsyncMock(id=42, language_code="en")
@@ -231,11 +316,18 @@ def test_analysis_forbidden_error_silently_skips(
         "top_items": [{"name": f"item{i}"} for i in range(5)],
         "days_period": 7,
     }
-    mock_cache_service_analysis.get_cached_analysis.return_value = make_weekly_analysis_response(summary="ok")
-    mock_bot.send_message.side_effect = TelegramForbiddenError(method="sendMessage", message="bot blocked")
+    mock_cache_service_analysis.get_cached_analysis.return_value = (
+        make_weekly_analysis_response(summary="ok")
+    )
+    mock_bot.send_message.side_effect = TelegramForbiddenError(
+        method="sendMessage", message="bot blocked"
+    )
 
     result = process_analysis_expense_task.delay(
-        tg_id=TG_ID, chat_id=CHAT_ID, days=7, locale="en",
+        tg_id=TG_ID,
+        chat_id=CHAT_ID,
+        days=7,
+        locale="en",
     )
 
     assert result.successful()
@@ -243,8 +335,12 @@ def test_analysis_forbidden_error_silently_skips(
 
 
 def test_analysis_bad_request_sends_fallback_message(
-    celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_get_user_by_id, mock_get_user_financial_summary,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_get_user_by_id,
+    mock_get_user_financial_summary,
     mock_cache_service_analysis,
 ):
     fake_user = AsyncMock(id=42, language_code="en")
@@ -253,8 +349,9 @@ def test_analysis_bad_request_sends_fallback_message(
         "top_items": [{"name": f"item{i}"} for i in range(5)],
         "days_period": 7,
     }
-    mock_cache_service_analysis.get_cached_analysis.return_value = make_weekly_analysis_response(summary="ok")
-
+    mock_cache_service_analysis.get_cached_analysis.return_value = (
+        make_weekly_analysis_response(summary="ok")
+    )
 
     mock_bot.send_message.side_effect = [
         TelegramBadRequest(method="sendMessage", message="message is too long"),
@@ -262,7 +359,10 @@ def test_analysis_bad_request_sends_fallback_message(
     ]
 
     result = process_analysis_expense_task.delay(
-        tg_id=TG_ID, chat_id=CHAT_ID, days=7, locale="en",
+        tg_id=TG_ID,
+        chat_id=CHAT_ID,
+        days=7,
+        locale="en",
     )
 
     assert result.successful()
@@ -272,8 +372,12 @@ def test_analysis_bad_request_sends_fallback_message(
 
 
 def test_analysis_generic_telegram_error_sends_fallback_and_succeeds(
-    celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_get_user_by_id, mock_get_user_financial_summary,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_get_user_by_id,
+    mock_get_user_financial_summary,
     mock_cache_service_analysis,
 ):
     fake_user = AsyncMock(id=42, language_code="en")
@@ -282,7 +386,9 @@ def test_analysis_generic_telegram_error_sends_fallback_and_succeeds(
         "top_items": [{"name": f"item{i}"} for i in range(5)],
         "days_period": 7,
     }
-    mock_cache_service_analysis.get_cached_analysis.return_value = make_weekly_analysis_response(summary="ok")
+    mock_cache_service_analysis.get_cached_analysis.return_value = (
+        make_weekly_analysis_response(summary="ok")
+    )
 
     mock_bot.send_message.side_effect = [
         TelegramAPIError(method="sendMessage", message="network error"),
@@ -290,7 +396,10 @@ def test_analysis_generic_telegram_error_sends_fallback_and_succeeds(
     ]
 
     result = process_analysis_expense_task.delay(
-        tg_id=TG_ID, chat_id=CHAT_ID, days=7, locale="en",
+        tg_id=TG_ID,
+        chat_id=CHAT_ID,
+        days=7,
+        locale="en",
     )
 
     assert result.successful()
@@ -301,8 +410,12 @@ def test_analysis_generic_telegram_error_sends_fallback_and_succeeds(
 
 @pytest.mark.parametrize("celery_eager", [False], indirect=True)
 def test_analysis_rendering_failure_reraises_for_celery_monitoring(
-    celery_eager, mock_bot, mock_pipeline_infra,
-    mock_isolated_session, mock_get_user_by_id, mock_get_user_financial_summary,
+    celery_eager,
+    mock_bot,
+    mock_pipeline_infra,
+    mock_isolated_session,
+    mock_get_user_by_id,
+    mock_get_user_financial_summary,
     mock_cache_service_analysis,
 ):
     fake_user = AsyncMock(id=42, language_code="en")
@@ -311,18 +424,21 @@ def test_analysis_rendering_failure_reraises_for_celery_monitoring(
         "top_items": [{"name": f"item{i}"} for i in range(5)],
         "days_period": 7,
     }
-    mock_cache_service_analysis.get_cached_analysis.return_value = make_weekly_analysis_response(summary="ok")
+    mock_cache_service_analysis.get_cached_analysis.return_value = (
+        make_weekly_analysis_response(summary="ok")
+    )
 
     with patch(
         "services.pipelines.render_analysis_report",
         side_effect=ValueError("unexpected rendering bug"),
     ):
         result = process_analysis_expense_task.delay(
-            tg_id=TG_ID, chat_id=CHAT_ID, days=7, locale="en",
+            tg_id=TG_ID,
+            chat_id=CHAT_ID,
+            days=7,
+            locale="en",
         )
 
     assert result.failed()
     assert isinstance(result.result, ValueError)
     mock_bot.send_message.assert_awaited_once()
-
-

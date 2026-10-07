@@ -84,4 +84,6 @@ class User(Base):
     )
 
     likes: Mapped[list["Likes"]] = relationship(back_populates="user")
+
+
 # MARKER_TEST_999

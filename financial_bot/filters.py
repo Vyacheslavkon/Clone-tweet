@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.repositories import get_user_by_id
 
-
 # class I18nTextFilter(BaseFilter):
 #     def __init__(self, key: str):
 #         self.key = key
@@ -37,7 +36,6 @@ class I18nTextFilter(BaseFilter):
     async def __call__(self, message: Message) -> bool:
         if not message.text:
             return False
-
 
         translated_values = {_(key) for key in self.keys}
         return message.text in translated_values

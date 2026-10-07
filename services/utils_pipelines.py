@@ -3,27 +3,23 @@ import gettext
 import io
 import os
 import re
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, Dict, List, Tuple
 
 from aiogram import Bot
-from loguru import logger
-
 from dotenv import load_dotenv
+from loguru import logger
 from PIL import Image, ImageEnhance, ImageOps
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
-from services.schemas import ReceiptAnalysisSchema
-from typing import List, Dict, Tuple
-from services.schemas import ReceiptListAnalysisSchema
 from financial_bot.general_utils import format_amount
+from services.schemas import ReceiptAnalysisSchema, ReceiptListAnalysisSchema
 
 load_dotenv()
 
 POSTGRES_ASYNC_URL = os.getenv("DATABASE_URL_DOCKER")
-
 
 
 def merge_transactions_by_category(
@@ -60,22 +56,19 @@ def merge_transactions_by_category(
     new_result.transactions = list(merged_map.values())
     return new_result
 
-CATEGORY_TITLES: Dict[str, str] = {
-        "food": "🍎 Еда",
-        "home": "🏠 Дом/Аренда",
-        "entertainment": "🎉 Развлечения",
-        "transport": "🚗 Транспорт",
-        "health": "💊 Здоровье",
-        "other": "📦 Другое"
-    }
 
+CATEGORY_TITLES: Dict[str, str] = {
+    "food": "🍎 Еда",
+    "home": "🏠 Дом/Аренда",
+    "entertainment": "🎉 Развлечения",
+    "transport": "🚗 Транспорт",
+    "health": "💊 Здоровье",
+    "other": "📦 Другое",
+}
 
 
 def render_category_tree(
-        cat_key: str,
-        data: dict,
-        _: Callable[[str], str],
-        max_visible_items: int = 5
+    cat_key: str, data: dict, _: Callable[[str], str], max_visible_items: int = 5
 ) -> List[str]:
 
     tree_lines = []
@@ -86,7 +79,7 @@ def render_category_tree(
         "transport": _("Transport"),
         "entertainment": _("Entertainment"),
         "home": _("Home"),
-        "other": _("Other")
+        "other": _("Other"),
     }
 
     category_items = []
@@ -101,7 +94,9 @@ def render_category_tree(
 
             elif "system_category_" in name_lower:
                 clean_key = name_lower.replace("system_category_", "")
-                category_items.append(system_keys_transactions.get(clean_key, clean_key))
+                category_items.append(
+                    system_keys_transactions.get(clean_key, clean_key)
+                )
 
             else:
 
@@ -122,7 +117,9 @@ def render_category_tree(
     hidden_items_count = total_items_count - visible_items_count
 
     if hidden_items_count > 0:
-        tree_lines.append(_("     └ Other operations — {count}").format(count=hidden_items_count))
+        tree_lines.append(
+            _("     └ Other operations — {count}").format(count=hidden_items_count)
+        )
 
     return tree_lines
 
@@ -134,7 +131,7 @@ def render_monthly_tree(data: dict, _: Callable[[str], str]) -> List[str]:
         "transport": _("Transport and Automotive"),
         "entertainment": _("Entertainment and leisure"),
         "home": _("Home and Household"),
-        "other": _("Other expenses")
+        "other": _("Other expenses"),
     }
 
     essential_categories = ["food", "health", "home"]
@@ -146,10 +143,14 @@ def render_monthly_tree(data: dict, _: Callable[[str], str]) -> List[str]:
         cat_key = cat_data["category"]
 
         if cat_key in essential_categories:
-            tree_lines.append(_(" • <b>{cat_name}</b> — <b>{count} transactions per month</b>").format(
-                cat_name=category_titles.get(cat_key, cat_key).upper(),
-                count=cat_data["count"]
-            ))
+            tree_lines.append(
+                _(
+                    " • <b>{cat_name}</b> — <b>{count} transactions per month</b>"
+                ).format(
+                    cat_name=category_titles.get(cat_key, cat_key).upper(),
+                    count=cat_data["count"],
+                )
+            )
             tree_lines.extend(render_category_tree(cat_key, data, _))
 
     tree_lines.append(_("\n🟡 <u>Secondary :</u>"))
@@ -157,10 +158,14 @@ def render_monthly_tree(data: dict, _: Callable[[str], str]) -> List[str]:
     for cat_data in data.get("categories", []):
         cat_key = cat_data["category"]
         if cat_key in discretionary_categories:
-            tree_lines.append(_(" • <b>{cat_name}</b> — <b>{count} transactions per month</b>").format(
-                cat_name=category_titles.get(cat_key, cat_key).upper(),
-                count=cat_data["count"]
-            ))
+            tree_lines.append(
+                _(
+                    " • <b>{cat_name}</b> — <b>{count} transactions per month</b>"
+                ).format(
+                    cat_name=category_titles.get(cat_key, cat_key).upper(),
+                    count=cat_data["count"],
+                )
+            )
 
             tree_lines.extend(render_category_tree(cat_key, data, _))
 
@@ -168,9 +173,7 @@ def render_monthly_tree(data: dict, _: Callable[[str], str]) -> List[str]:
 
 
 def format_weekly_block(
-        items_list: list,
-        _: Callable[[str], str],
-        max_items: int
+    items_list: list, _: Callable[[str], str], max_items: int
 ) -> List[str]:
 
     block_lines = []
@@ -187,13 +190,10 @@ def format_weekly_block(
 
 
 def render_weekly_top(
-        data: dict,
-        _: Callable[[str], str],
-        max_items: int = 10
+    data: dict, _: Callable[[str], str], max_items: int = 10
 ) -> List[str]:
 
     tree_lines = []
-
 
     essential_categories = {"food", "health", "home"}
 
@@ -203,7 +203,7 @@ def render_weekly_top(
         "transport": _("Transport"),
         "entertainment": _("Entertainment"),
         "home": _("Home"),
-        "other": _("Other")
+        "other": _("Other"),
     }
 
     essential_items = []
@@ -214,7 +214,6 @@ def render_weekly_top(
         name_raw = item["name"].strip()
         name_lower = name_raw.lower()
 
-
         if name_lower in system_keys_transactions:
             display_name = system_keys_transactions[name_lower]
         elif "system_category_" in name_lower:
@@ -223,12 +222,10 @@ def render_weekly_top(
         else:
             display_name = name_raw
 
-
         if cat_key in essential_categories:
             essential_items.append(display_name)
         else:
             discretionary_items.append(display_name)
-
 
     tree_lines.append(_("\n🟢 <u>Necessary :</u>"))
     tree_lines.extend(format_weekly_block(essential_items, _, max_items))
@@ -247,13 +244,12 @@ def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
         "transport": _("Transport"),
         "entertainment": _("Entertainment"),
         "home": _("Home"),
-        "other": _("Other")
+        "other": _("Other"),
     }
 
     report_lines = [
         _("🧾 <b>Detailed Transaction History</b>\n"),
     ]
-
 
     raw_items = data.get("top_items", [])
     try:
@@ -262,7 +258,8 @@ def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
 
         logger.warning(
             "Failed to sort transactions by date due to mismatched types. "
-            "Using fallback unsorted data. Error: %s", type_err
+            "Using fallback unsorted data. Error: %s",
+            type_err,
         )
 
         sorted_items = raw_items
@@ -282,8 +279,11 @@ def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
         name_raw = item.get("name", "").strip()
         name_lower = name_raw.lower()
 
-
-        if name_lower in category_titles or "system_category" in name_lower or "operation" in name_lower:
+        if (
+            name_lower in category_titles
+            or "system_category" in name_lower
+            or "operation" in name_lower
+        ):
 
             display_name = f"✍️ {cat_title}"
         else:
@@ -292,7 +292,9 @@ def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
 
         amount = item.get("total_amount", 0.0)
 
-        report_lines.append(f"  • {display_name} — <b>{round(amount, 2)} {currency}</b>")
+        report_lines.append(
+            f"  • {display_name} — <b>{round(amount, 2)} {currency}</b>"
+        )
 
     if not sorted_items:
         report_lines.append(_("No transactions found for this period."))
@@ -300,11 +302,8 @@ def render_detailed_transactions(data: dict, _: Callable[[str], str]) -> str:
     return "\n".join(report_lines)
 
 
-
 def render_receipt_report(
-        analysis_result: ReceiptListAnalysisSchema,
-        _,
-        currency: str # test
+    analysis_result: ReceiptListAnalysisSchema, _, currency: str  # test
 ) -> Tuple[str, str]:
 
     income_txs = [t for t in analysis_result.transactions if t.type == "income"]
@@ -323,28 +322,33 @@ def render_receipt_report(
         "salary": "💼",
         "bonus": "📈",
         "gift": "🎁",
-        "deal": "🤝"
+        "deal": "🤝",
     }
 
     report_chunks = [_("✅ <b>Operations successfully recorded!</b>\n")]
-
 
     if income_txs:
         report_chunks.append(_("💰 <b>Received Income:</b>"))
         income_details = []
         for tx in income_txs:
             icon = icons.get(tx.category, "💵")
-            localized_category = _(tx.description.capitalize() if tx.description else "Other")
-            #items_lines = [f"  • {item.name}: <b>{item.price}</b>" for item in tx.items]
-            items_lines = [f"  • {item.name}: <b>{format_amount(item.price, currency)}</b>" for item in tx.items] # test
+            localized_category = _(
+                tx.description.capitalize() if tx.description else "Other"
+            )
+            # items_lines = [f"  • {item.name}: <b>{item.price}</b>" for item in tx.items]
+            items_lines = [
+                f"  • {item.name}: <b>{format_amount(item.price, currency)}</b>"
+                for item in tx.items
+            ]  # test
             items_str = "\n" + "\n".join(items_lines) if items_lines else ""
-            #income_details.append(f"{icon} {localized_category}: <b>+{tx.amount}</b>{items_str}")
-            income_details.append(f"{icon} {localized_category}: <b>{format_amount(tx.amount, currency)}</b>{items_str}")#test
+            # income_details.append(f"{icon} {localized_category}: <b>+{tx.amount}</b>{items_str}")
+            income_details.append(
+                f"{icon} {localized_category}: <b>{format_amount(tx.amount, currency)}</b>{items_str}"
+            )  # test
         report_chunks.append("\n".join(income_details))
 
     if income_txs and expense_txs:
         report_chunks.append(" ")
-
 
     if expense_txs:
         report_chunks.append(_("📉 <b>Spent Expenses:</b>"))
@@ -358,31 +362,38 @@ def render_receipt_report(
             # ]
 
             items_lines = [
-                f"  • {item.name}: <b>-{format_amount(item.price, currency)}</b>" if item.price > 0 else f"  • {item.name}"
+                (
+                    f"  • {item.name}: <b>-{format_amount(item.price, currency)}</b>"
+                    if item.price > 0
+                    else f"  • {item.name}"
+                )
                 for item in tx.items
             ]
             items_str = "\n".join(items_lines)
             # expense_details.append(_("{icon} {category}: <b>-{amount}</b>\n{items}").format(
             #     icon=icon, category=localized_category, amount=tx.amount, items=items_str
             # ))
-            expense_details.append(f"{icon} {localized_category}: <b>-{format_amount(tx.amount, currency)}</b>\n{items_str}")# test
-
+            expense_details.append(
+                f"{icon} {localized_category}: <b>-{format_amount(tx.amount, currency)}</b>\n{items_str}"
+            )  # test
 
         report_chunks.append("\n".join(expense_details))
-
 
     report_chunks.append("\n" + "─" * 20)
     meta_lines = []
     if total_income > 0:
-       # meta_lines.append(_("Total Income: <b>+{total_amount}</b>").format(total_amount=total_income))
-        meta_lines.append(_(f"Total Income: <b>+{format_amount(total_income, currency)}</b>"))# test
+        # meta_lines.append(_("Total Income: <b>+{total_amount}</b>").format(total_amount=total_income))
+        meta_lines.append(
+            _(f"Total Income: <b>+{format_amount(total_income, currency)}</b>")
+        )  # test
     if total_expense > 0:
-        #meta_lines.append(_("Total Expenses: <b>-{total_amount}</b>").format(total_amount=total_expense))
-        meta_lines.append(_(f"Total Expenses: <b>-{format_amount(total_expense, currency)}</b>"))#test
+        # meta_lines.append(_("Total Expenses: <b>-{total_amount}</b>").format(total_amount=total_expense))
+        meta_lines.append(
+            _(f"Total Expenses: <b>-{format_amount(total_expense, currency)}</b>")
+        )  # test
     report_chunks.append("\n".join(meta_lines))
 
     msg_text = "\n".join(report_chunks)
-
 
     if income_txs and not expense_txs:
         localized_button_label = _("❌ cancel income")
@@ -394,13 +405,14 @@ def render_receipt_report(
     return msg_text, localized_button_label
 
 
-
 def get_translator(locale: str):
     locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
     try:
         return gettext.translation(
-            domain="messages", localedir=str(locales_dir),
-            languages=[locale], fallback=True,
+            domain="messages",
+            localedir=str(locales_dir),
+            languages=[locale],
+            fallback=True,
         ).gettext
     except Exception as e:
         logger.error("Failed to load localization: {error}", error=e)
@@ -408,14 +420,19 @@ def get_translator(locale: str):
 
 
 async def _reply(
-    bot: Bot, chat_id: int, status_message_id: int | None,
-    text: str, reply_markup=None,
+    bot: Bot,
+    chat_id: int,
+    status_message_id: int | None,
+    text: str,
+    reply_markup=None,
 ) -> None:
 
     if status_message_id:
         await bot.edit_message_text(
-            chat_id=chat_id, message_id=status_message_id,
-            text=text, reply_markup=reply_markup,
+            chat_id=chat_id,
+            message_id=status_message_id,
+            text=text,
+            reply_markup=reply_markup,
         )
     else:
         await bot.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup)
@@ -426,19 +443,32 @@ def render_analysis_report(data: dict, analysis_result, days: int, _) -> str:
 
     lines = [
         _("📊 <b>Comprehensive financial analysis</b>\n"),
-        _("💰 <b>Total Income:</b> {income} {curr}").format(income=data.get('total_income', 0.0), curr=currency),
-        _("🛒 <b>Total Expense:</b> {expense} {curr}").format(expense=data.get('total_amount', 0.0), curr=currency),
-        _("⚖️ <b>Net Balance:</b> {balance} {curr}\n").format(balance=data.get('net_balance', 0.0), curr=currency),
+        _("💰 <b>Total Income:</b> {income} {curr}").format(
+            income=data.get("total_income", 0.0), curr=currency
+        ),
+        _("🛒 <b>Total Expense:</b> {expense} {curr}").format(
+            expense=data.get("total_amount", 0.0), curr=currency
+        ),
+        _("⚖️ <b>Net Balance:</b> {balance} {curr}\n").format(
+            balance=data.get("net_balance", 0.0), curr=currency
+        ),
     ]
 
-    budget_status = getattr(analysis_result, "budget_status", None) or getattr(analysis_result, "weekly_balance_status",
-                                                                               None)
+    budget_status = getattr(analysis_result, "budget_status", None) or getattr(
+        analysis_result, "weekly_balance_status", None
+    )
     if budget_status:
-        lines.append(_("📈 <b>Budget status:</b> {status}").format(status=budget_status))
+        lines.append(
+            _("📈 <b>Budget status:</b> {status}").format(status=budget_status)
+        )
 
     budget_usage_percent = getattr(analysis_result, "budget_usage_percent", None)
     if budget_usage_percent is not None:
-        lines.append(_("📊 <b>Budget used:</b> {percent}%\n").format(percent=round(budget_usage_percent, 1)))
+        lines.append(
+            _("📊 <b>Budget used:</b> {percent}%\n").format(
+                percent=round(budget_usage_percent, 1)
+            )
+        )
 
     lines.append(f"{analysis_result.summary}\n")
     lines.append(_("🎯 <b>Categorizing top expenses by importance:</b>"))
@@ -452,15 +482,27 @@ def render_analysis_report(data: dict, analysis_result, days: int, _) -> str:
         lines.append(_("\n💡 <b>Optimization recommendations:</b>"))
         for i, rec in enumerate(analysis_result.recommendations, 1):
             if days == 7:
-                lines.append(_("\n{num}. <b>{target}</b>\n└ {reason}\n└ <i>Possible savings: {saving}</i>").format(
-                    num=i, target=getattr(rec, "target_item", _("Optimization")), reason=rec.reason,
-                    saving=rec.potential_saving
-                ))
+                lines.append(
+                    _(
+                        "\n{num}. <b>{target}</b>\n└ {reason}\n└ <i>Possible savings: {saving}</i>"
+                    ).format(
+                        num=i,
+                        target=getattr(rec, "target_item", _("Optimization")),
+                        reason=rec.reason,
+                        saving=rec.potential_saving,
+                    )
+                )
             else:
                 lines.append(
-                    _("\n{num}. <b>{target}</b> — <b>{freq}</b>\n└ {reason}\n└ <i>Possible savings: {saving}</i>").format(
-                        num=i, target=getattr(rec, "target_habit_pattern", _("Optimization")),
-                        freq=getattr(rec, "frequency_metric", ""), reason=rec.reason, saving=rec.potential_saving
-                    ))
+                    _(
+                        "\n{num}. <b>{target}</b> — <b>{freq}</b>\n└ {reason}\n└ <i>Possible savings: {saving}</i>"
+                    ).format(
+                        num=i,
+                        target=getattr(rec, "target_habit_pattern", _("Optimization")),
+                        freq=getattr(rec, "frequency_metric", ""),
+                        reason=rec.reason,
+                        saving=rec.potential_saving,
+                    )
+                )
 
     return "\n".join(lines)
