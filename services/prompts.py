@@ -20,7 +20,7 @@ def get_voice_message(locale: str) -> str:
     ]
     categories_income = ["salary", "bonus", "gift", "deal", "other"]
     lang = language_name(locale)
-    prompt_template = (
+    return (
         "You are a financial accounting module. Analyze the provided user text (transcribed via STT/Whisper) "
         "and strictly extract financial transactions into the required ReceiptListAnalysisSchema structure.\n\n"
         "1. TRANSACTION CLASSIFICATION:\n"
@@ -64,7 +64,7 @@ def get_voice_message(locale: str) -> str:
         "7. CURRENCY: amounts are in the user's currency. Ignore currency words and symbols ('$', 'dollars', 'руб'); output the number only. Never convert between currencies."
     )
 
-    return prompt_template
+    #  return prompt_template
 
 
 def get_analysis_financial(
@@ -81,15 +81,6 @@ def get_analysis_financial(
     ]
     current_date = datetime.now().strftime("%Y-%m-%d")
     current_day_name = days_of_week_en[datetime.now().weekday()]
-
-    # base_language_rule = (
-    #     f"CRITICAL LANGUAGE REQUIREMENT: The user's application locale is strictly '{user_locale}'. "
-    #     f"You MUST generate all human-readable texts (summaries, category names, target habit patterns, "
-    #     f"and optimization reasons) exclusively in the language corresponding to locale '{user_locale}'. "
-    #     f"Never mix languages. If you encounter raw database keys like 'food' or 'health' in the input data, "
-    #     f"you are FORBIDDEN from copying them as-is. Translate and expand them into beautiful, "
-    #     f"high-level analytical category names in the user's language (e.g., for 'ru': 'food' -> 'Продукты').\n\n"
-    # )
 
     lang = language_name(user_locale)
     base_language_rule = (
@@ -123,7 +114,7 @@ def get_analysis_financial(
             f"- Tone & Style: Deep, empathetic, strategic, structured as an expert personal wealth coach."
         )
 
-    system_prompt_analysis = f"""
+    return f"""
     You are an empathetic, highly professional financial analyst and wealth coach. Your task is to perform a deep financial audit of the user's cash flows (both income and expenses).
     You are provided with broad spending categories (food, home, entertainment, transport, health, other), within which both essential needs and discretionary lifestyle choices may be combined.
     You also have access to the user's total income data to perform a comprehensive assessment of their financial health and balance.
@@ -138,7 +129,7 @@ def get_analysis_financial(
     3. Do not attempt to predict, project, or fabricate expenses or incomes for the remaining days of the period. Work strictly with the historical facts provided.
 
     ⚙️ RAW TRANSACTION DATA PROCESSING (The 'top_items' field):
-    1. The 'top_items' list contains raw expenses extracted from user records (an array of objects containing 'name', 'total_amount', and 'date'). 
+    1. The 'top_items' list contains raw expenses extracted from user records (an array of objects containing 'name', 'total_amount', and 'date').
     2. Note: The 'name' field can contain EITHER a specific item name (e.g., 'Toothpaste') OR a broad category name if the transaction was logged manually without item details. Treat both types dynamically.
     3. You ARE ALLOWED and encouraged to sum the prices inside the 'top_items' list for identical or semantically similar items/categories to calculate the compounding cost of a specific habit for the recommendations block. This calculation does NOT violate Taboo Rule #1.
 
@@ -155,4 +146,4 @@ def get_analysis_financial(
     {instruction}
     """
 
-    return system_prompt_analysis
+    # return system_prompt_analysis  # noqa: PIE786

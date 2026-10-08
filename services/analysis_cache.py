@@ -1,5 +1,5 @@
 import os
-from typing import Callable, Optional, Type, TypeVar
+from typing import Optional, Type, TypeVar
 
 from loguru import logger
 from pydantic import BaseModel, ValidationError

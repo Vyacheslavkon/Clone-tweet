@@ -1,4 +1,4 @@
-import copy
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
@@ -9,6 +9,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types import CallbackQuery, Chat, Message, TelegramObject, Update, User
 from aiogram.utils.i18n import I18n, I18nMiddleware
+from loguru import logger
 
 from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.ai_consultant import ai_router
@@ -38,6 +39,31 @@ from services.schemas import (
 current_file_path = Path(__file__).resolve()
 base_dir = current_file_path.parent.parent.parent
 locales_path = base_dir / "financial_bot" / "locales"
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _configure_test_logging():
+    """
+    Автоматическая изолированная фикстура для тестов.
+    Принудительно отключает мультипроцессные очереди Loguru (enqueue=False),
+    чтобы ForkingPickler не спамил мусором в консоль при закрытии pytest.
+    """
+    # 1. Сносим глобальные хайлоад-хэндлеры на время тестов
+    logger.remove()
+
+    # 2. Ставим легкий синхронный вывод
+    logger.add(
+        sys.stderr,
+        level="INFO",
+        enqueue=False,  # <--- ВОТ ОН, НАШ ГЛАВНЫЙ ФИКС! Отключает асинхронный пиклинг логов
+        backtrace=False,
+        diagnose=False
+    )
+
+    yield
+
+    # 3. Полностью запечатываем логи при выходе из pytest
+    logger.remove()
 
 
 @pytest.fixture

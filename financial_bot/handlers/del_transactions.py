@@ -68,10 +68,9 @@ async def handle_delete_today_request(
     )
 
     await message.answer(
-        # format_transaction_card(tx_data[0], _, user_timezone=user.timezone),
         format_transaction_card(
             tx_data[0], _, user.currency, user_timezone=user.timezone
-        ),  # test
+        ),
         reply_markup=get_transaction_carousel_keyboard(tx_data, 0, _),
         parse_mode="HTML",
     )

@@ -46,7 +46,7 @@ def on_worker_shutdown(**kwargs):
     ]:
         try:
             loop.run_until_complete(cleanup_coro_factory())
-        except Exception as e:
+        except Exception as e:  # noqa: PIE786 - shutdown cleanup must try every resource, failures are logged
             log.error("Failed to close %s during shutdown: %s", name, e, exc_info=True)
 
     close_worker_loop()

@@ -1,3 +1,4 @@
+import asyncio
 import gettext
 import os
 import uuid
@@ -11,6 +12,7 @@ from aiogram.exceptions import (
     TelegramForbiddenError,
 )
 from loguru import logger
+from redis import RedisError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db_worker import get_isolated_session
@@ -115,21 +117,20 @@ async def process_analysis_financial(
         analysis_result = await cache_service.get_cached_analysis(
             user.id, days, response_schema
         )
-    except Exception as cache_err:
+
+    except (RedisError, ValueError) as cache_err:
         logger.error("Failed to read analysis cache: {error}", error=cache_err)
 
     if analysis_result:
         logger.info(
-            "🚀 [CACHE HIT] OpenAI report successfully retrieved from cache for user. {}".format(
-                user.id
-            )
+            "🚀 [CACHE HIT] OpenAI report successfully retrieved from cache for user. %s",
+            user.id,
         )
 
     else:
         logger.info(
-            "⏳ [CACHE MISS] There is no cache. We are sending a heavy request to OpenAI for the user. {}".format(
-                user.id
-            )
+            "⏳ [CACHE MISS] There is no cache. We are sending a heavy request to OpenAI for the user. %s",
+            user.id,
         )
 
         analysis_result = await ai_service.analysis_financial(
@@ -143,7 +144,7 @@ async def process_analysis_financial(
         try:
             cache_service = get_worker_cache_service()
             await cache_service.set_analysis_cache(user.id, days, analysis_result)
-        except Exception as cache_err:
+        except (RedisError, ValueError) as cache_err:
             logger.error("Failed to write analysis cache: {error}", error=cache_err)
 
     try:
@@ -152,11 +153,11 @@ async def process_analysis_financial(
             chat_id=chat_id, text=msg_text, reply_markup=get_detailed_report(days, _)
         )
     except TelegramForbiddenError:
-        logger.info(f"User blocked the bot or deleted chat, chat_id={chat_id}")
+        logger.info("User blocked the bot or deleted chat, {chat_id}", chat_id=chat_id)
 
     except TelegramBadRequest as bad_request:
         logger.error(
-            f"Bad request sending analytics to chat_id {chat_id}: {bad_request}"
+            "Bad request sending analytics to chat_id {chat_id}: {bad_request}", chat_id=chat_id, bad_request=bad_request
         )
         try:
             await bot.send_message(
@@ -165,12 +166,12 @@ async def process_analysis_financial(
                     "❌ We prepared your analysis, but couldn't display it properly. Please try again."
                 ),
             )
-        except Exception:
+        except TelegramAPIError:  # change exception
             pass
 
     except TelegramAPIError as tg_err:
         logger.error(
-            f"Telegram API error sending analytics to chat_id {chat_id}: {tg_err}"
+            "Telegram API error sending analytics to chat_id {chat_id}: {tg_err}", chat_id=chat_id, tg_err=tg_err
         )
         try:
             await bot.send_message(
@@ -179,12 +180,16 @@ async def process_analysis_financial(
                     "❌ We couldn't deliver your analysis right now. Please try again later."
                 ),
             )
-        except Exception:
+        except TelegramAPIError:  # change exception
             pass
+
+    except asyncio.CancelledError:  # new
+
+        raise
 
     except Exception:
         logger.exception(
-            f"Critical error rendering/sending AI analytics for chat_id {chat_id}"
+            "Critical error rendering/sending AI analytics for chat_id {chat_id}", chat_id=chat_id
         )
 
         try:
@@ -192,7 +197,7 @@ async def process_analysis_financial(
                 chat_id=chat_id,
                 text=_("❌ <b>An error occurred.</b>\nPlease try again later."),
             )
-        except Exception:
+        except TelegramAPIError:  # change exception
             pass
         raise
 
@@ -264,7 +269,7 @@ async def async_process_receipt(
         try:
             cache_service = get_worker_cache_service()
             await cache_service.invalidate_user_cache(user_id=db_user_id)
-        except Exception as cache_err:
+        except (RedisError, ValueError) as cache_err:
             logger.error("Failed to invalidate cache: {error}", error=cache_err)
 
         msg_text, localized_button_label = render_receipt_report(
@@ -282,7 +287,7 @@ async def async_process_receipt(
         )
         return {"status": "success", "batch_id": message_batch_id}
 
-    except openai.OpenAIError as net_err:
+    except openai.OpenAIError :
         logger.warning("OpenAI API network failure. Retrying the task in Celery.")
         if session:
             await session.rollback()
@@ -344,7 +349,7 @@ async def notify_user_final_failure(
             )
         else:
             await bot.send_message(chat_id=chat_id, text=text)
-    except Exception as e:
+    except TelegramAPIError as e:  # change exception
         logger.error(
             "Failed to notify user {user_id} about final failure: {error}",
             user_id=db_user_id,
@@ -360,7 +365,7 @@ async def notify_user_analysis_final_failure(chat_id: int, tg_id: int, locale: s
             chat_id=chat_id,
             text="❌ We couldn't generate your financial analysis after several attempts. Please try again later.",
         )
-    except Exception as e:
+    except TelegramAPIError as e:  # change exception
         logger.error(
             "Failed to notify user {user_id} about analysis final failure: {error}",
             user_id=tg_id,

@@ -5,13 +5,13 @@ from unittest.mock import AsyncMock, patch
 
 import openai
 import pytest
+import redis
 from celery.exceptions import Retry
 from sqlalchemy import func, select
 
 from financial_bot.models import TransactionItems, Transactions
 from financial_bot.repositories import delete_check, save_receipt_to_db
 from financial_bot.tasks.ai import process_expense_task
-from services.celery_app import app as celery_app
 from services.pipelines import async_process_receipt
 from services.schemas import (
     ReceiptAnalysisSchema,
@@ -382,7 +382,7 @@ def test_successful_save_survives_cache_invalidation_failure(
             )
         ],
     )
-    mock_redis_cache.side_effect = ConnectionError("redis down")
+    mock_redis_cache.side_effect = redis.exceptions.ConnectionError("redis down")
 
     result = process_expense_task.delay(
         chat_id=CHAT_ID,

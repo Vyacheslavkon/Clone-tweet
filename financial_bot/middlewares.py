@@ -7,6 +7,7 @@ from aiogram.utils.i18n import I18nMiddleware
 from loguru import logger
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
 
 from financial_bot.repositories import get_user_by_id
 
@@ -41,7 +42,7 @@ class SessionMiddleware(BaseMiddleware):
 
                 try:
                     await session.rollback()
-                except Exception as rollback_err:
+                except SQLAlchemyError as rollback_err:
                     logger.error("Rollback itself failed: {error}", error=rollback_err)
                 raise
 

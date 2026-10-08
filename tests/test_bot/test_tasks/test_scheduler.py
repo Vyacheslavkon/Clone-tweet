@@ -3,11 +3,10 @@ from decimal import Decimal
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from aiogram.exceptions import TelegramForbiddenError, TelegramRetryAfter
+from aiogram.exceptions import TelegramForbiddenError, TelegramRetryAfter, TelegramAPIError
 
 from financial_bot.schemas import Plan
 from financial_bot.tasks.vehicle_reports import (
-    send_monthly_stats_task,
     send_weekly_stats_task,
 )
 from services.scheduled_reports import send_monthly_stats, send_weekly_stats
@@ -111,7 +110,7 @@ async def test_send_weekly_stats_generic_error_does_not_block_user(
     mock_get_reports_for_all_active_users.return_value = {1: [], 2: []}
 
     mock_bot.send_message.side_effect = [
-        Exception("some unrelated network hiccup"),
+        TelegramAPIError(method="sendMessage", message="some unrelated network hiccup"),
         AsyncMock(),
     ]
 
