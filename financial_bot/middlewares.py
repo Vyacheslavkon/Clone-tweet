@@ -5,9 +5,9 @@ from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message, TelegramObject, Update
 from aiogram.utils.i18n import I18nMiddleware
 from loguru import logger
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.exc import SQLAlchemyError
 
 from financial_bot.repositories import get_user_by_id
 

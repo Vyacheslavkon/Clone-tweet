@@ -3,6 +3,7 @@ import os
 from collections import Counter
 from pathlib import Path
 from typing import Callable, Dict, List, Tuple
+from functools import lru_cache
 
 from aiogram import Bot
 from dotenv import load_dotenv
@@ -389,18 +390,19 @@ def render_receipt_report(
     return msg_text, localized_button_label
 
 
-def get_translator(locale: str):
-    locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
-    try:
-        return gettext.translation(
-            domain="messages",
-            localedir=str(locales_dir),
-            languages=[locale],
-            fallback=True,
-        ).gettext
-    except Exception as e:
-        logger.error("Failed to load localization: {error}", error=e)
-        return gettext.NullTranslations().gettext
+# @lru_cache(maxsize=16)  # test
+# def get_translator(locale: str):
+#     locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
+#     try:
+#         return gettext.translation(
+#             domain="messages",
+#             localedir=str(locales_dir),
+#             languages=[locale],
+#             fallback=True,
+#         ).gettext
+#     except OSError as e:
+#         logger.error("Failed to load localization: {error}", error=e)
+#         return gettext.NullTranslations().gettext
 
 
 async def _reply(
@@ -490,3 +492,39 @@ def render_analysis_report(data: dict, analysis_result, days: int, _) -> str:
                 )
 
     return "\n".join(lines)
+
+
+LOCALES_DIR = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
+
+
+@lru_cache(maxsize=16)
+def _load_translation(locale: str) -> gettext.GNUTranslations:
+    """
+    НИЖНИЙ СЛОЙ (Кэшируемый): Чистое чтение с диска.
+    Если файла нет или диск занят — выбрасывает OSError.
+    Кэш запоминает ТОЛЬКО успешные объекты GNUTranslations!
+    """
+    # Важно: gettext.translation() по умолчанию возвращает GNUTranslations,
+    # если fallback=False. Если файла нет — будет OSError.
+    return gettext.translation(
+        domain="messages",
+        localedir=str(LOCALES_DIR),
+        languages=[locale],
+        fallback=False,  # <--- КРИТИЧНО: False, чтобы при отсутствии файла вылетала ошибка, а не заглушка
+    )
+
+
+def get_translator(locale: str):
+    """
+    ВЕРХНИЙ СЛОЙ (Бизнес-логика): Точка входа для хэндлеров и Celery.
+    Безопасно забирает перевод из кэша. Если кэш пуст из-за сбоя I/O,
+    отдает временный NullTranslations, защищая систему от отравления кэша.
+    """
+    try:
+        # Пытаемся взять из чистого кэша ОЗУ
+        return _load_translation(locale).gettext
+    except OSError as e:
+        # Если диск моргнул — кэш НЕ отравился. Мы пишем ошибку в лог,
+        # и отдаем временный английский фоллбэк для текущего ОДНОГО юзера.
+        logger.error("Failed to load localization for locale {locale}: {error}", locale=locale, error=e)
+        return gettext.NullTranslations().gettext

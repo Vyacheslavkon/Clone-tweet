@@ -3,7 +3,11 @@ from decimal import Decimal
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from aiogram.exceptions import TelegramForbiddenError, TelegramRetryAfter, TelegramAPIError
+from aiogram.exceptions import (
+    TelegramAPIError,
+    TelegramForbiddenError,
+    TelegramRetryAfter,
+)
 
 from financial_bot.schemas import Plan
 from financial_bot.tasks.vehicle_reports import (

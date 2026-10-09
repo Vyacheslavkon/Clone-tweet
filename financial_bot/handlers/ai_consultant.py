@@ -24,7 +24,6 @@ from financial_bot.repositories import (
     get_user_by_id,
     get_user_financial_summary,
 )
-
 from financial_bot.states.ai_states import AIState
 from financial_bot.tasks.ai import (
     process_analysis_expense_task,

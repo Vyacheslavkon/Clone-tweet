@@ -33,25 +33,27 @@ class FinancialCacheService:
 
         except ValidationError as val_err:
             logger.warning(
-                "Pydantic validation failed for cached user %s analysis. Invalidating key %s: %s",
-                user_id,
-                key,
-                val_err,
+                "Pydantic validation failed for cached user {user_id} analysis. Invalidating key {key}: {val_err}",
+                user_id=user_id,
+                key=key,
+                val_err=val_err,
             )
 
             try:
                 await self.client.delete(key)
             except RedisError as del_err:
                 logger.error(
-                    "Failed to delete corrupted cache key %s: %s", key, del_err
+                    "Failed to delete corrupted cache key {key}: {del_err}",
+                    key=key,
+                    del_err=del_err,
                 )
             return None
 
         except RedisError as redis_err:
             logger.error(
-                "Redis read error in get_cached_analysis for user %s: %s",
-                user_id,
-                redis_err,
+                "Redis read error in get_cached_analysis for user {user_id}: {redis_err}",
+                user_id=user_id,
+                redis_err=redis_err,
             )
             return None
 
@@ -68,9 +70,9 @@ class FinancialCacheService:
             await self.client.set(key, json_data, ex=expire_seconds)
         except RedisError as redis_err:
             logger.error(
-                "Failed to write analysis cache to Redis for user %s: %s",
-                user_id,
-                redis_err,
+                "Failed to write analysis cache to Redis for user {user_id}: {redis_err}",
+                user_id=user_id,
+                redis_err=redis_err,
             )
 
     async def invalidate_user_cache(
@@ -84,11 +86,15 @@ class FinancialCacheService:
                 pipe.delete(*keys)  # type: ignore[unused-awaitable]
                 await pipe.execute()
             logger.info(
-                "Successfully invalidated cache keys %s for user %s", keys, user_id
+                "Successfully invalidated cache keys {keys} for user {user_id}",
+                keys=keys,
+                user_id=user_id,
             )
         except RedisError as redis_err:
             logger.error(
-                "Failed to invalidate Redis cache for user %s: %s", user_id, redis_err
+                "Failed to invalidate Redis cache for user {user_id}: {redis_err}",
+                user_id=user_id,
+                redis_err=redis_err,
             )
 
 

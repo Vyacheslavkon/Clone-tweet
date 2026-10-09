@@ -248,8 +248,8 @@ def test_analysis_survives_cache_write_failure(
         "days_period": 7,
     }
     mock_cache_service_analysis.get_cached_analysis.return_value = None
-    mock_cache_service_analysis.set_analysis_cache.side_effect = redis.exceptions.ConnectionError(
-        "redis down"
+    mock_cache_service_analysis.set_analysis_cache.side_effect = (
+        redis.exceptions.ConnectionError("redis down")
     )
     mock_analysis_ai_service.return_value = make_weekly_analysis_response(summary="ok")
 

@@ -1,8 +1,5 @@
-import asyncio
-import gettext
 import os
 import uuid
-from pathlib import Path
 
 import openai
 from aiogram.enums import ParseMode
@@ -54,29 +51,15 @@ async def process_analysis_financial(
 
     try:
         user = await get_user_by_id(session, tg_id)
-        locale = user.language_code
+        if not user:
+            logger.error("User tg_id={tg_id} not found", tg_id=tg_id)
+            return
+        locale = user.language_code or "en"
         data = await get_user_financial_summary(session, user.id, days, user)
     finally:
         await session.close()
 
-    locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
-
-    try:
-        lang = gettext.translation(
-            domain="messages",
-            localedir=str(locales_dir),
-            languages=[locale],
-            fallback=True,
-        )
-    except Exception as e:  # noqa: PIE786
-        logger.error(
-            "Failed to load location from {locales}: {error}",
-            locales=locales_dir,
-            error=e,
-        )
-        lang = gettext.NullTranslations()
-
-    _ = lang.gettext
+    _ = get_translator(locale)
 
     if not data:
 
@@ -123,14 +106,14 @@ async def process_analysis_financial(
 
     if analysis_result:
         logger.info(
-            "🚀 [CACHE HIT] OpenAI report successfully retrieved from cache for user. %s",
-            user.id,
+            "🚀 [CACHE HIT] OpenAI report successfully retrieved from cache for user. {user_id}",
+            user_id=user.id,
         )
 
     else:
         logger.info(
-            "⏳ [CACHE MISS] There is no cache. We are sending a heavy request to OpenAI for the user. %s",
-            user.id,
+            "⏳ [CACHE MISS] There is no cache. We are sending a heavy request to OpenAI for the user. {user_id}",
+            user_id=user.id,
         )
 
         analysis_result = await ai_service.analysis_financial(
@@ -157,7 +140,9 @@ async def process_analysis_financial(
 
     except TelegramBadRequest as bad_request:
         logger.error(
-            "Bad request sending analytics to chat_id {chat_id}: {bad_request}", chat_id=chat_id, bad_request=bad_request
+            "Bad request sending analytics to chat_id {chat_id}: {bad_request}",
+            chat_id=chat_id,
+            bad_request=bad_request,
         )
         try:
             await bot.send_message(
@@ -166,12 +151,14 @@ async def process_analysis_financial(
                     "❌ We prepared your analysis, but couldn't display it properly. Please try again."
                 ),
             )
-        except TelegramAPIError:  # change exception
+        except TelegramAPIError:
             pass
 
     except TelegramAPIError as tg_err:
         logger.error(
-            "Telegram API error sending analytics to chat_id {chat_id}: {tg_err}", chat_id=chat_id, tg_err=tg_err
+            "Telegram API error sending analytics to chat_id {chat_id}: {tg_err}",
+            chat_id=chat_id,
+            tg_err=tg_err,
         )
         try:
             await bot.send_message(
@@ -180,16 +167,17 @@ async def process_analysis_financial(
                     "❌ We couldn't deliver your analysis right now. Please try again later."
                 ),
             )
-        except TelegramAPIError:  # change exception
-            pass
-
-    except asyncio.CancelledError:  # new
-
-        raise
+        except TelegramAPIError as notify_err:
+            logger.warning(
+                "Fallback notification failed for chat_id={chat_id}: {err}",
+                chat_id=chat_id,
+                err=notify_err,
+            )
 
     except Exception:
         logger.exception(
-            "Critical error rendering/sending AI analytics for chat_id {chat_id}", chat_id=chat_id
+            "Critical error rendering/sending AI analytics for chat_id {chat_id}",
+            chat_id=chat_id,
         )
 
         try:
@@ -197,7 +185,7 @@ async def process_analysis_financial(
                 chat_id=chat_id,
                 text=_("❌ <b>An error occurred.</b>\nPlease try again later."),
             )
-        except TelegramAPIError:  # change exception
+        except TelegramAPIError:
             pass
         raise
 
@@ -249,9 +237,7 @@ async def async_process_receipt(
 
             return {"status": "cancelled", "message": "Empty transactions list"}
 
-        final_analysis_result = merge_transactions_by_category(
-            analysis_result
-        )  # The possible cause
+        final_analysis_result = merge_transactions_by_category(analysis_result)
         message_batch_id = str(uuid.uuid4())
 
         session = get_isolated_session()
@@ -287,10 +273,9 @@ async def async_process_receipt(
         )
         return {"status": "success", "batch_id": message_batch_id}
 
-    except openai.OpenAIError :
+    except openai.OpenAIError:
         logger.warning("OpenAI API network failure. Retrying the task in Celery.")
-        if session:
-            await session.rollback()
+
         raise
 
     except TruncatedResponseError:
@@ -299,14 +284,18 @@ async def async_process_receipt(
             user_id=db_user_id,
             chat_id=chat_id,
         )
-        await _reply(
-            bot,
-            chat_id,
-            status_message_id,
-            _(
-                "❌ Too many transactions in one message. Please split it into 2-3 shorter voice messages."
-            ),
-        )
+        try:
+            await _reply(
+                bot,
+                chat_id,
+                status_message_id,
+                _(
+                    "❌ Too many transactions in one message. Please split it into 2-3 shorter voice messages."
+                ),
+            )
+        except TelegramAPIError:
+            pass
+
         return {"status": "cancelled", "message": "AI response truncated"}
 
     except Exception:
@@ -316,14 +305,18 @@ async def async_process_receipt(
         if session:
             await session.rollback()
 
-        await _reply(
-            bot,
-            chat_id,
-            status_message_id,
-            _(
-                "❌ Unfortunately, we couldn't recognize your receipt. Please try again."
-            ),
-        )
+        try:
+            await _reply(
+                bot,
+                chat_id,
+                status_message_id,
+                _(
+                    "❌ Unfortunately, we couldn't recognize your receipt. Please try again."
+                ),
+            )
+        except TelegramAPIError:
+            pass
+
         raise
 
     finally:

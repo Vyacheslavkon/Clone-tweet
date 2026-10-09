@@ -1,6 +1,10 @@
 import asyncio
 
-from aiogram.exceptions import TelegramForbiddenError, TelegramRetryAfter, TelegramAPIError
+from aiogram.exceptions import (
+    TelegramAPIError,
+    TelegramForbiddenError,
+    TelegramRetryAfter,
+)
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
 

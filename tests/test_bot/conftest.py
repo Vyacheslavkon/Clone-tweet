@@ -57,7 +57,7 @@ def _configure_test_logging():
         level="INFO",
         enqueue=False,  # <--- ВОТ ОН, НАШ ГЛАВНЫЙ ФИКС! Отключает асинхронный пиклинг логов
         backtrace=False,
-        diagnose=False
+        diagnose=False,
     )
 
     yield

@@ -49,4 +49,6 @@ def close_worker_loop() -> None:
 
     _cleanup_pending_tasks(_worker_loop)
     _worker_loop.close()
-    logger.info("Worker event loop closed: pid=%s", os.getpid())
+    _worker_loop = None
+
+    logger.info("Worker event loop closed: pid={pid}", pid=os.getpid())
