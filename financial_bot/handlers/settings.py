@@ -45,6 +45,10 @@ async def handle_timezone_settings(message: Message):
 async def handle_timezone_selection(
     callback: CallbackQuery, session: AsyncSession, cache_service: FinancialCacheService
 ):
+    if not callback.data:
+        await callback.answer()
+        return
+
     tz_value = callback.data.split(":", 1)[1]
 
     if not is_valid_timezone(tz_value):
@@ -66,18 +70,20 @@ async def handle_timezone_selection(
             "Failed to invalidate cache after timezone change: {error}", error=e
         )
 
-    # await callback.message.edit_text(_("✅ Timezone updated to {tz}").format(tz=tz_value))
+    if isinstance(callback.message, Message):
+        await callback.message.delete()
 
-    await callback.message.delete()
 
-    # test
-    await callback.message.answer(
-        _(
-            "✅ The settings have been saved successfully. The time zone has been changed to: <b>{tz}</b>"
-        ).format(tz=tz_value),
-        reply_markup=get_main_menu(),
-        parse_mode="HTML",
-    )
+        await callback.message.answer(
+            _(
+                "✅ The settings have been saved successfully. The time zone has been changed to: <b>{tz}</b>"
+            ).format(tz=tz_value),
+            reply_markup=get_main_menu(),
+            parse_mode="HTML",
+        )
+    else:
+        logger.warning(f"Message is inaccessible for callback query from user {user.id}")
+
     await callback.answer()
 
 
@@ -110,7 +116,7 @@ async def handle_timezone_manual_input(
                 "e.g. 'Europe/Paris' or 'Asia/Singapore'."
             ).format(tz=tz_value)
         )
-        return  # остаёмся в том же состоянии, даём попробовать ещё раз
+        return
 
     user = await get_user_by_id(session, message.from_user.id)
     if not user:
@@ -243,6 +249,5 @@ async def handle_currency_selection(
         )
 
     confirmation = _("✅ Currency updated to {currency}").format(currency=currency)
-    # await callback.message.edit_text(confirmation)
     await callback.message.answer(confirmation, reply_markup=get_main_menu())
     await callback.answer()

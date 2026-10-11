@@ -196,7 +196,7 @@ async def async_process_receipt(
     locale: str,
     voice_file_path: str,
     currency: str,
-    status_message_id: int = None,
+    status_message_id: int | None = None,
 ):
 
     _ = get_translator(locale)
@@ -342,7 +342,7 @@ async def notify_user_final_failure(
             )
         else:
             await bot.send_message(chat_id=chat_id, text=text)
-    except TelegramAPIError as e:  # change exception
+    except TelegramAPIError as e:
         logger.error(
             "Failed to notify user {user_id} about final failure: {error}",
             user_id=db_user_id,
@@ -358,7 +358,7 @@ async def notify_user_analysis_final_failure(chat_id: int, tg_id: int, locale: s
             chat_id=chat_id,
             text="❌ We couldn't generate your financial analysis after several attempts. Please try again later.",
         )
-    except TelegramAPIError as e:  # change exception
+    except TelegramAPIError as e:
         logger.error(
             "Failed to notify user {user_id} about analysis final failure: {error}",
             user_id=tg_id,

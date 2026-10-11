@@ -140,6 +140,11 @@ async def end_with_callback(
     cache_service: FinancialCacheService,
 ):
     user = await get_user_by_id(session, callback.from_user.id)
+
+    if not user:
+        await callback.answer(_("User profile not found. Please type /start."), show_alert=True)
+        return
+
     await state.update_data(description=None)
     await save_to_db_and_finish(callback, state, session, callback.from_user.id)
 
@@ -149,7 +154,7 @@ async def end_with_callback(
             "Successfully invalidated cache for user: %s via manual entry", user.id
         )
     except RedisError as redis_err:
-        # Ловим ТОЛЬКО конкретные сетевые проблемы с Redis
+
         logger.error(
             "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
             user.id,
@@ -183,7 +188,7 @@ async def end_with_message(
             "Successfully invalidated cache for user: %s via manual entry", user.id
         )
     except RedisError as redis_err:
-        # Ловим ТОЛЬКО конкретные сетевые проблемы с Redis
+
         logger.error(
             "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
             user.id,
@@ -206,8 +211,8 @@ async def save_to_db_and_finish(
         return
 
     data["user_id"] = user.id
-    batch_id = str(uuid.uuid4())  # new
-    data["batch_id"] = batch_id  # new
+    batch_id = str(uuid.uuid4())
+    data["batch_id"] = batch_id
 
     try:
         transaction = AddTransaction(**data)
@@ -216,7 +221,7 @@ async def save_to_db_and_finish(
 
         text = _("Data saved successfully!")
         keyboard = get_delete_keyboard(
-            batch_id=batch_id, button_text=_("❌ cancel operation")  # new
+            batch_id=batch_id, button_text=_("❌ cancel operation")
         )
 
         if isinstance(event, CallbackQuery):

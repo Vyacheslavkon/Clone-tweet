@@ -66,7 +66,7 @@ def render_category_tree(
     cat_key: str, data: dict, _: Callable[[str], str], max_visible_items: int = 5
 ) -> List[str]:
 
-    tree_lines = []
+    tree_lines: List[str] = []
 
     system_keys_transactions = {
         "food": _("Food"),

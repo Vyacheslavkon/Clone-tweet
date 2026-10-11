@@ -164,7 +164,7 @@ async def delete_batch_handler(
             user.id,
             redis_err,
         )
-    # test
+
     if not isinstance(callback.message, Message):
         await callback.answer()
         return

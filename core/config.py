@@ -24,10 +24,17 @@ ALEMBIC_SCRIPTS = BASE_DIR / "migrations"
 
 TOKEN_BOT = os.getenv("BOT_TOKEN")
 
+try:
+    DATABASE_URL_DOCKER: str = os.environ["DATABASE_URL_DOCKER"]
+except KeyError:
+    raise RuntimeError("DATABASE_URL_DOCKER is not set in environment variables")
 
-DATABASE_URL_DOCKER = os.getenv("DATABASE_URL_DOCKER")
-if DATABASE_URL_DOCKER is None:
-    raise ValueError("DATABASE_URL_DOCKER is not set in environment variables")
+
+try:
+    REDIS_URL: str = os.environ["ANALYSIS_CACHE_REDIS"]
+except KeyError:
+    raise RuntimeError(" REDIS_URL is not set in environment variables")
+
 
 ENGINE_KWARGS = dict(
     echo=False, pool_pre_ping=True, pool_recycle=1800, pool_timeout=10  # Ask Claude

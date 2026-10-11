@@ -3,10 +3,11 @@ from decimal import Decimal
 
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
-from sqlalchemy import CursorResult, delete, desc, func, select, union_all, update
+from sqlalchemy import delete, desc, func, select, union_all, update, CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import exists
+from typing import cast
 
 from financial_bot.exceptions import UserNotFoundError
 from financial_bot.general_utils import get_today_boundaries_utc
@@ -567,6 +568,8 @@ async def delete_transaction_by_id(
     stmt = delete(Transactions).where(
         Transactions.id == tx_id, Transactions.user_id == user_id
     )
-    result: CursorResult = await session.execute(stmt)
+    raw_result = await session.execute(stmt)
+
+    result = cast(CursorResult, raw_result)
 
     return result.rowcount > 0

@@ -18,12 +18,17 @@ def get_isolated_session() -> AsyncSession:
     а не при импорте модуля."""
     global _worker_engine, _worker_session_maker
     if _worker_engine is None:
+
         _worker_engine = create_async_engine(
             DATABASE_URL_DOCKER, pool_size=10, max_overflow=5, **ENGINE_KWARGS
         )
         _worker_session_maker = async_sessionmaker(
             bind=_worker_engine, expire_on_commit=False, class_=AsyncSession
         )
+
+    if _worker_session_maker is None:
+        raise RuntimeError("Worker session maker was not initialized properly!")
+
     return _worker_session_maker()
 
 

@@ -6,9 +6,11 @@ from pydantic import BaseModel, ValidationError
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
+from core.config import REDIS_URL
+
 T = TypeVar("T", bound=BaseModel)
 
-red_url = os.getenv("ANALYSIS_CACHE_REDIS")
+red_url = REDIS_URL
 
 
 class FinancialCacheService:
@@ -107,6 +109,7 @@ def get_worker_cache_service() -> FinancialCacheService:
     global _worker_cache_service, _worker_redis_client
 
     if _worker_cache_service is None:
+
         _worker_redis_client = Redis.from_url(
             red_url,
             decode_responses=True,
@@ -115,6 +118,7 @@ def get_worker_cache_service() -> FinancialCacheService:
         _worker_cache_service = FinancialCacheService(redis_client=_worker_redis_client)
 
     return _worker_cache_service
+
 
 
 async def close_worker_cache() -> None:

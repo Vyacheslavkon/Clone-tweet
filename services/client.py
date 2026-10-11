@@ -64,6 +64,11 @@ class AIService:
             )
 
         raw_json = completion.choices[0].message.content
+
+        if raw_json is None:
+            logger.error("OpenAI API returned an empty message content (None) instead of JSON.")
+            raise RuntimeError("OpenAI API response content is missing or empty.")
+
         return response_schema.model_validate_json(raw_json)
 
     async def process_voice_message(
@@ -146,10 +151,10 @@ class AIService:
         days: int,
         actual_days: int,
         locale: str,
-    ) -> Type[BaseModel] | dict:
+    ) -> BaseModel:
 
         if not summary_data:
-            return {"error": "no_data"}
+            raise ValueError("analysis_financial requires non-empty summary_data")
 
         user_context = self.build_user_context(summary_data, locale)
 
@@ -166,7 +171,19 @@ class AIService:
             temperature=0.0,
         )
 
-        return completion.choices[0].message.parsed
+        message = completion.choices[0].message
+
+        if message.refusal:
+            logger.error(f"OpenAI refused to generate structured financial analysis: {message.refusal}")
+            raise RuntimeError(f"OpenAI refused response: {message.refusal}")
+
+        parsed_result = message.parsed
+        if parsed_result is None:
+            logger.error("OpenAI failed to parse response into the requested Pydantic schema.")
+            raise RuntimeError("OpenAI failed to return parsed structured data.")
+
+
+        return parsed_result
 
 
 ai_service = AIService(api_key=proxy_api_key, base_url=proxy_base_url)

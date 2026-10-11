@@ -25,7 +25,7 @@ from financial_bot.repositories import (
 from services.utils_pipelines import get_translator
 
 
-async def send_weekly_stats():
+async def send_weekly_stats() -> None:
     session = get_isolated_session()
     try:
         start_day, end_day = get_week_boundaries()
@@ -92,7 +92,7 @@ async def send_weekly_stats():
             await block_session.close()
 
 
-async def send_monthly_stats():
+async def send_monthly_stats() -> None:
     session = get_isolated_session()
     try:
         start_day, end_day, _month_num = get_month_boundaries()

@@ -24,7 +24,11 @@ router_del_transactions = Router()
 async def handle_delete_today_request(
     message: Message, session: AsyncSession, state: FSMContext
 ):
+    if not message.from_user:
+        return
+
     user = await get_user_by_id(session, message.from_user.id)
+
     if not user:
         return
 
@@ -34,18 +38,7 @@ async def handle_delete_today_request(
         await message.answer(_("You have no transactions logged today. 🤷"))
         return
 
-    # tx_data = [
-    #     {
-    #         "id": tx.id,
-    #         "category": tx.category,
-    #         "amount": float(tx.amount),
-    #         "type": tx.type,
-    #         "created_at": tx.created_at.isoformat(),
-    #         "description": tx.description,
-    #         "items": [{"name": item.name, "price": float(item.price)} for item in tx.items],
-    #     }
-    #     for tx in transactions
-    # ]
+
     tx_data = [
         {
             "id": tx.id,
@@ -80,6 +73,10 @@ async def handle_delete_today_request(
     F.data.startswith("tx_nav:"), DeleteTodayState.browsing
 )
 async def handle_carousel_navigation(callback: CallbackQuery, state: FSMContext):
+    if not callback.data:
+        await callback.answer()
+        return
+
     raw_index = callback.data.split(":")[1]
     if raw_index == "noop":
         await callback.answer()
@@ -88,18 +85,18 @@ async def handle_carousel_navigation(callback: CallbackQuery, state: FSMContext)
     new_index = int(raw_index)
     data = await state.get_data()
     tx_data = data["tx_data"]
-    user_timezone = data.get("user_timezone", "UTC")  # test
+    user_timezone = data.get("user_timezone", "UTC")
 
     await state.update_data(current_index=new_index)
 
     await callback.message.edit_text(
-        # format_transaction_card(tx_data[new_index], _, user_timezone=user_timezone),
+
         format_transaction_card(
             tx_data[new_index],
             _,
             tx_data[new_index]["currency"],
             user_timezone=user_timezone,
-        ),  # test
+        ),
         reply_markup=get_transaction_carousel_keyboard(tx_data, new_index, _),
         parse_mode="HTML",
     )
@@ -132,7 +129,7 @@ async def handle_carousel_delete(
 
     data = await state.get_data()
     tx_data = [tx for tx in data["tx_data"] if tx["id"] != tx_id]
-    user_timezone = data.get("user_timezone", "UTC")  # test
+    user_timezone = data.get("user_timezone", "UTC")
 
     if not tx_data:
         await callback.message.edit_text(

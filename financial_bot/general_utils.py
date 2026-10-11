@@ -1,11 +1,14 @@
 from datetime import datetime, time
-from datetime import timezone as dt_timezone
+from datetime import tzinfo, timezone as dt_timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from decimal import Decimal
 
 from loguru import logger
 
 
 def get_today_boundaries_utc(user_timezone: str = "UTC") -> tuple[datetime, datetime]:
+
+    tz: tzinfo
 
     try:
         tz = ZoneInfo(user_timezone)
@@ -56,5 +59,5 @@ SUPPORTED_CURRENCIES = [
 SUPPORTED_CURRENCY_CODES = {code for code, _icon in SUPPORTED_CURRENCIES}
 
 
-def format_amount(amount: float, currency: str) -> str:
+def format_amount(amount: Decimal | float, currency: str) -> str:
     return f"{amount:,.0f} {currency}".replace(",", " ")
