@@ -89,17 +89,21 @@ async def handle_carousel_navigation(callback: CallbackQuery, state: FSMContext)
 
     await state.update_data(current_index=new_index)
 
-    await callback.message.edit_text(
+    if isinstance(callback.message, Message):
+        await callback.message.edit_text(
 
-        format_transaction_card(
-            tx_data[new_index],
-            _,
-            tx_data[new_index]["currency"],
-            user_timezone=user_timezone,
-        ),
-        reply_markup=get_transaction_carousel_keyboard(tx_data, new_index, _),
-        parse_mode="HTML",
-    )
+            format_transaction_card(
+                tx_data[new_index],
+                _,
+                tx_data[new_index]["currency"],
+                user_timezone=user_timezone,
+            ),
+            reply_markup=get_transaction_carousel_keyboard(tx_data, new_index, _),
+            parse_mode="HTML",
+        )
+    else:
+        logger.warning("Message is inaccessible or None during carousel navigation.")
+
     await callback.answer()
 
 
@@ -112,8 +116,16 @@ async def handle_carousel_delete(
     session: AsyncSession,
     cache_service: FinancialCacheService,
 ):
+    if not callback.data:
+        await callback.answer()
+        return
+
     tx_id = int(callback.data.split(":")[1])
     user = await get_user_by_id(session, callback.from_user.id)
+
+    if not user or user.id is None:
+        await callback.answer(_("User profile not found."), show_alert=True)
+        return
 
     deleted = await delete_transaction_by_id(session, tx_id, user_id=user.id)
     await session.commit()
@@ -131,31 +143,42 @@ async def handle_carousel_delete(
     tx_data = [tx for tx in data["tx_data"] if tx["id"] != tx_id]
     user_timezone = data.get("user_timezone", "UTC")
 
-    if not tx_data:
+    if isinstance(callback.message, Message):
+        if not tx_data:
+            await callback.message.edit_text(
+                _("✅ Deleted. No more transactions for today.")
+            )
+            await state.clear()
+            await callback.answer()
+            return
+
+        current_index = min(data["current_index"], len(tx_data) - 1)
+        await state.update_data(tx_data=tx_data, current_index=current_index)
+
         await callback.message.edit_text(
-            _("✅ Deleted. No more transactions for today.")
+            format_transaction_card(
+                tx_data[current_index],
+                _,
+                tx_data[current_index]["currency"],
+                user_timezone=user_timezone,
+            ),
+            reply_markup=get_transaction_carousel_keyboard(tx_data, current_index, _),
+            parse_mode="HTML",
         )
+
+    else:
+        logger.warning("Message is inaccessible or None during transaction deletion.")
         await state.clear()
-        await callback.answer()
-        return
 
-    current_index = min(data["current_index"], len(tx_data) - 1)
-    await state.update_data(tx_data=tx_data, current_index=current_index)
-
-    await callback.message.edit_text(
-        format_transaction_card(
-            tx_data[current_index],
-            _,
-            tx_data[current_index]["currency"],
-            user_timezone=user_timezone,
-        ),
-        reply_markup=get_transaction_carousel_keyboard(tx_data, current_index, _),
-        parse_mode="HTML",
-    )
     await callback.answer(_("✅ Deleted"))
 
 
 @router_del_transactions.callback_query(F.data == "tx_close", DeleteTodayState.browsing)
 async def handle_carousel_close(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text(_("Closed."))
+
+    if isinstance(callback.message, Message):
+        await callback.message.edit_text(_("Closed."))
+    else:
+        logger.warning("Message is inaccessible or None during carousel close.")
+
     await state.clear()

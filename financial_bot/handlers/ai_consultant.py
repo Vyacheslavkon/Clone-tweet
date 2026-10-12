@@ -126,8 +126,14 @@ async def handle_voice_receipt(
     except (TelegramAPIError, OSError, CeleryError) as e:
         logger.error("Error in voice handler pipeline: {error}", error=e, exc_info=True)
 
-        if "local_file_path" in locals() and os.path.exists(local_file_path):
-            os.remove(local_file_path)
+        if local_file_path is not None:
+            try:
+
+                if "local_file_path" in locals() and os.path.exists(local_file_path):
+                    os.remove(local_file_path)
+
+            except OSError:
+                pass
         await waiting_msg.edit_text(
             _("❌ Unable to process the voice message. Please try again.")
         )
@@ -181,17 +187,15 @@ async def delete_batch_handler(
 @ai_router.message(I18nTextFilter("weekly data analysis", "monthly data analysis"))
 async def handle_analytics_request(message: Message, state: FSMContext):
 
-    if not message.from_user:
+    if not message.text or not message.from_user:
         return
 
-    weekly_text = _("weekly data analysis")
-    monthly_text = _("monthly data analysis")
-
-    days_mapping = {weekly_text: 7, monthly_text: 30}
-
-    user_text = message.text
-
-    days = days_mapping[user_text]
+    if message.text == _("weekly data analysis"):
+        days = 7
+    elif message.text == _("monthly data analysis"):
+        days = 30
+    else:
+        return
     now = datetime.now(timezone.utc)
 
     if days == 7:
@@ -218,7 +222,7 @@ async def handle_analytics_request(message: Message, state: FSMContext):
             await message.answer(
                 _(
                     "📈 *It’s too early for monthly analytics!* \n"
-                    "A reliable monthly analysis requires at least 10 days of data (available from the 10th). "
+                    "A reliable monthly analysis requires at least 5 days of data (available from the 5th). "
                     "Right now, try checking your weekly analytics instead! 📅"
                 ),
                 reply_markup=get_main_menu(),

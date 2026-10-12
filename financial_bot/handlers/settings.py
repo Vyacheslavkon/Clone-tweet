@@ -89,14 +89,22 @@ async def handle_timezone_selection(
 
 @settings_router.callback_query(F.data == "set_tz_manual")
 async def handle_timezone_manual_request(callback: CallbackQuery, state: FSMContext):
+
     await state.set_state(SettingsState.waiting_for_custom_timezone)
-    await callback.message.edit_text(
-        _(
-            "Please type the timezone name, e.g. 'Asia/Tokyo' or 'America/Chicago'.\n\n"
-            "You can find the full list here: "
-            "https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
+
+    if isinstance(callback.message, Message):
+
+        await callback.message.edit_text(
+            _(
+                "Please type the timezone name, e.g. 'Asia/Tokyo' or 'America/Chicago'.\n\n"
+                "You can find the full list here: "
+                "https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
+            )
         )
-    )
+    else:
+
+        logger.warning("Callback message is inaccessible or None during manual timezone request.")
+
     await callback.answer()
 
 
@@ -107,6 +115,10 @@ async def handle_timezone_manual_input(
     state: FSMContext,
     cache_service: FinancialCacheService,
 ):
+    if not message.text or not message.from_user:
+        await message.answer(_("❌ Please send a valid text message with a timezone name."))
+        return
+
     tz_value = message.text.strip()
 
     if not is_valid_timezone(tz_value):
@@ -165,10 +177,15 @@ async def _apply_timezone(
         logger.error(
             "Failed to invalidate cache after timezone change: {error}", error=cache_err
         )
+    if isinstance(callback.message, Message):
 
-    await callback.message.edit_text(
-        _("✅ Timezone updated to {tz}").format(tz=tz_value)
-    )
+        await callback.message.edit_text(
+            _("✅ Timezone updated to {tz}").format(tz=tz_value)
+        )
+
+    else:
+        logger.warning("Message is inaccessible or None during carousel navigation.")
+
     await callback.answer()
 
 
@@ -183,6 +200,10 @@ async def handle_language_settings(message: Message):
 async def handle_language_selection(
     callback: CallbackQuery, session: AsyncSession, cache_service: FinancialCacheService
 ):
+    if not callback.data:
+        await callback.answer()
+        return
+
     lang = callback.data.split(":", 1)[1]
 
     if lang not in SUPPORTED_LANGUAGE_CODES:
@@ -208,7 +229,12 @@ async def handle_language_selection(
         confirmation = _("✅ Language updated")
         menu = get_main_menu()
 
-    await callback.message.answer(confirmation, reply_markup=menu)
+    if isinstance(callback.message, Message):
+
+        await callback.message.answer(confirmation, reply_markup=menu)
+    else:
+        logger.warning(f"Message is inaccessible or None during language change for user {user.id}")
+
     await callback.answer()
 
 
@@ -227,6 +253,10 @@ async def handle_currency_settings(message: Message):
 async def handle_currency_selection(
     callback: CallbackQuery, session: AsyncSession, cache_service: FinancialCacheService
 ):
+    if not callback.data:
+        await callback.answer()
+        return
+
     currency = callback.data.split(":", 1)[1]
 
     if currency not in SUPPORTED_CURRENCY_CODES:
@@ -249,5 +279,11 @@ async def handle_currency_selection(
         )
 
     confirmation = _("✅ Currency updated to {currency}").format(currency=currency)
-    await callback.message.answer(confirmation, reply_markup=get_main_menu())
+
+    if isinstance(callback.message, Message):
+        await callback.message.answer(confirmation, reply_markup=get_main_menu())
+
+    else:
+        logger.warning(f"Message is inaccessible or None during currency change for user {user.id}")
+
     await callback.answer()
