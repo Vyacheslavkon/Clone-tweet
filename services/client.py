@@ -66,7 +66,9 @@ class AIService:
         raw_json = completion.choices[0].message.content
 
         if raw_json is None:
-            logger.error("OpenAI API returned an empty message content (None) instead of JSON.")
+            logger.error(
+                "OpenAI API returned an empty message content (None) instead of JSON."
+            )
             raise RuntimeError("OpenAI API response content is missing or empty.")
 
         return response_schema.model_validate_json(raw_json)
@@ -174,14 +176,18 @@ class AIService:
         message = completion.choices[0].message
 
         if message.refusal:
-            logger.error(f"OpenAI refused to generate structured financial analysis: {message.refusal}")
+            logger.error(
+                "OpenAI refused to generate structured financial analysis: {message_refusal}",
+                message_refusal=message.refusal,
+            )
             raise RuntimeError(f"OpenAI refused response: {message.refusal}")
 
         parsed_result = message.parsed
         if parsed_result is None:
-            logger.error("OpenAI failed to parse response into the requested Pydantic schema.")
+            logger.error(
+                "OpenAI failed to parse response into the requested Pydantic schema."
+            )
             raise RuntimeError("OpenAI failed to return parsed structured data.")
-
 
         return parsed_result
 

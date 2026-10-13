@@ -29,12 +29,12 @@ settings_router = Router()
 
 
 @settings_router.message(I18nTextFilter("Settings"))
-async def handle_settings(message: Message):
+async def handle_settings(message: Message) -> None:
     await message.answer(_("Select the required option:"), reply_markup=settings())
 
 
 @settings_router.message(I18nTextFilter("Change timezone"))
-async def handle_timezone_settings(message: Message):
+async def handle_timezone_settings(message: Message) -> None:
     await message.answer(
         _("Select your timezone, or enter it manually (e.g. 'Asia/Tokyo'):"),
         reply_markup=get_timezone_keyboard(),
@@ -44,7 +44,7 @@ async def handle_timezone_settings(message: Message):
 @settings_router.callback_query(F.data.startswith("set_tz:"))
 async def handle_timezone_selection(
     callback: CallbackQuery, session: AsyncSession, cache_service: FinancialCacheService
-):
+) -> None:
     if not callback.data:
         await callback.answer()
         return
@@ -73,7 +73,6 @@ async def handle_timezone_selection(
     if isinstance(callback.message, Message):
         await callback.message.delete()
 
-
         await callback.message.answer(
             _(
                 "✅ The settings have been saved successfully. The time zone has been changed to: <b>{tz}</b>"
@@ -82,13 +81,18 @@ async def handle_timezone_selection(
             parse_mode="HTML",
         )
     else:
-        logger.warning(f"Message is inaccessible for callback query from user {user.id}")
+        logger.warning(
+            "Message is inaccessible for callback query from user {user_id}",
+            user_id=user.id,
+        )
 
     await callback.answer()
 
 
 @settings_router.callback_query(F.data == "set_tz_manual")
-async def handle_timezone_manual_request(callback: CallbackQuery, state: FSMContext):
+async def handle_timezone_manual_request(
+    callback: CallbackQuery, state: FSMContext
+) -> None:
 
     await state.set_state(SettingsState.waiting_for_custom_timezone)
 
@@ -103,7 +107,9 @@ async def handle_timezone_manual_request(callback: CallbackQuery, state: FSMCont
         )
     else:
 
-        logger.warning("Callback message is inaccessible or None during manual timezone request.")
+        logger.warning(
+            "Callback message is inaccessible or None during manual timezone request."
+        )
 
     await callback.answer()
 
@@ -114,9 +120,11 @@ async def handle_timezone_manual_input(
     session: AsyncSession,
     state: FSMContext,
     cache_service: FinancialCacheService,
-):
+) -> None:
     if not message.text or not message.from_user:
-        await message.answer(_("❌ Please send a valid text message with a timezone name."))
+        await message.answer(
+            _("❌ Please send a valid text message with a timezone name.")
+        )
         return
 
     tz_value = message.text.strip()
@@ -157,7 +165,7 @@ async def _apply_timezone(
     session: AsyncSession,
     cache_service: FinancialCacheService,
     tz_value: str,
-):
+) -> None:
 
     if not is_valid_timezone(tz_value):
         await callback.answer(_("Invalid timezone."), show_alert=True)
@@ -199,7 +207,7 @@ async def handle_language_settings(message: Message):
 @settings_router.callback_query(F.data.startswith("set_lang:"))
 async def handle_language_selection(
     callback: CallbackQuery, session: AsyncSession, cache_service: FinancialCacheService
-):
+) -> None:
     if not callback.data:
         await callback.answer()
         return
@@ -233,13 +241,16 @@ async def handle_language_selection(
 
         await callback.message.answer(confirmation, reply_markup=menu)
     else:
-        logger.warning(f"Message is inaccessible or None during language change for user {user.id}")
+        logger.warning(
+            "Message is inaccessible or None during language change for user {user_id}",
+            user_id=user.id,
+        )
 
     await callback.answer()
 
 
 @settings_router.message(I18nTextFilter("Change currency"))
-async def handle_currency_settings(message: Message):
+async def handle_currency_settings(message: Message) -> None:
     await message.answer(
         _(
             "Select your currency. Note: this only changes how amounts are displayed, "
@@ -252,7 +263,7 @@ async def handle_currency_settings(message: Message):
 @settings_router.callback_query(F.data.startswith("set_cur:"))
 async def handle_currency_selection(
     callback: CallbackQuery, session: AsyncSession, cache_service: FinancialCacheService
-):
+) -> None:
     if not callback.data:
         await callback.answer()
         return
@@ -284,6 +295,9 @@ async def handle_currency_selection(
         await callback.message.answer(confirmation, reply_markup=get_main_menu())
 
     else:
-        logger.warning(f"Message is inaccessible or None during currency change for user {user.id}")
+        logger.warning(
+            "Message is inaccessible or None during currency change for user {user_id}",
+            user_id=user.id,
+        )
 
     await callback.answer()

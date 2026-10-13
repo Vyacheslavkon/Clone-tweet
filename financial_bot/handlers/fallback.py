@@ -9,7 +9,7 @@ router_fallback = Router()
 
 
 @router_fallback.message()
-async def any_unhandled_event(message: Message, state: FSMContext):
+async def any_unhandled_event(message: Message, state: FSMContext) -> None:
     await state.clear()
 
     await message.reply(

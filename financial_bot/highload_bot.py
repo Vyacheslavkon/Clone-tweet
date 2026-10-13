@@ -28,7 +28,7 @@ def get_shared_bot() -> Bot:
     return _global_bot_instance  # noqa: PIE781
 
 
-async def close_shared_bot():
+async def close_shared_bot() -> None:
 
     global _global_bot_session, _global_bot_instance
 

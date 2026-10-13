@@ -1,4 +1,3 @@
-import os
 from typing import Optional, Type, TypeVar
 
 from loguru import logger
@@ -113,16 +112,15 @@ def get_worker_cache_service() -> FinancialCacheService:
         _worker_redis_client = Redis.from_url(
             red_url,
             decode_responses=True,
-            max_connections=20,  # пул на весь воркер, не на один вызов
+            max_connections=20,
         )
         _worker_cache_service = FinancialCacheService(redis_client=_worker_redis_client)
 
     return _worker_cache_service
 
 
-
 async def close_worker_cache() -> None:
-    """Публичный метод очистки — инкапсулирует детали реализации синглтона."""
+    """A public cleanup method — encapsulates the implementation details of the singleton."""
     global _worker_cache_service, _worker_redis_client
     if _worker_redis_client is not None:
         await _worker_redis_client.aclose()

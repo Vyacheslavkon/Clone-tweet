@@ -1,9 +1,9 @@
 import gettext
 import os
 from collections import Counter
+from functools import lru_cache
 from pathlib import Path
 from typing import Callable, Dict, List, Tuple
-from functools import lru_cache
 
 from aiogram import Bot
 from dotenv import load_dotenv
@@ -526,5 +526,9 @@ def get_translator(locale: str):
     except OSError as e:
         # Если диск моргнул — кэш НЕ отравился. Мы пишем ошибку в лог,
         # и отдаем временный английский фоллбэк для текущего ОДНОГО юзера.
-        logger.error("Failed to load localization for locale {locale}: {error}", locale=locale, error=e)
+        logger.error(
+            "Failed to load localization for locale {locale}: {error}",
+            locale=locale,
+            error=e,
+        )
         return gettext.NullTranslations().gettext

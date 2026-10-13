@@ -1,4 +1,5 @@
 import os
+from typing import Any, Dict
 
 import openai
 from dotenv import load_dotenv
@@ -20,14 +21,14 @@ celery_app = app
 
 @celery_app.task(name="financial_bot.ai.process_expense_task", bind=True, max_retries=3)
 def process_expense_task(
-    self,
+    self: Any,
     chat_id: int,
     db_user_id: int,
     locale: str,
     voice_file_path: str,
     currency: str,
     status_message_id: int,
-):
+) -> Dict[str, str] | None:
     should_cleanup = True
 
     try:
@@ -82,9 +83,10 @@ def process_expense_task(
         raise
 
     finally:
-        if should_cleanup and voice_file_path and os.path.exists(voice_file_path):
+        if should_cleanup and voice_file_path is not None:
             try:
-                os.remove(voice_file_path)
+                if os.path.exists(voice_file_path):
+                    os.remove(voice_file_path)
             except OSError as cleanup_err:
                 logger.warning(
                     "Failed to remove temp audio file {path}: {error}",
@@ -98,7 +100,7 @@ def process_expense_task(
 )
 def process_analysis_expense_task(
     self, tg_id: int, chat_id: int, days: int, locale: str
-):
+) -> Dict[str, str] | None:
 
     try:
         result = run_in_worker_loop(process_analysis_financial(tg_id, chat_id, days))

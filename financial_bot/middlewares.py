@@ -2,7 +2,7 @@ import time
 from typing import Any, Dict, Optional
 
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery, Message, TelegramObject, Update
+from aiogram.types import CallbackQuery, Message, TelegramObject, Update, User
 from aiogram.utils.i18n import I18nMiddleware
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
@@ -66,10 +66,16 @@ class MyI18nMiddleware(I18nMiddleware):
 
 
 class UserActivityMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event: TelegramObject, data: dict[str, Any]):
+    async def __call__(
+        self, handler, event: TelegramObject, data: dict[str, Any]
+    ) -> Any:
         user = data.get("event_from_user")
-        user_id = user.id if user else "unknown"
-        username = f"(@{user.username})" if user and user.username else ""
+        if isinstance(user, User):
+            user_id: str | int = user.id
+            username: str = f"(@{user.username})" if user.username else ""
+        else:
+            user_id = "unknown"
+            username = ""
 
         action = "Non-Update event"
         if isinstance(event, Update):

@@ -1,4 +1,3 @@
-# services/worker_resources.py (или financial_bot/core/db_worker.py) — использует ТОЛЬКО Celery
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -13,9 +12,7 @@ _worker_session_maker: async_sessionmaker | None = None
 
 
 def get_isolated_session() -> AsyncSession:
-    """Ленивая фабрика сессий для Celery worker. Engine создаётся один раз
-    при первом реальном вызове таска (после форка, внутри worker_loop),
-    а не при импорте модуля."""
+
     global _worker_engine, _worker_session_maker
     if _worker_engine is None:
 

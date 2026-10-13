@@ -23,7 +23,7 @@ router_del_transactions = Router()
 @router_del_transactions.message(I18nTextFilter("Delete today's data"))
 async def handle_delete_today_request(
     message: Message, session: AsyncSession, state: FSMContext
-):
+) -> None:
     if not message.from_user:
         return
 
@@ -37,7 +37,6 @@ async def handle_delete_today_request(
     if not transactions:
         await message.answer(_("You have no transactions logged today. 🤷"))
         return
-
 
     tx_data = [
         {
@@ -72,7 +71,9 @@ async def handle_delete_today_request(
 @router_del_transactions.callback_query(
     F.data.startswith("tx_nav:"), DeleteTodayState.browsing
 )
-async def handle_carousel_navigation(callback: CallbackQuery, state: FSMContext):
+async def handle_carousel_navigation(
+    callback: CallbackQuery, state: FSMContext
+) -> None:
     if not callback.data:
         await callback.answer()
         return
@@ -91,7 +92,6 @@ async def handle_carousel_navigation(callback: CallbackQuery, state: FSMContext)
 
     if isinstance(callback.message, Message):
         await callback.message.edit_text(
-
             format_transaction_card(
                 tx_data[new_index],
                 _,
@@ -115,7 +115,7 @@ async def handle_carousel_delete(
     state: FSMContext,
     session: AsyncSession,
     cache_service: FinancialCacheService,
-):
+) -> None:
     if not callback.data:
         await callback.answer()
         return
@@ -174,7 +174,7 @@ async def handle_carousel_delete(
 
 
 @router_del_transactions.callback_query(F.data == "tx_close", DeleteTodayState.browsing)
-async def handle_carousel_close(callback: CallbackQuery, state: FSMContext):
+async def handle_carousel_close(callback: CallbackQuery, state: FSMContext) -> None:
 
     if isinstance(callback.message, Message):
         await callback.message.edit_text(_("Closed."))

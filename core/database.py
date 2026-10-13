@@ -1,3 +1,5 @@
+from typing import AsyncGenerator
+
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -18,6 +20,6 @@ bot_session_maker = async_sessionmaker(
 )
 
 
-async def get_bot_db():
+async def get_bot_db() -> AsyncGenerator:
     async with bot_session_maker() as session:
         yield session

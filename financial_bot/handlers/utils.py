@@ -174,7 +174,7 @@ def format_multi_report(reports_data: list[dict]) -> str:
     for el in reports_data:
         part = formatters(
             el["data"], el["period_name"], period_key=el.get("period_key", "week")
-        )  # el.get("plan")
+        )
         parts.append(part)
 
     return "\n\n" + "───────────────────\n".join(parts)

@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from redis.asyncio import Redis
 
-from core.config import TOKEN_BOT
+from core.config import ADMIN_ID, REDIS_URL, TOKEN_BOT
 from core.database import bot_engine, bot_session_maker
 from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.ai_consultant import ai_router
@@ -39,14 +39,12 @@ i18n = I18n(
     path="/application/financial_bot/locales", default_locale="en", domain="messages"
 )
 
-admin_id = int(os.getenv("ADMIN_ID"))
+admin_id = ADMIN_ID
 
-redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
-if not redis_url:
-    raise ValueError("CRITICAL: ANALYSIS_CACHE_REDIS environment variable is not set!")
+redis_url = REDIS_URL
 
 
-async def main():
+async def main() -> None:
     load_dotenv()
     setup_logging()
     bot_session = AiohttpSession()
@@ -90,7 +88,6 @@ async def main():
         )
 
     finally:
-        # await redis_fsm.close()
         await redis_fsm.aclose()
         logger.info("Redis FSM client closed.")
 
@@ -103,7 +100,7 @@ async def main():
         await bot_session.close()
         logger.info("Bot HTTP session closed.")
 
-        await bot_engine.dispose()  # new
+        await bot_engine.dispose()
 
 
 if __name__ == "__main__":

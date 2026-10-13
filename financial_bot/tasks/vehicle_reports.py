@@ -1,3 +1,5 @@
+from typing import Any
+
 from loguru import logger
 
 from services.celery_app import app
@@ -12,7 +14,7 @@ celery_app = app
     bind=True,
     max_retries=2,
 )
-def send_weekly_stats_task(self):
+def send_weekly_stats_task(self: Any) -> None:
     try:
         run_in_worker_loop(send_weekly_stats())
         logger.info("Weekly stats mailing completed successfully.")
@@ -26,7 +28,7 @@ def send_weekly_stats_task(self):
     bind=True,
     max_retries=2,
 )
-def send_monthly_stats_task(self):
+def send_monthly_stats_task(self: Any) -> None:
     try:
         run_in_worker_loop(send_monthly_stats())
         logger.info("Monthly stats mailing completed successfully.")

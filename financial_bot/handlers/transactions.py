@@ -1,4 +1,3 @@
-import os
 import uuid
 from typing import Union
 
@@ -11,6 +10,7 @@ from redis.exceptions import RedisError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config import REDIS_URL
 from financial_bot.filters import I18nTextFilter
 from financial_bot.keyboards.inline import (
     get_category,
@@ -26,13 +26,11 @@ from services.analysis_cache import FinancialCacheService
 
 router_tr = Router()
 
-redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
-if not redis_url:
-    raise ValueError("CRITICAL: ANALYSIS_CACHE_REDIS environment variable is not set!")
+redis_url = REDIS_URL
 
 
 @router_tr.callback_query(F.data == "back")
-async def go_back(callback: CallbackQuery, state: FSMContext):
+async def go_back(callback: CallbackQuery, state: FSMContext) -> None:
 
     if not callback.message or not isinstance(callback.message, Message):
         await callback.answer()
@@ -73,17 +71,18 @@ async def go_back(callback: CallbackQuery, state: FSMContext):
 
 
 @router_tr.message(I18nTextFilter("Enter amount"))
-async def new_amount(message: Message, state: FSMContext):
+async def new_amount(message: Message, state: FSMContext) -> None:
 
     await message.answer(_("Please enter the amount!"))
     await state.set_state(AmountState.waiting_for_amount)
 
 
 @router_tr.message(AmountState.waiting_for_amount)
-async def process_amount_input(message: Message, state: FSMContext):
+async def process_amount_input(message: Message, state: FSMContext) -> None:
 
     if not message.text:
-        return await message.answer(_("Please send a text message with a number!"))
+        await message.answer(_("Please send a text message with a number!"))
+        return
 
     try:
         amount = float(message.text.replace(",", "."))
@@ -94,11 +93,12 @@ async def process_amount_input(message: Message, state: FSMContext):
 
         await state.set_state(AmountState.waiting_for_type)
     except ValueError:
-        return await message.answer(_("Enter a numeric value!"))
+        await message.answer(_("Enter a numeric value!"))
+        return
 
 
 @router_tr.callback_query(F.data.startswith("type"), AmountState.waiting_for_type)
-async def type_amount(callback: CallbackQuery, state: FSMContext):
+async def type_amount(callback: CallbackQuery, state: FSMContext) -> None:
 
     if not callback.data or not isinstance(callback.message, Message):
         await callback.answer()
@@ -114,7 +114,7 @@ async def type_amount(callback: CallbackQuery, state: FSMContext):
 
 
 @router_tr.callback_query(F.data.startswith("cat"), AmountState.waiting_for_cat)
-async def category_amount(callback: CallbackQuery, state: FSMContext):
+async def category_amount(callback: CallbackQuery, state: FSMContext) -> None:
 
     if not callback.data or not isinstance(callback.message, Message):
         await callback.answer()
@@ -138,11 +138,13 @@ async def end_with_callback(
     state: FSMContext,
     session: AsyncSession,
     cache_service: FinancialCacheService,
-):
+) -> None:
     user = await get_user_by_id(session, callback.from_user.id)
 
     if not user:
-        await callback.answer(_("User profile not found. Please type /start."), show_alert=True)
+        await callback.answer(
+            _("User profile not found. Please type /start."), show_alert=True
+        )
         return
 
     await state.update_data(description=None)
@@ -151,14 +153,15 @@ async def end_with_callback(
     try:
         await cache_service.invalidate_user_cache(user_id=user.id)
         logger.info(
-            "Successfully invalidated cache for user: %s via manual entry", user.id
+            "Successfully invalidated cache for user: {user_id} via manual entry",
+            user_id=user.id,
         )
     except RedisError as redis_err:
 
         logger.error(
-            "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
-            user.id,
-            redis_err,
+            "Non-critical error: Failed to clear Redis cache during manual entry for user {user_id}: {redis_err}",
+            user_id=user.id,
+            redis_err=redis_err,
         )
 
 
@@ -168,7 +171,7 @@ async def end_with_message(
     state: FSMContext,
     session: AsyncSession,
     cache_service: FinancialCacheService,
-):
+) -> None:
 
     if not message.from_user:
         return
@@ -176,7 +179,9 @@ async def end_with_message(
     user = await get_user_by_id(session, message.from_user.id)
 
     if not user:
-        logger.error("User with id {} not found in database", message.from_user.id)
+        logger.error(
+            "User with id {message} not found in database", message=message.from_user.id
+        )
         return
 
     await state.update_data(description=message.text)
@@ -185,14 +190,15 @@ async def end_with_message(
     try:
         await cache_service.invalidate_user_cache(user_id=user.id)
         logger.info(
-            "Successfully invalidated cache for user: %s via manual entry", user.id
+            "Successfully invalidated cache for user: {user_id} via manual entry",
+            user_id=user.id,
         )
     except RedisError as redis_err:
 
         logger.error(
-            "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
-            user.id,
-            redis_err,
+            "Non-critical error: Failed to clear Redis cache during manual entry for user {user_id}: {redis_err}",
+            user_id=user.id,
+            redis_err=redis_err,
         )
 
 
@@ -201,13 +207,13 @@ async def save_to_db_and_finish(
     state: FSMContext,
     session: AsyncSession,
     tg_id: int,
-):
+) -> None:
 
     data = await state.get_data()
     user = await get_user_by_id(session, tg_id)
 
     if not user:
-        logger.error("User with id {} not found in database", tg_id)
+        logger.error("User with id {tg_id} not found in database", tg_id=tg_id)
         return
 
     data["user_id"] = user.id
@@ -240,4 +246,4 @@ async def save_to_db_and_finish(
         await state.clear()
     except SQLAlchemyError as e:
 
-        logger.error("Error saving: {}", e)
+        logger.error("Error saving: {e}", e=e)

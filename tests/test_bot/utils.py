@@ -33,7 +33,8 @@ def called_bot(
     #  assert found, f"Text '{text}' not found among {methods} calls."
     if not found:
         raise AssertionError(
-            f"Text '{text}' not found among {methods} calls. Current history: {mock_bot.call_args_list}")
+            f"Text '{text}' not found among {methods} calls. Current history: {mock_bot.call_args_list}"
+        )
 
 
 def called_kb(
@@ -57,7 +58,9 @@ def called_kb(
                 if btn_text == button_text:
                     return
     #  assert False, f"Button with text '{button_text}' not found among {methods} calls."
-    raise AssertionError(f"Button with text '{button_text}' not found among {methods} calls.")
+    raise AssertionError(
+        f"Button with text '{button_text}' not found among {methods} calls."
+    )
 
 
 def keyboard_check(kb, bot, i18n):

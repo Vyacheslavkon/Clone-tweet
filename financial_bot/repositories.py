@@ -1,13 +1,13 @@
 from datetime import datetime, time, timedelta, timezone
 from decimal import Decimal
+from typing import cast
 
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
-from sqlalchemy import delete, desc, func, select, union_all, update, CursorResult
+from sqlalchemy import CursorResult, delete, desc, func, select, union_all, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import exists
-from typing import cast
 
 from financial_bot.exceptions import UserNotFoundError
 from financial_bot.general_utils import get_today_boundaries_utc

@@ -161,14 +161,15 @@ async def delete_batch_handler(
     try:
         await cache_service.invalidate_user_cache(user_id=user.id)
         logger.info(
-            "Successfully invalidated cache for user: %s via manual entry", user.id
+            "Successfully invalidated cache for user: {user_id} via manual entry",
+            user_id=user.id,
         )
     except RedisError as redis_err:
 
         logger.error(
-            "Non-critical error: Failed to clear Redis cache during manual entry for user %s: %s",
-            user.id,
-            redis_err,
+            "Non-critical error: Failed to clear Redis cache during manual entry for user {user_id}: {redis_err}",
+            user_id=user.id,
+            redis_err=redis_err,
         )
 
     if not isinstance(callback.message, Message):
@@ -250,32 +251,49 @@ async def handle_analytics_request(message: Message, state: FSMContext):
 @ai_router.callback_query(F.data.startswith("show_detailed_report:"))
 async def handle_show_detailed_report(callback: CallbackQuery, session: AsyncSession):
 
+    if not callback.data:
+        await callback.answer()
+        return
+
     days = int(callback.data.split(":")[1])
     user_id = callback.from_user.id
 
     user = await get_user_by_id(session, user_id)
 
+    if not user or user.id is None:
+        await callback.answer(
+            _("User profile not found. Please type /start."), show_alert=True
+        )
+        return
+
     data = await get_user_financial_summary(session, user.id, days, user)
 
     report_text = render_detailed_transactions(data, _)
 
-    if len(report_text) <= 4000:
+    if isinstance(callback.message, Message):
+        if len(report_text) <= 4000:
 
-        await callback.message.answer(text=report_text, parse_mode="HTML")
+            await callback.message.answer(text=report_text, parse_mode="HTML")
+
+        else:
+
+            file_buffer = io.BytesIO(report_text.encode("utf-8"))
+            file_buffer.seek(0)
+
+            filename = f"financial_report_{days}_days.txt"
+            document = BufferedInputFile(file_buffer.read(), filename=filename)
+
+            await callback.message.answer_document(
+                document=document,
+                caption=_(
+                    "🧾 <b>Your detailed report exceeded Telegram's message length limit.</b>\nI’ve packed the entire transaction history into this file! 📁"
+                ),
+            )
 
     else:
-
-        file_buffer = io.BytesIO(report_text.encode("utf-8"))
-        file_buffer.seek(0)
-
-        filename = f"financial_report_{days}_days.txt"
-        document = BufferedInputFile(file_buffer.read(), filename=filename)
-
-        await callback.message.answer_document(
-            document=document,
-            caption=_(
-                "🧾 <b>Your detailed report exceeded Telegram's message length limit.</b>\nI’ve packed the entire transaction history into this file! 📁"
-            ),
+        logger.warning(
+            "Callback message is inaccessible or None during detailed report generation for user {user.id}",
+            user_id=user_id,
         )
 
     await callback.answer()

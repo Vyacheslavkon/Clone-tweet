@@ -22,7 +22,7 @@ history_rout = Router()
 
 
 @history_rout.message(I18nTextFilter("History"))
-async def reports_history(message: Message, state: FSMContext):
+async def reports_history(message: Message, state: FSMContext) -> None:
 
     await message.answer(_("Please, select period"), reply_markup=report_history())
     await state.set_state(HistoryState.waiting_for_period_history)
@@ -31,7 +31,9 @@ async def reports_history(message: Message, state: FSMContext):
 @history_rout.callback_query(
     F.data == "two_week", HistoryState.waiting_for_period_history
 )
-async def report_two_weeks(callback: CallbackQuery, session: AsyncSession, bot: Bot):
+async def report_two_weeks(
+    callback: CallbackQuery, session: AsyncSession, bot: Bot
+) -> None:
 
     cur_week = _("current week")
     last_week = _("last week")
@@ -60,7 +62,9 @@ async def report_two_weeks(callback: CallbackQuery, session: AsyncSession, bot: 
 @history_rout.callback_query(
     F.data == "period", HistoryState.waiting_for_period_history
 )
-async def report_arbitrary_period(callback: CallbackQuery, state: FSMContext, bot: Bot):
+async def report_arbitrary_period(
+    callback: CallbackQuery, state: FSMContext, bot: Bot
+) -> None:
 
     await bot.send_message(
         text=_("📅 Select the <b>start date</b> of the period:"),
@@ -80,7 +84,7 @@ async def process_start_date(
     callback_data: SimpleCalendarCallback,
     state: FSMContext,
     bot: Bot,
-):
+) -> None:
 
     selected, date = await SimpleCalendar().process_selection(callback, callback_data)
 
@@ -116,7 +120,7 @@ async def process_end_date(
     state: FSMContext,
     session: AsyncSession,
     bot: Bot,
-):
+) -> None:
 
     selected, date = await SimpleCalendar().process_selection(callback, callback_data)
 

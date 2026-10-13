@@ -12,19 +12,19 @@ from financial_bot.general_utils import (
 )
 
 
-def cancel():
+def cancel() -> InlineKeyboardBuilder:
     builder = InlineKeyboardBuilder()
     builder.button(text=_("Cancel"), callback_data="cancel")
     return builder
 
 
-def get_back_kb():
+def get_back_kb() -> InlineKeyboardBuilder:
     builder = InlineKeyboardBuilder()
     builder.button(text=_("Back"), callback_data="back")
     return builder
 
 
-def get_type():
+def get_type() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text=_("Income"), callback_data="type_income"))
     builder.add(InlineKeyboardButton(text=_("Expense"), callback_data="type_expense"))
@@ -38,7 +38,7 @@ def get_type():
     return builder.as_markup()
 
 
-def get_category(type_transaction: str):
+def get_category(type_transaction: str) -> InlineKeyboardMarkup:
 
     if type_transaction == "income":
         categories = {
@@ -70,7 +70,7 @@ def get_category(type_transaction: str):
     return builder.as_markup()
 
 
-def get_description():
+def get_description() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.add(
         InlineKeyboardButton(
@@ -87,7 +87,7 @@ def get_description():
     return builder.as_markup()
 
 
-def period_report():
+def period_report() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     builder.add(InlineKeyboardButton(text=_("day"), callback_data="day"))
@@ -103,7 +103,7 @@ def period_report():
     return builder.as_markup()
 
 
-def report_history():
+def report_history() -> InlineKeyboardMarkup:
 
     builder = InlineKeyboardBuilder()
 
@@ -122,7 +122,7 @@ def report_history():
     return builder.as_markup()
 
 
-def get_delete_keyboard(batch_id: str, button_text: str):
+def get_delete_keyboard(batch_id: str, button_text: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
         text=button_text, callback_data=DeleteTransactionCallback(batch_id=batch_id)
@@ -130,7 +130,7 @@ def get_delete_keyboard(batch_id: str, button_text: str):
     return builder.as_markup()
 
 
-def get_detailed_report(days: int, _: Callable[[str], str]):
+def get_detailed_report(days: int, _: Callable[[str], str]) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     builder.add(
