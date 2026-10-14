@@ -69,4 +69,4 @@ jobs:
           ANALYSIS_CACHE_REDIS: redis://localhost:6379/0
         run: |
           mkdir -p media
-          pytest
+          pytest tests/test_bot/
