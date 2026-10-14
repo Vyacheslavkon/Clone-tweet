@@ -1,19 +1,22 @@
-import copy
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types import CallbackQuery, Chat, Message, TelegramObject, Update, User
 from aiogram.utils.i18n import I18n, I18nMiddleware
+from loguru import logger
 
 from financial_bot.handlers.adding_data import router_data
+from financial_bot.handlers.ai_consultant import ai_router
 from financial_bot.handlers.common import router
 from financial_bot.handlers.history import history_rout
 from financial_bot.handlers.reports import report_rout
+from financial_bot.handlers.settings import settings_router
 from financial_bot.handlers.transactions import router_tr
 from financial_bot.middlewares import SessionMiddleware
 from financial_bot.repositories import (
@@ -22,16 +25,38 @@ from financial_bot.repositories import (
     create_user,
 )
 from financial_bot.schemas import AddData, CreateUser
+from services.analysis_cache import FinancialCacheService
+from services.celery_app import app as celery_app
 from services.client import ai_service
 from services.schemas import (
+    MonthlyAnalysisResponse,
     ReceiptAnalysisSchema,
     ReceiptItemSchema,
     ReceiptListAnalysisSchema,
+    WeeklyAnalysisResponse,
 )
 
 current_file_path = Path(__file__).resolve()
 base_dir = current_file_path.parent.parent.parent
 locales_path = base_dir / "financial_bot" / "locales"
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _configure_test_logging():
+
+    logger.remove()
+
+    logger.add(
+        sys.stderr,
+        level="INFO",
+        enqueue=False,
+        backtrace=False,
+        diagnose=False,
+    )
+
+    yield
+
+    logger.remove()
 
 
 @pytest.fixture
@@ -117,40 +142,51 @@ async def test_transaction(test_session, test_user):
 
 class MyI18nMiddleware(I18nMiddleware):
     async def get_locale(self, event: TelegramObject, data: Dict[str, Any]) -> str:
-        # В тестах проще всего возвращать дефолтную локаль
-        # Или можно достать из event.from_user.language_code
+
         return self.i18n.default_locale
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_i18n():
-    """Отдельная фикстура для объекта I18n"""
+
     return I18n(path="financial_bot/locales", default_locale="en", domain="messages")
 
 
-@pytest.fixture
-async def test_dp(test_session, test_redis, test_i18n):
-
-    storage = RedisStorage(redis=test_redis)
-    dp = Dispatcher(storage=storage)
+@pytest.fixture(scope="session")
+def dp_with_routers(test_i18n):  # requires test_i18n тоже scope="session"
+    dp = Dispatcher()
 
     i18n_middleware = MyI18nMiddleware(i18n=test_i18n)
     dp.update.outer_middleware(i18n_middleware)
+    dp.update.middleware(SessionMiddleware())
 
-    dp.update.middleware(SessionMiddleware(session_pool=test_session))
-
-    for r in [router, router_tr, router_data, report_rout, history_rout]:
-        if r is not None:
-
-            new_router = copy.deepcopy(r)
-            dp.include_router(new_router)
-        else:
-            raise ValueError(
-                "One of the routers (router или router_tr) "
-                "is not imported or is equal None"
-            )
-
+    for r in [
+        router,
+        router_tr,
+        router_data,
+        report_rout,
+        history_rout,
+        settings_router,
+        ai_router,
+    ]:
+        if r is None:
+            raise ValueError("One of the routers is not imported or is None")
+        dp.include_router(r)
     return dp
+
+
+@pytest.fixture
+async def test_dp(dp_with_routers, test_session, test_redis, cache_service):
+    dp = dp_with_routers
+    dp.fsm.storage = RedisStorage(redis=test_redis)  # ← подтверждено рабочим
+
+    dp["cache_service"] = cache_service
+    dp["session_pool"] = test_session
+    dp["admin_id"] = 12345678
+
+    yield dp
+
+    dp.workflow_data.clear()
 
 
 @pytest.fixture
@@ -208,8 +244,15 @@ def mock_ai_service(mocker):
 
     mocker.patch.object(ai_service, "process_voice_message", mock_method)
 
-    # Возвращаем сам мок-метод в тест
     return mock_method
+
+
+@pytest.fixture
+def mock_proc_receipt():
+    with patch(
+        "financial_bot.tasks.ai.async_process_receipt", new_callable=AsyncMock
+    ) as mock:
+        yield mock
 
 
 @pytest.fixture(autouse=True)
@@ -226,7 +269,7 @@ def patch_pipeline_dependencies(mocker, test_session_for_pipeline, mock_bot):
         return_value=test_session_for_pipeline,
     )
 
-    mocker.patch("services.pipelines.Bot", return_value=mock_bot)  # maybe bot
+    mocker.patch("financial_bot.highload_bot.get_shared_bot", return_value=mock_bot)
 
     yield test_session_for_pipeline
 
@@ -284,3 +327,222 @@ async def data_for_merge_by_cat():
             ),
         ],
     )
+
+
+@pytest.fixture
+def mock_redis_client():
+    client = AsyncMock()
+    pipeline_mock = AsyncMock()
+
+    client.pipeline = MagicMock(return_value=pipeline_mock)
+    pipeline_mock.__aenter__.return_value = pipeline_mock
+    pipeline_mock.__aexit__.return_value = None
+
+    pipeline_mock.delete = MagicMock()
+
+    return client
+
+
+@pytest.fixture
+def cache_service(mock_redis_client):
+
+    return FinancialCacheService(redis_client=mock_redis_client)
+
+
+@pytest.fixture
+def celery_eager(request):
+
+    propagates = getattr(request, "param", True)
+
+    original = (
+        celery_app.conf.task_always_eager,
+        celery_app.conf.task_eager_propagates,
+    )
+    celery_app.conf.task_always_eager = True
+    celery_app.conf.task_eager_propagates = propagates
+    yield
+    celery_app.conf.task_always_eager, celery_app.conf.task_eager_propagates = original
+
+
+@pytest.fixture
+def mock_isolated_session():
+    with patch("services.pipelines.get_isolated_session") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_voice_processing():
+    with patch(
+        "services.client.ai_service.process_voice_message", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def audio_file(tmp_path):
+    path = tmp_path / "voice.ogg"
+    path.write_bytes(b"fake_audio_bytes")
+    return str(path)
+
+
+@pytest.fixture
+def mock_scheduled_reports_infra(mock_bot):
+
+    with patch(
+        "services.scheduled_reports.get_shared_bot", return_value=mock_bot
+    ), patch(
+        "aiogram.client.session.aiohttp.AiohttpSession.close", new_callable=AsyncMock
+    ):
+        yield
+
+
+@pytest.fixture
+def mock_pipeline_infra(mock_bot):
+
+    with patch("services.pipelines.get_shared_bot", return_value=mock_bot), patch(
+        "aiogram.client.session.aiohttp.AiohttpSession.close", new_callable=AsyncMock
+    ):
+        yield
+
+
+@pytest.fixture
+def mock_save_receipt():
+    with patch("services.pipelines.save_receipt_to_db", new_callable=AsyncMock) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_redis_cache():
+
+    with patch("services.pipelines.get_worker_cache_service") as mock_get_service:
+        mock_cache_service = AsyncMock()
+        mock_get_service.return_value = mock_cache_service
+        yield mock_cache_service.invalidate_user_cache
+
+
+@pytest.fixture
+def mock_analysis_ai_service():
+    with patch(
+        "services.pipelines.ai_service.analysis_financial", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_cache_service_analysis():
+
+    with patch("services.pipelines.get_worker_cache_service") as mock_get_service:
+        mock_cache_service = AsyncMock()
+        mock_get_service.return_value = mock_cache_service
+        yield mock_cache_service
+
+
+@pytest.fixture
+def mock_get_user_financial_summary():
+    with patch(
+        "services.pipelines.get_user_financial_summary", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_get_user_by_id():
+    with patch("services.pipelines.get_user_by_id", new_callable=AsyncMock) as mock:
+        yield mock
+
+
+def make_weekly_analysis_response(**overrides):
+    defaults = {
+        "summary": "test summary",
+        "weekly_balance_status": "Дисциплина на высоте! 🔥",
+        "classified_items": [],
+        "recommendations": [],
+    }
+    defaults.update(overrides)
+    return WeeklyAnalysisResponse(**defaults)
+
+
+def make_monthly_analysis_response(**overrides):
+    defaults = {
+        "summary": "test summary",
+        "budget_status": "Perfectly within limits",
+        "classified_items": [],
+        "recommendations": [],
+    }
+    defaults.update(overrides)
+    return MonthlyAnalysisResponse(**defaults)
+
+
+ANALYSIS_SCHEMA_FACTORIES = {
+    7: (WeeklyAnalysisResponse, 5, make_weekly_analysis_response),
+    30: (MonthlyAnalysisResponse, 12, make_monthly_analysis_response),
+}
+
+
+def make_user(id_, tg_id, language_code="en", is_active=True):
+    user = AsyncMock()
+    user.id = id_
+    user.tg_id = tg_id
+    user.language_code = language_code
+    user.is_active = is_active
+    return user
+
+
+@pytest.fixture
+def mock_get_all_users():
+    with patch(
+        "services.scheduled_reports.get_all_users", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_get_reports_for_all_active_users():
+    with patch(
+        "services.scheduled_reports.get_reports_for_all_active_users",
+        new_callable=AsyncMock,
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_get_plans_for_all_active_users():
+    with patch(
+        "services.scheduled_reports.get_plans_for_all_active_users",
+        new_callable=AsyncMock,
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_blocked_users_bulk():
+    with patch(
+        "services.scheduled_reports.blocked_users_bulk", new_callable=AsyncMock
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(autouse=True)
+def _no_real_sleep():
+
+    with patch("services.scheduled_reports.asyncio.sleep", new_callable=AsyncMock):
+        yield
+
+
+summary_data = {
+    "days_period": 30,
+    "total_income": 1000.0,
+    "total_amount": 800.0,
+    "net_balance": 200.0,
+    "total_count": 5,
+    "user_config": {"currency": "USD"},
+    "categories": [{"category": "food", "amount": 300.0, "count": 3}],
+    "top_items": [
+        {
+            "date": "2026-09-01",
+            "name": "Bread",
+            "total_amount": 50.0,
+            "category": "food",
+        }
+    ],
+}

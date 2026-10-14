@@ -21,14 +21,14 @@ report_rout = Router()
 
 
 @report_rout.message(I18nTextFilter("Generate report"))
-async def reports_period(message: Message, state: FSMContext):
+async def reports_period(message: Message, state: FSMContext) -> None:
 
     await message.answer(_("please, select period"), reply_markup=period_report())
     await state.set_state(GenerateReport.waiting_for_period)
 
 
 @report_rout.callback_query(F.data == "day", GenerateReport.waiting_for_period)
-async def report_day(callback: CallbackQuery, session: AsyncSession, bot: Bot):
+async def report_day(callback: CallbackQuery, session: AsyncSession, bot: Bot) -> None:
 
     if not callback.data or not isinstance(callback.message, Message):
         await callback.answer()
@@ -47,7 +47,7 @@ async def report_day(callback: CallbackQuery, session: AsyncSession, bot: Bot):
 
     period = _("day")
 
-    report_text = formatters(data, period)
+    report_text = formatters(data, period, period_key="day")
 
     await bot.edit_message_text(
         text=report_text,
@@ -58,7 +58,7 @@ async def report_day(callback: CallbackQuery, session: AsyncSession, bot: Bot):
 
 
 @report_rout.callback_query(F.data == "week", GenerateReport.waiting_for_period)
-async def report_week(callback: CallbackQuery, session: AsyncSession, bot: Bot):
+async def report_week(callback: CallbackQuery, session: AsyncSession, bot: Bot) -> None:
 
     if not callback.data or not isinstance(callback.message, Message):
         await callback.answer()
@@ -70,7 +70,7 @@ async def report_week(callback: CallbackQuery, session: AsyncSession, bot: Bot):
 
     data = await get_report_period(session, callback.from_user.id, start_day, end_day)
 
-    report_text = formatters(data, period)
+    report_text = formatters(data, period, period_key="week")
 
     await bot.edit_message_text(
         text=report_text,
@@ -81,7 +81,9 @@ async def report_week(callback: CallbackQuery, session: AsyncSession, bot: Bot):
 
 
 @report_rout.callback_query(F.data == "month", GenerateReport.waiting_for_period)
-async def report_monthly(callback: CallbackQuery, session: AsyncSession, bot: Bot):
+async def report_monthly(
+    callback: CallbackQuery, session: AsyncSession, bot: Bot
+) -> None:
 
     if not callback.data or not isinstance(callback.message, Message):
         await callback.answer()
@@ -94,9 +96,8 @@ async def report_monthly(callback: CallbackQuery, session: AsyncSession, bot: Bo
 
     period = get_month_name(current_month)
 
-    report_text = formatters(data, period, planned_data)
+    report_text = formatters(data, period, period_key="month", plan=planned_data)
 
-    # await callback.message.edit_text(text=report_text, parse_mode="HTML")
     await bot.edit_message_text(
         text=report_text,
         chat_id=callback.message.chat.id,

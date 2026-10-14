@@ -1,23 +1,30 @@
-from aiogram.types import InlineKeyboardButton
+from typing import Callable
+
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from financial_bot.filters import DeleteTransactionCallback
+from financial_bot.general_utils import (
+    POPULAR_TIMEZONES,
+    SUPPORTED_CURRENCIES,
+    SUPPORTED_LANGUAGES,
+)
 
 
-def cancel():
+def cancel() -> InlineKeyboardBuilder:
     builder = InlineKeyboardBuilder()
     builder.button(text=_("Cancel"), callback_data="cancel")
     return builder
 
 
-def get_back_kb():
+def get_back_kb() -> InlineKeyboardBuilder:
     builder = InlineKeyboardBuilder()
     builder.button(text=_("Back"), callback_data="back")
     return builder
 
 
-def get_type():
+def get_type() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text=_("Income"), callback_data="type_income"))
     builder.add(InlineKeyboardButton(text=_("Expense"), callback_data="type_expense"))
@@ -31,36 +38,7 @@ def get_type():
     return builder.as_markup()
 
 
-# def get_category(type_transaction: str):
-#
-#     if type_transaction == "income":
-#         categories = [_("Salary"), _("Bonus"), _("Gift"), _("Deal"), _("Other")]
-#     else:
-#         categories = [
-#             _("Food"),
-#             _("Home"),
-#             _("Entertainment"),
-#             _("Transport"),
-#             _("Health"),
-#             _("Other"),
-#         ]
-#     builder = InlineKeyboardBuilder()
-#
-#     for cat in categories:
-#         builder.add(
-#             InlineKeyboardButton(text=_(cat), callback_data=f"cat_{cat.lower()}")
-#         )
-#     builder.adjust(2)
-#
-#     back_builder = get_back_kb()
-#     cancel_builder = cancel()
-#     builder.attach(back_builder)
-#     builder.attach(cancel_builder)
-#
-#     return builder.as_markup()
-
-
-def get_category(type_transaction: str):
+def get_category(type_transaction: str) -> InlineKeyboardMarkup:
 
     if type_transaction == "income":
         categories = {
@@ -92,7 +70,7 @@ def get_category(type_transaction: str):
     return builder.as_markup()
 
 
-def get_description():
+def get_description() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.add(
         InlineKeyboardButton(
@@ -109,7 +87,7 @@ def get_description():
     return builder.as_markup()
 
 
-def period_report():
+def period_report() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     builder.add(InlineKeyboardButton(text=_("day"), callback_data="day"))
@@ -125,7 +103,7 @@ def period_report():
     return builder.as_markup()
 
 
-def report_history():
+def report_history() -> InlineKeyboardMarkup:
 
     builder = InlineKeyboardBuilder()
 
@@ -144,9 +122,85 @@ def report_history():
     return builder.as_markup()
 
 
-def get_delete_keyboard(batch_id: str, button_text: str):
+def get_delete_keyboard(batch_id: str, button_text: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
         text=button_text, callback_data=DeleteTransactionCallback(batch_id=batch_id)
     )
+    return builder.as_markup()
+
+
+def get_detailed_report(days: int, _: Callable[[str], str]) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+
+    builder.add(
+        InlineKeyboardButton(
+            text=_("🔎 Detailed report"), callback_data=f"show_detailed_report:{days}"
+        )
+    )
+    return builder.as_markup()
+
+
+def get_transaction_carousel_keyboard(
+    transactions: list[dict], current_index: int, _
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+
+    nav_row = []
+    if current_index > 0:
+        nav_row.append(
+            InlineKeyboardButton(text="◀️", callback_data=f"tx_nav:{current_index - 1}")
+        )
+    nav_row.append(
+        InlineKeyboardButton(
+            text=f"{current_index + 1}/{len(transactions)}", callback_data="tx_nav:noop"
+        )
+    )
+    if current_index < len(transactions) - 1:
+        nav_row.append(
+            InlineKeyboardButton(text="▶️", callback_data=f"tx_nav:{current_index + 1}")
+        )
+    builder.row(*nav_row)
+
+    builder.row(
+        InlineKeyboardButton(
+            text=_("❌ Delete this transaction"),
+            callback_data=f"tx_delete:{transactions[current_index]["id"]}:{current_index}",
+        )
+    )
+    builder.row(InlineKeyboardButton(text=_("Close"), callback_data="tx_close"))
+
+    return builder.as_markup()
+
+
+def get_timezone_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for tz_value, tz_label in POPULAR_TIMEZONES:
+        builder.row(
+            InlineKeyboardButton(text=tz_label, callback_data=f"set_tz:{tz_value}")
+        )
+
+    builder.row(
+        InlineKeyboardButton(
+            text=_("✏️ Enter manually"), callback_data="set_tz_manual"
+        )  # new
+    )
+
+    return builder.as_markup()
+
+
+def get_language_keyboard() -> InlineKeyboardMarkup:
+
+    builder = InlineKeyboardBuilder()
+
+    for code, label in SUPPORTED_LANGUAGES:
+        builder.row(InlineKeyboardButton(text=label, callback_data=f"set_lang:{code}"))
+
+    return builder.as_markup()
+
+
+def get_currency_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for code, label in SUPPORTED_CURRENCIES:
+        builder.row(InlineKeyboardButton(text=label, callback_data=f"set_cur:{code}"))
     return builder.as_markup()

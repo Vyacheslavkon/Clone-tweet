@@ -1,10 +1,14 @@
 import os
 
 from celery import Celery
-from celery.signals import after_setup_logger
+from celery.signals import after_setup_logger, worker_shutdown
 from dotenv import load_dotenv
+from loguru import logger as log
 
+from core.db_worker import close_worker_db_engine
 from logger_config import setup_logging
+from services.analysis_cache import close_worker_cache
+from services.worker_loop import close_worker_loop, get_worker_loop
 
 load_dotenv()
 
@@ -15,7 +19,7 @@ app = Celery(
     "financial_worker",
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
-    include=["financial_bot.tasks.ai"],
+    include=["financial_bot.tasks.ai", "financial_bot.tasks.vehicle_reports"],
 )
 
 app.conf.update(
@@ -28,5 +32,26 @@ app.conf.update(
 
 
 @after_setup_logger.connect
-def setup_celery_logger(logger, *args, **kwargs):
+def setup_celery_logger(logger, *args, **kwargs) -> None:
     setup_logging()
+
+
+@worker_shutdown.connect
+def on_worker_shutdown(**kwargs) -> None:
+    loop = get_worker_loop()
+
+    for name, cleanup_coro_factory in [
+        ("Redis cache", close_worker_cache),
+        ("DB engine", close_worker_db_engine),
+    ]:
+        try:
+            loop.run_until_complete(cleanup_coro_factory())
+        except Exception as e:  # noqa: PIE786 - shutdown cleanup fallback
+            log.error(
+                "Failed to close {name} during shutdown: {e}}",
+                name=name,
+                e=e,
+                exc_info=True,
+            )
+
+    close_worker_loop()

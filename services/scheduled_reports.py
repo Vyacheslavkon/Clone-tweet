@@ -1,0 +1,166 @@
+import asyncio
+
+from aiogram.exceptions import (
+    TelegramAPIError,
+    TelegramForbiddenError,
+    TelegramRetryAfter,
+)
+from loguru import logger
+from sqlalchemy.exc import SQLAlchemyError
+
+from core.db_worker import get_isolated_session
+from financial_bot.handlers.utils import (
+    formatters,
+    get_month_boundaries,
+    get_month_name,
+    get_week_boundaries,
+)
+from financial_bot.highload_bot import get_shared_bot
+from financial_bot.repositories import (
+    blocked_users_bulk,
+    get_all_users,
+    get_plans_for_all_active_users,
+    get_reports_for_all_active_users,
+)
+from services.utils_pipelines import get_translator
+
+
+async def send_weekly_stats() -> None:
+    session = get_isolated_session()
+    try:
+        start_day, end_day = get_week_boundaries()
+        all_users = await get_all_users(session)
+        reports_by_user = await get_reports_for_all_active_users(
+            session, start_day, end_day
+        )
+    finally:
+        await session.close()
+
+    bot = get_shared_bot()
+    users_to_block: list[int] = []
+
+    for user in all_users:
+        _ = get_translator(user.language_code or "en")
+        data_week = reports_by_user.get(user.id, [])
+        text = formatters(data_week, _("week"), period_key="week", translator=_)
+
+        try:
+            await bot.send_message(chat_id=user.tg_id, text=text, parse_mode="HTML")
+
+        except TelegramRetryAfter as retry_err:
+            await asyncio.sleep(retry_err.retry_after)
+
+            try:
+                await bot.send_message(chat_id=user.tg_id, text=text, parse_mode="HTML")
+
+            except TelegramAPIError as e:
+                logger.error(
+                    "Retry failed for user_id={user_id}: {error}",
+                    user_id=user.tg_id,
+                    error=e,
+                )
+
+        except TelegramForbiddenError:
+            logger.warning(
+                "User {user_id} blocked the bot. Scheduling removal.",
+                user_id=user.tg_id,
+            )
+            users_to_block.append(user.tg_id)
+
+        except TelegramAPIError as e:
+            logger.error(
+                "Failed to send report to user_id={user_id}: {error}",
+                user_id=user.tg_id,
+                error=e,
+            )
+
+        await asyncio.sleep(0.05)
+
+    if users_to_block:
+        block_session = get_isolated_session()
+        try:
+            await blocked_users_bulk(block_session, users_to_block)
+            await block_session.commit()
+            logger.info(
+                "Successfully disabled {count} blocked users in batch.",
+                count=len(users_to_block),
+            )
+        except SQLAlchemyError as e:
+            await block_session.rollback()
+            logger.error("Failed to execute bulk block update: {error}", error=e)
+        finally:
+            await block_session.close()
+
+
+async def send_monthly_stats() -> None:
+    session = get_isolated_session()
+    try:
+        start_day, end_day, _month_num = get_month_boundaries()
+        all_users = await get_all_users(session)
+        reports_by_user = await get_reports_for_all_active_users(
+            session, start_day, end_day
+        )
+        plans_by_user = await get_plans_for_all_active_users(session)
+    finally:
+        await session.close()
+
+    bot = get_shared_bot()
+    users_to_block: list[int] = []
+
+    for user in all_users:
+        _ = get_translator(user.language_code or "en")
+        data_month = reports_by_user.get(user.id, [])
+        planned_data = plans_by_user.get(user.id)
+        period = get_month_name(_month_num, translator=_)
+        text = formatters(
+            data_month,
+            period,
+            period_key="month",
+            plan=planned_data,
+            translator=_,
+        )
+
+        try:
+            await bot.send_message(chat_id=user.tg_id, text=text, parse_mode="HTML")
+
+        except TelegramRetryAfter as retry_err:
+            await asyncio.sleep(retry_err.retry_after)
+            try:
+                await bot.send_message(chat_id=user.tg_id, text=text, parse_mode="HTML")
+            except TelegramAPIError as e:
+                logger.error(
+                    "Retry failed for user_id={user_id}: {error}",
+                    user_id=user.tg_id,
+                    error=e,
+                )
+
+        except TelegramForbiddenError:
+            logger.warning(
+                "User {user_id} blocked the bot. Scheduling removal.",
+                user_id=user.tg_id,
+            )
+            users_to_block.append(user.tg_id)
+
+        except TelegramAPIError as e:
+            logger.error(
+                "Failed to send report to user_id={user_id}: {error}",
+                user_id=user.tg_id,
+                error=e,
+            )
+
+        await asyncio.sleep(0.05)
+
+    if users_to_block:
+        block_session = get_isolated_session()
+        try:
+            await blocked_users_bulk(block_session, users_to_block)
+            await block_session.commit()
+            logger.info(
+                "Successfully disabled {count} blocked users in batch.",
+                count=len(users_to_block),
+            )
+        except SQLAlchemyError as e:
+            await block_session.rollback()
+            logger.error("Failed to execute bulk block update: {error}", error=e)
+        finally:
+            await block_session.close()

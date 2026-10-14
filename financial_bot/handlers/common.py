@@ -13,6 +13,7 @@ from aiogram.utils.i18n import gettext as _
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config import ADMIN_ID
 from financial_bot.filters import I18nTextFilter
 from financial_bot.keyboards.reply import get_main_menu
 from financial_bot.repositories import create_user, get_user_by_id
@@ -22,7 +23,7 @@ router = Router()
 
 
 @router.message(Command("start"))
-async def cmd_start(message: Message, session: AsyncSession):
+async def cmd_start(message: Message, session: AsyncSession) -> None:
 
     if not message.from_user:
         return
@@ -54,7 +55,9 @@ async def cmd_start(message: Message, session: AsyncSession):
 
 @router.message(I18nTextFilter("cancel"))
 @router.callback_query(F.data == "cancel")
-async def cancel_handler(event: Union[Message, CallbackQuery], state: FSMContext):
+async def cancel_handler(
+    event: Union[Message, CallbackQuery], state: FSMContext
+) -> None:
 
     await state.clear()
 
@@ -72,7 +75,7 @@ async def cancel_handler(event: Union[Message, CallbackQuery], state: FSMContext
 
 
 @router.errors()
-async def global_error_handler(event: ErrorEvent, admin_id: int):
+async def global_error_handler(event: ErrorEvent) -> bool:
 
     logger.exception("Global error caught")
 
@@ -89,11 +92,11 @@ async def global_error_handler(event: ErrorEvent, admin_id: int):
     error_text = str(event.exception)[:500]
 
     admin_msg = (
-        f"❌ {html.bold('Критическая ошибка!')}\n\n"
-        f"👤 {html.bold('От кого:')} {user_info}\n"
-        f"🛠 {html.bold('Ошибка:')} {html.code(type(event.exception).__name__)}\n"
-        f"📝 {html.bold('Детали:')} {html.code(error_text)}\n\n"
-        f"🔗 <a href='{user_link}'>Перейти к профилю пользователя</a>"
+        f"❌ {html.bold('Critical error!')}\n\n"
+        f"👤 {html.bold('From:')} {user_info}\n"
+        f"🛠 {html.bold('Error:')} {html.code(type(event.exception).__name__)}\n"
+        f"📝 {html.bold('Details:')} {html.code(error_text)}\n\n"
+        f"🔗 <a href='{user_link}'>Go to user profile</a>"
     )
 
     if isinstance(event.exception, TelegramForbiddenError):
@@ -106,16 +109,16 @@ async def global_error_handler(event: ErrorEvent, admin_id: int):
         ):
             user_id = user.id
 
-        logger.warning("Bot was blocked by user (ID: %s)", user_id)
+        logger.warning("Bot was blocked by user (ID: {user_id})", user_id=user_id)
         return True
 
     try:
         if event.update.bot is not None:
             await event.update.bot.send_message(
-                chat_id=admin_id, text=admin_msg, parse_mode="HTML"
+                chat_id=ADMIN_ID, text=admin_msg, parse_mode="HTML"
             )
     except TelegramBadRequest as e:
-        logger.error(_("HTML parsing or message length error: {error}", error=e))
+        logger.error("HTML parsing or message length error: {error}", error=e)
 
     except TelegramAPIError as e:
         logger.error(
@@ -134,4 +137,6 @@ async def global_error_handler(event: ErrorEvent, admin_id: int):
 
     except Exception as e:  # noqa
 
-        logger.error(_(f"Error while trying to reply to user: {e}"))
+        logger.error("Error while trying to reply to user: {e}", e=e)
+
+    return True

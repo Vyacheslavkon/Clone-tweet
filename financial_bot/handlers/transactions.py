@@ -1,3 +1,4 @@
+import uuid
 from typing import Union
 
 from aiogram import F, Router
@@ -5,21 +6,31 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
+from redis.exceptions import RedisError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config import REDIS_URL
 from financial_bot.filters import I18nTextFilter
-from financial_bot.keyboards.inline import get_category, get_description, get_type
+from financial_bot.keyboards.inline import (
+    get_category,
+    get_delete_keyboard,
+    get_description,
+    get_type,
+)
 from financial_bot.keyboards.reply import get_main_menu
 from financial_bot.repositories import add_transaction, get_user_by_id
 from financial_bot.schemas import AddTransaction
 from financial_bot.states.amount_states import AmountState
+from services.analysis_cache import FinancialCacheService
 
 router_tr = Router()
 
+redis_url = REDIS_URL
+
 
 @router_tr.callback_query(F.data == "back")
-async def go_back(callback: CallbackQuery, state: FSMContext):
+async def go_back(callback: CallbackQuery, state: FSMContext) -> None:
 
     if not callback.message or not isinstance(callback.message, Message):
         await callback.answer()
@@ -60,17 +71,18 @@ async def go_back(callback: CallbackQuery, state: FSMContext):
 
 
 @router_tr.message(I18nTextFilter("Enter amount"))
-async def new_amount(message: Message, state: FSMContext):
+async def new_amount(message: Message, state: FSMContext) -> None:
 
     await message.answer(_("Please enter the amount!"))
     await state.set_state(AmountState.waiting_for_amount)
 
 
 @router_tr.message(AmountState.waiting_for_amount)
-async def process_amount_input(message: Message, state: FSMContext):
+async def process_amount_input(message: Message, state: FSMContext) -> None:
 
     if not message.text:
-        return await message.answer(_("Please send a text message with a number!"))
+        await message.answer(_("Please send a text message with a number!"))
+        return
 
     try:
         amount = float(message.text.replace(",", "."))
@@ -81,11 +93,12 @@ async def process_amount_input(message: Message, state: FSMContext):
 
         await state.set_state(AmountState.waiting_for_type)
     except ValueError:
-        return await message.answer(_("Enter a numeric value!"))
+        await message.answer(_("Enter a numeric value!"))
+        return
 
 
 @router_tr.callback_query(F.data.startswith("type"), AmountState.waiting_for_type)
-async def type_amount(callback: CallbackQuery, state: FSMContext):
+async def type_amount(callback: CallbackQuery, state: FSMContext) -> None:
 
     if not callback.data or not isinstance(callback.message, Message):
         await callback.answer()
@@ -101,7 +114,7 @@ async def type_amount(callback: CallbackQuery, state: FSMContext):
 
 
 @router_tr.callback_query(F.data.startswith("cat"), AmountState.waiting_for_cat)
-async def category_amount(callback: CallbackQuery, state: FSMContext):
+async def category_amount(callback: CallbackQuery, state: FSMContext) -> None:
 
     if not callback.data or not isinstance(callback.message, Message):
         await callback.answer()
@@ -121,21 +134,72 @@ async def category_amount(callback: CallbackQuery, state: FSMContext):
     F.data == "skip_description", AmountState.waiting_for_description
 )
 async def end_with_callback(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession
-):
+    callback: CallbackQuery,
+    state: FSMContext,
+    session: AsyncSession,
+    cache_service: FinancialCacheService,
+) -> None:
+    user = await get_user_by_id(session, callback.from_user.id)
+
+    if not user:
+        await callback.answer(
+            _("User profile not found. Please type /start."), show_alert=True
+        )
+        return
 
     await state.update_data(description=None)
     await save_to_db_and_finish(callback, state, session, callback.from_user.id)
 
+    try:
+        await cache_service.invalidate_user_cache(user_id=user.id)
+        logger.info(
+            "Successfully invalidated cache for user: {user_id} via manual entry",
+            user_id=user.id,
+        )
+    except RedisError as redis_err:
+
+        logger.error(
+            "Non-critical error: Failed to clear Redis cache during manual entry for user {user_id}: {redis_err}",
+            user_id=user.id,
+            redis_err=redis_err,
+        )
+
 
 @router_tr.message(AmountState.waiting_for_description)
-async def end_with_message(message: Message, state: FSMContext, session: AsyncSession):
+async def end_with_message(
+    message: Message,
+    state: FSMContext,
+    session: AsyncSession,
+    cache_service: FinancialCacheService,
+) -> None:
 
     if not message.from_user:
         return
 
+    user = await get_user_by_id(session, message.from_user.id)
+
+    if not user:
+        logger.error(
+            "User with id {message} not found in database", message=message.from_user.id
+        )
+        return
+
     await state.update_data(description=message.text)
     await save_to_db_and_finish(message, state, session, message.from_user.id)
+
+    try:
+        await cache_service.invalidate_user_cache(user_id=user.id)
+        logger.info(
+            "Successfully invalidated cache for user: {user_id} via manual entry",
+            user_id=user.id,
+        )
+    except RedisError as redis_err:
+
+        logger.error(
+            "Non-critical error: Failed to clear Redis cache during manual entry for user {user_id}: {redis_err}",
+            user_id=user.id,
+            redis_err=redis_err,
+        )
 
 
 async def save_to_db_and_finish(
@@ -143,16 +207,18 @@ async def save_to_db_and_finish(
     state: FSMContext,
     session: AsyncSession,
     tg_id: int,
-):
+) -> None:
 
     data = await state.get_data()
     user = await get_user_by_id(session, tg_id)
 
     if not user:
-        logger.error("User with id {} not found in database", tg_id)
+        logger.error("User with id {tg_id} not found in database", tg_id=tg_id)
         return
 
     data["user_id"] = user.id
+    batch_id = str(uuid.uuid4())
+    data["batch_id"] = batch_id
 
     try:
         transaction = AddTransaction(**data)
@@ -160,14 +226,24 @@ async def save_to_db_and_finish(
         await add_transaction(session, transaction.model_dump())
 
         text = _("Data saved successfully!")
+        keyboard = get_delete_keyboard(
+            batch_id=batch_id, button_text=_("❌ cancel operation")
+        )
+
         if isinstance(event, CallbackQuery):
             if isinstance(event.message, Message):
-                await event.message.answer(text, reply_markup=get_main_menu())
+                await event.message.answer(text, reply_markup=keyboard)
+                await event.message.answer(
+                    _("You can continue working:"), reply_markup=get_main_menu()
+                )
             await event.answer()
         else:
-            await event.answer(text, reply_markup=get_main_menu())
+            await event.answer(text, reply_markup=keyboard)
+            await event.answer(
+                _("You can continue working:"), reply_markup=get_main_menu()
+            )
 
         await state.clear()
     except SQLAlchemyError as e:
 
-        logger.error("Error saving: {}", e)
+        logger.error("Error saving: {e}", e=e)

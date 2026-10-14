@@ -37,7 +37,7 @@ from application.crud.users import (
 )
 from application.models import Media, User
 from core.config import MEDIA_DIR
-from core.database import get_db
+from core.database import get_bot_db
 
 schemas = application.schemas
 
@@ -45,7 +45,7 @@ router = APIRouter(prefix="/api", tags=["All"])
 
 
 async def get_current_user(
-    api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_db)
+    api_key: Annotated[str, Header()], session: AsyncSession = Depends(get_bot_db)
 ) -> User:
 
     user = await get_user_by_api_key(session, api_key)
@@ -61,7 +61,7 @@ async def get_current_user(
 @router.get("/users/me", response_model=schemas.UserInfo)
 async def auth_user(
     current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_db),
+    session: AsyncSession = Depends(get_bot_db),
 ):
 
     user = await get_user(session, current_user)
@@ -72,7 +72,7 @@ async def auth_user(
 @router.post("/tweets", response_model=schemas.AddTweet)
 async def add_tweet(
     tweet: schemas.AddTweet,
-    session: AsyncSession = Depends(get_db),
+    session: AsyncSession = Depends(get_bot_db),
     current_user: User = Depends(get_current_user),
 ) -> JSONResponse:
     logger.info("Request completed: api/post/tweet")
@@ -86,7 +86,7 @@ async def add_tweet(
 
 
 @router.post("/medias", response_model=schemas.UploadMedia)
-async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)):
+async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_bot_db)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename is missing")
 
@@ -110,7 +110,7 @@ async def upload_media(file: UploadFile, session: AsyncSession = Depends(get_db)
 
 @router.post("/user", response_model=schemas.AddUser)
 async def add_user(
-    user: schemas.AddUser, session: AsyncSession = Depends(get_db)
+    user: schemas.AddUser, session: AsyncSession = Depends(get_bot_db)
 ) -> User:
 
     new_user = User(**user.model_dump())
@@ -123,7 +123,7 @@ async def add_user(
 @router.delete("/tweets/{tweet_id}", response_model=schemas.ResultTrue)
 async def delete_tweet(
     tweet_id: int,
-    session: AsyncSession = Depends(get_db),
+    session: AsyncSession = Depends(get_bot_db),
     current_user: User = Depends(get_current_user),
 ):
 
@@ -151,7 +151,7 @@ async def delete_tweet(
 @router.get("/tweets", response_model=schemas.GetTweets)
 async def get_tweets(
     current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_db),
+    session: AsyncSession = Depends(get_bot_db),
 ):
 
     tweets = await get_tweets_all(session, current_user)
@@ -164,7 +164,7 @@ async def get_tweets(
 async def get_profile_with_id(
     id: Annotated[int, Path()],
     current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_db),
+    session: AsyncSession = Depends(get_bot_db),
 ):
 
     user = await get_profile(session, id)
@@ -187,7 +187,7 @@ async def get_profile_with_id(
 @router.post("/tweets/{id}/likes", response_model=schemas.ResultTrue)
 async def post_like(
     id: Annotated[int, Path()],
-    session: AsyncSession = Depends(get_db),
+    session: AsyncSession = Depends(get_bot_db),
     current_user: User = Depends(get_current_user),
 ):
     tweet = await get_tweet_by_id(session, id)
@@ -211,7 +211,7 @@ async def post_like(
 async def delete_like(
     id: Annotated[int, Path()],
     current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_db),
+    session: AsyncSession = Depends(get_bot_db),
 ):
     user_name = current_user.name
 
@@ -236,7 +236,7 @@ async def delete_like(
 @router.post("/users/{id}/follow", response_model=schemas.ResultTrue)
 async def following(
     id: Annotated[int, Path()],
-    session: AsyncSession = Depends(get_db),
+    session: AsyncSession = Depends(get_bot_db),
     current_user: User = Depends(get_current_user),
 ):
 
@@ -260,7 +260,7 @@ async def following(
 @router.delete("/users/{id}/follow", response_model=schemas.ResultTrue)
 async def delete_follow(
     id: Annotated[int, Path()],
-    session: AsyncSession = Depends(get_db),
+    session: AsyncSession = Depends(get_bot_db),
     current_user: User = Depends(get_current_user),
 ):
 

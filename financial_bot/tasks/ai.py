@@ -1,39 +1,46 @@
-import asyncio
+import os
+from typing import Any, Dict
 
 import openai
 from dotenv import load_dotenv
 from loguru import logger
 
 from services.celery_app import app
-from services.pipelines import async_process_receipt
+from services.pipelines import (
+    async_process_receipt,
+    notify_user_analysis_final_failure,
+    notify_user_final_failure,
+    process_analysis_financial,
+)
+from services.worker_loop import run_in_worker_loop
 
 load_dotenv()
 
 celery_app = app
 
 
-@celery_app.task(name="financial_bot.ai.process_receipt_task", rate_limit="2/s")
-def process_receipt_task(
-    chat_id: int, db_user_id: int, locale: str, image_bytes: bytes
-):
-
-    asyncio.run(async_process_receipt(chat_id, db_user_id, locale, image_bytes))
-
-
-# @celery_app.task(name="financial_bot.ai.process_expense_task", rate_limit="2/s")
-# def process_expense_task(chat_id: int, db_user_id: int, locale: str, voice_bytes: bytes):
-#
-#     asyncio.run(async_process_receipt(chat_id, db_user_id, locale, voice_bytes))
-
-
 @celery_app.task(name="financial_bot.ai.process_expense_task", bind=True, max_retries=3)
 def process_expense_task(
-    self, chat_id: int, db_user_id: int, locale: str, voice_bytes: bytes
-):
+    self: Any,
+    chat_id: int,
+    db_user_id: int,
+    locale: str,
+    voice_file_path: str,
+    currency: str,
+    status_message_id: int,
+) -> Dict[str, str] | None:
+    should_cleanup = True
 
     try:
-        result = asyncio.run(
-            async_process_receipt(chat_id, db_user_id, locale, voice_bytes)
+        result = run_in_worker_loop(
+            async_process_receipt(
+                chat_id,
+                db_user_id,
+                locale,
+                voice_file_path,
+                currency,
+                status_message_id,
+            )
         )
 
         logger.info(
@@ -46,18 +53,86 @@ def process_expense_task(
 
         current_retry = self.request.retries + 1
 
-        logger.warning(
-            "OpenAI API failure. Retry attempt {retry}/3. Error: {error_msg}",
-            retry=current_retry,
-            error_msg=str(exc),
+        if self.request.retries < self.max_retries:
+            should_cleanup = False
+            logger.warning(
+                "OpenAI API failure. Retry attempt {retry}/{max}. Error: {error_msg}",
+                retry=current_retry,
+                max=self.max_retries,
+                error_msg=str(exc),
+            )
+
+            countdown = 2**self.request.retries
+            raise self.retry(exc=exc, countdown=countdown)
+
+        logger.error(
+            "Max retries exceeded for user_id={user_id}, chat_id={chat_id}. Giving up.",
+            user_id=db_user_id,
+            chat_id=chat_id,
         )
+        run_in_worker_loop(
+            notify_user_final_failure(chat_id, status_message_id, locale, db_user_id)
+        )
+        raise
 
-        # Рассчитываем экспоненциальную задержку: 2с, 4с, 8с...
-        countdown = 2**self.request.retries
+    except Exception:
+        logger.exception(
+            "Critical unhandled error in the task for user_id={user_id}",
+            user_id=db_user_id,
+        )
+        raise
 
-        # Передаем self.retry, он сам корректно перезапустит таску в Celery
-        raise self.retry(exc=exc, countdown=countdown)
+    finally:
+        if should_cleanup and voice_file_path is not None:
+            try:
+                if os.path.exists(voice_file_path):
+                    os.remove(voice_file_path)
+            except OSError as cleanup_err:
+                logger.warning(
+                    "Failed to remove temp audio file {path}: {error}",
+                    path=voice_file_path,
+                    error=cleanup_err,
+                )
 
-    except Exception as e:
-        logger.error("Critical unhandled error in the task: {error}", error=e)
-        raise e
+
+@celery_app.task(
+    name="financial_bot.ai.process_analysis_expense_task", bind=True, max_retries=3
+)
+def process_analysis_expense_task(
+    self, tg_id: int, chat_id: int, days: int, locale: str
+) -> Dict[str, str] | None:
+
+    try:
+        result = run_in_worker_loop(process_analysis_financial(tg_id, chat_id, days))
+
+        logger.info(
+            "Successfully finished process_expense_analysis_task for user_id={user_id}",
+            user_id=tg_id,
+        )
+        return result
+
+    except openai.OpenAIError as exc:
+        if self.request.retries < self.max_retries:
+            current_retry = self.request.retries + 1
+            logger.warning(
+                "OpenAI API failure. Retry attempt {retry}/{max}. Error: {error_msg}",
+                retry=current_retry,
+                max=self.max_retries,
+                error_msg=str(exc),
+            )
+            countdown = 2**self.request.retries
+            raise self.retry(exc=exc, countdown=countdown)
+
+        logger.error(
+            "Max retries exceeded for user_id={user_id}, chat_id={chat_id}. Giving up.",
+            user_id=tg_id,
+            chat_id=chat_id,
+        )
+        run_in_worker_loop(notify_user_analysis_final_failure(chat_id, tg_id, locale))
+        raise
+
+    except Exception:
+        logger.exception(
+            "Critical unhandled error in the task for user_id={user_id}", user_id=tg_id
+        )
+        raise

@@ -11,4 +11,4 @@ class UserNotFoundError(AppError):
 
 
 class DataValidationError(AppError):
-    """Вызывается при логических ошибках данных (например, бюджет < 0)"""
+    """Called in the event of logical data errors (e.g., budget < 0)."""

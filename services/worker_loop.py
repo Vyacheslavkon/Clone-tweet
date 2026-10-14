@@ -1,0 +1,54 @@
+import asyncio
+import os
+
+from loguru import logger
+
+_worker_loop: asyncio.AbstractEventLoop | None = None
+
+
+def get_worker_loop() -> asyncio.AbstractEventLoop:
+    global _worker_loop
+    if _worker_loop is None or _worker_loop.is_closed():
+        _worker_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(_worker_loop)
+        logger.info(
+            "New worker event loop created: pid={pid}, loop_id={loop_id}",
+            pid=os.getpid(),
+            loop_id=id(_worker_loop),
+        )
+    return _worker_loop
+
+
+def run_in_worker_loop(coro):
+    loop = get_worker_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        return loop.run_until_complete(coro)
+    finally:
+        _cleanup_pending_tasks(loop)
+
+
+def _cleanup_pending_tasks(loop: asyncio.AbstractEventLoop) -> None:
+
+    pending = {t for t in asyncio.all_tasks(loop=loop) if not t.done()}
+    if not pending:
+        return
+
+    logger.warning(
+        "Found {count} unfinished task(s) after run, cancelling.", count=len(pending)
+    )
+    for task in pending:
+        task.cancel()
+    loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+
+
+def close_worker_loop() -> None:
+    global _worker_loop
+    if _worker_loop is None or _worker_loop.is_closed():
+        return
+
+    _cleanup_pending_tasks(_worker_loop)
+    _worker_loop.close()
+    _worker_loop = None
+
+    logger.info("Worker event loop closed: pid={pid}", pid=os.getpid())

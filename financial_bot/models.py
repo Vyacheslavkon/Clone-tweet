@@ -5,6 +5,7 @@ from typing import List, Optional
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    CheckConstraint,
     DateTime,
     ForeignKey,
     Integer,
@@ -13,10 +14,11 @@ from sqlalchemy import (
     String,
     Text,
     func,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.database import Base
+from core.db_base import Base
 
 
 class UserBot(Base):
@@ -25,17 +27,26 @@ class UserBot(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     tg_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
-    username: Mapped[str | None] = mapped_column(String, nullable=True)
+    username: Mapped[str | None] = mapped_column(String(64), nullable=True)
     first_name: Mapped[str] = mapped_column(String(50))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    language_code: Mapped[str] = mapped_column(String(10))
-    subscription_type: Mapped[str] = mapped_column(default="free")  # free, pro
-    sub_expires_at: Mapped[datetime | None] = mapped_column(DateTime)
-    currency: Mapped[str] = mapped_column(default="RUB")
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default=text("true"), nullable=False
+    )
+    language_code: Mapped[str] = mapped_column(
+        String(10), default="en", server_default="en", nullable=False
+    )
+    timezone: Mapped[str] = mapped_column(default="UTC", server_default="UTC")
+    subscription_type: Mapped[str] = mapped_column(
+        default="free", server_default="free", nullable=False
+    )
+    sub_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    currency: Mapped[str] = mapped_column(
+        String(3), default="USD", server_default="USD", nullable=False
+    )
     monthly_budget: Mapped[Decimal | None] = mapped_column(
         Numeric(precision=12, scale=2), nullable=True
-    )  # limit expense
+    )
     budget_remind_percent: Mapped[int] = mapped_column(
         SmallInteger, default=80, server_default="80"
     )
@@ -46,19 +57,19 @@ class UserBot(Base):
             scale=2,
         ),
         nullable=True,
-    )  # amount of savings
+    )
 
     last_payment_id: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    ocr_requests_count: Mapped[int] = mapped_column(
-        Integer, default=0, server_default="0"
-    )  # count checks
-
     ai_requests_count: Mapped[int] = mapped_column(
-        Integer, default=0, server_default="0"
+        Integer, default=0, server_default="0", nullable=False
     )
 
     last_request_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    transactions = relationship(
+        "Transactions", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Transactions(Base):
@@ -67,13 +78,12 @@ class Transactions(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users_bot.id", ondelete="CASCADE"), index=True
+        ForeignKey("users_bot.id", ondelete="CASCADE"), index=True, nullable=False
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     type: Mapped[str] = mapped_column(String(10))
     category: Mapped[str] = mapped_column(String(50), index=True)
     description: Mapped[str | None] = mapped_column(String(255))
-    receipt_photo_url: Mapped[str | None] = mapped_column(Text)
     text_check: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -87,6 +97,12 @@ class Transactions(Base):
     )
     batch_id: Mapped[str] = mapped_column(String(36), index=True, nullable=True)
 
+    user = relationship("UserBot", back_populates="transactions")
+
+    __table_args__ = (
+        CheckConstraint("amount > 0", name="ck_transactions_amount_positive"),
+    )
+
 
 class TransactionItems(Base):
 
@@ -98,8 +114,10 @@ class TransactionItems(Base):
     )
     name: Mapped[str] = mapped_column(String(150))
     price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
-    category: Mapped[Optional[str]] = mapped_column(
-        String(50)
-    )  # Категория конкретного товара от ИИ
+    category: Mapped[Optional[str]] = mapped_column(String(50))
 
     transaction: Mapped["Transactions"] = relationship(back_populates="items")
+
+    __table_args__ = (
+        CheckConstraint("price >= 0", name="ck_transaction_items_price_positive"),
+    )

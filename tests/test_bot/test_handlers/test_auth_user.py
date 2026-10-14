@@ -71,7 +71,8 @@ async def test_cmd_start_new_user(
     keyboard_check(main_menu, mock_bot, test_i18n)
 
 
-async def test_global_error_handler_with_message(mock_bot, test_user):
+async def test_global_error_handler_with_message(mock_bot, test_user, monkeypatch):
+    monkeypatch.setattr("financial_bot.handlers.common.ADMIN_ID", admin_id)
 
     with patch(
         "financial_bot.handlers.common._", side_effect=lambda text, **kwargs: text
@@ -81,7 +82,7 @@ async def test_global_error_handler_with_message(mock_bot, test_user):
         mock_update.message = mock_message
         mock_update.callback_query = None
         mock_message.answer = AsyncMock()
-        mock_exception = ValueError("Тестовая ошибка <with_html_unsafe_tags>")
+        mock_exception = ValueError("Test error <with_html_unsafe_tags>")
 
         mock_event = MagicMock()
         mock_event.exception = mock_exception
@@ -96,15 +97,13 @@ async def test_global_error_handler_with_message(mock_bot, test_user):
         if mock_event.update.message:
             mock_event.update.message.bot = mock_bot
 
-        await global_error_handler(mock_event, admin_id)
+        await global_error_handler(mock_event)
 
         mock_bot.send_message.assert_called_once()
         call_kwargs = mock_bot.send_message.call_args.kwargs
 
-        assert (
-            call_kwargs["chat_id"] == admin_id
-        )  # Убедитесь, что admin_id доступен в тесте
-        assert "Критическая ошибка!" in call_kwargs["text"]
+        assert call_kwargs["chat_id"] == admin_id
+        assert "Critical error!" in call_kwargs["text"]
         assert "Ivan Ivanov" in call_kwargs["text"]
         assert "12345" in call_kwargs["text"]
 

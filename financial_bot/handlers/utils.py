@@ -1,10 +1,13 @@
 import calendar
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from aiogram.utils.i18n import get_i18n
 from aiogram.utils.i18n import gettext as _
+from aiogram.utils.i18n import gettext as global_gettext
 
+from financial_bot.general_utils import format_amount
 from financial_bot.schemas import Plan
 
 
@@ -77,7 +80,15 @@ def fmt_limit_expense(expense: Decimal, plan: Plan):
     return limit_expense, balance_limit_persent
 
 
-def formatters(data: list, period_name: str, plan: Plan | None = None) -> str:
+def formatters(
+    data: list,
+    period_name: str,
+    period_key: str,
+    plan: Plan | None = None,
+    translator=None,
+) -> str:
+
+    _ = translator or global_gettext
 
     if not data:
         report_text = _("There is no data for {period} 🤷‍♂️").format(
@@ -101,7 +112,7 @@ def formatters(data: list, period_name: str, plan: Plan | None = None) -> str:
             else:
                 translated_category = _(row.category.capitalize())
                 expense_total += row.total
-                expense_details += _("  • {category}: {formated_amount}\n").format(
+                expense_details += "  • {category}: {formated_amount}\n".format(
                     category=translated_category, formated_amount=formated_amount
                 )
 
@@ -111,7 +122,7 @@ def formatters(data: list, period_name: str, plan: Plan | None = None) -> str:
         report_text = _(
             "<b>Report for {period}:</b>\n\n"
             "💰 <b>Incomes: {total_inc_str}</b>\n{income_details}"
-            "\n"  # check attention
+            "\n"
             "💸 <b>Expense: {total_exp_str}</b>\n{expense_details}"
         ).format(
             period=period_name,
@@ -121,7 +132,7 @@ def formatters(data: list, period_name: str, plan: Plan | None = None) -> str:
             expense_details=expense_details,
         )
 
-        if period_name != "day" and plan and period_name != "week":
+        if period_key == "month" and plan:
 
             def fmt(val):
                 return f"{val:,.2f}".replace(",", " ")
@@ -161,7 +172,9 @@ def format_multi_report(reports_data: list[dict]) -> str:
 
     parts = []
     for el in reports_data:
-        part = formatters(el["data"], el["period_name"])  # el.get("plan")
+        part = formatters(
+            el["data"], el["period_name"], period_key=el.get("period_key", "week")
+        )
         parts.append(part)
 
     return "\n\n" + "───────────────────\n".join(parts)
@@ -208,8 +221,10 @@ def get_month_boundaries():
     return start_month, end_month, current_month
 
 
-def get_month_name(number: int) -> str:
-    month_rus = [
+def get_month_name(number: int, translator=None) -> str:
+    _ = translator or global_gettext
+
+    month_names = [
         "",
         _("January"),
         _("February"),
@@ -225,7 +240,7 @@ def get_month_name(number: int) -> str:
         _("December"),
     ]
 
-    return month_rus[number]
+    return month_names[number]
 
 
 def _safe_gettext(text: str) -> str:
@@ -233,3 +248,62 @@ def _safe_gettext(text: str) -> str:
         return get_i18n().gettext(text)
     except LookupError:
         return text
+
+
+CATEGORY_EMOJI = {
+    "food": "🍔",
+    "transport": "🚗",
+    "health": "💊",
+    "entertainment": "🎉",
+    "home": "🏠",
+    "other": "📦",
+}
+
+
+def get_category_display(category: str, _) -> str:
+    emoji = CATEGORY_EMOJI.get(category, "📦")
+    return f"{emoji} {_(category.capitalize())}"
+
+
+def _load_zone(tz_value: str) -> ZoneInfo | None:
+
+    try:
+        return ZoneInfo(tz_value)
+    except (ZoneInfoNotFoundError, ValueError, OSError):
+
+        return None
+
+
+def to_local_time(dt_utc: datetime, user_timezone: str = "UTC") -> datetime:
+
+    tz = _load_zone(user_timezone)
+    return dt_utc.astimezone(tz) if tz else dt_utc
+
+
+def format_transaction_card(
+    tx: dict, _, currency: str, user_timezone: str = "UTC"
+) -> str:
+    sign = "+" if tx["type"] == "income" else "-"
+    created_at = datetime.fromisoformat(tx["created_at"])
+    local_time = to_local_time(created_at, user_timezone)
+    category_display = get_category_display(tx["category"], _)
+
+    lines = [
+        f"<b>{category_display}</b>",
+        f"{sign}{format_amount(tx['amount'], currency)}",
+        f"🕐 {local_time:%H:%M}",
+    ]
+
+    if tx.get("description"):
+        lines.append(f"📝 {tx['description']}")
+
+    if tx.get("items"):
+        items_text = ", ".join(item["name"] for item in tx["items"])
+        lines.append(f"🛒 {items_text}")
+
+    return "\n".join(lines)
+
+
+def is_valid_timezone(tz_value: str) -> bool:
+
+    return _load_zone(tz_value) is not None

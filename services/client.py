@@ -1,5 +1,5 @@
 import io
-import os
+import json
 from typing import Type, TypeVar
 
 from dotenv import load_dotenv
@@ -7,112 +7,68 @@ from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from services.prompts import get_voice_message
+from core.config import PROXI_API_KEY, PROXI_BASE_URL
+from services.exceptions import TruncatedResponseError
+from services.prompts import get_analysis_financial, get_voice_message, language_name
 
 load_dotenv()
 
-proxy_api_key = os.getenv("OPENAI_API_KEY")
-if not proxy_api_key:
-    raise ValueError(
-        "Critical error: OPENAI_API_KEY must be set in the environment variables."
-    )
 
-proxy_base_url = os.getenv("OPENAI_BASE_URL")
-if not proxy_base_url:
-    raise ValueError(
-        "Critical error: OPENAI_BASE_URL must be set in the environment variables."
-    )
+T = TypeVar("T", bound=BaseModel)
 
 
 class AIService:
-    T = TypeVar("T", bound=BaseModel)  # test
 
     def __init__(self, api_key: str, base_url: str, model: str = "gpt-4o-mini"):
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url, timeout=60.0)
         self.model = model
 
-    async def analyze_image(
-        self,
-        image_url: str,
-        # response_schema: Type[BaseModel],
-        response_schema: Type[T],
-        system_prompt: str,
-        user_prompt: str = "Разбери этот чек по позициям согласно схеме.",
+    async def process_receipt(
+        self, response_schema: Type[T], text: str, locale: str
     ) -> T:
 
-        completion = await self.client.beta.chat.completions.parse(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                # Картинку и задачу отдаем в пользовательский промт
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": user_prompt},
-                        {"type": "image_url", "image_url": {"url": image_url}},
-                    ],
-                },
-            ],
-            response_format=response_schema,
-            temperature=0.0,
-        )
-        parsed_result = completion.choices[0].message.parsed
-        if parsed_result is None:
-            raise ValueError("Failed to parse response")
-
-        return parsed_result
-
-    """for check"""
-    # async def process_receipt(
-    #         self,
-    #         response_schema: Type[BaseModel],
-    #         text: dict,
-    #         locale: str
-    # ):
-    #
-    #     completion = await self.client.beta.chat.completions.parse(
-    #         model=self.model,
-    #         messages=[
-    #             {
-    #                 "role": "system",
-    #                 "content": get_system_prompt(locale)
-    #             },
-    #             {
-    #                 "role": "user",
-    #                 "content": text
-    #             }
-    #         ],
-    #         response_format= response_schema,
-    #         temperature=0.0
-    #     )
-    #
-    #     # Получаем валидированный Pydantic-объект
-    #     return completion.choices[0].message.parsed
-
-    async def process_receipt(
-        self, response_schema: Type[BaseModel], text: str, locale: str
-    ):
-
-        completion = await self.client.beta.chat.completions.parse(
+        completion = await self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": get_voice_message(locale)},
+                {
+                    "role": "system",
+                    "content": f"Return JSON strictly matching this schema: {json.dumps(response_schema.model_json_schema())}",
+                },
                 {"role": "user", "content": text},
             ],
-            response_format=response_schema,
-            max_completion_tokens=1024,
+            response_format={"type": "json_object"},
+            max_completion_tokens=800,
             temperature=0.0,
         )
 
-        # Получаем валидированный Pydantic-объект
-        return completion.choices[0].message.parsed
+        choice = completion.choices[0]
+
+        if choice.finish_reason == "length":
+            logger.warning(
+                "OpenAI response truncated due to max_completion_tokens limit. "
+                "Consider increasing the limit or shortening input."
+            )
+            raise TruncatedResponseError(
+                "Response was truncated because it exceeded the token limit"
+            )
+
+        raw_json = completion.choices[0].message.content
+
+        if raw_json is None:
+            logger.error(
+                "OpenAI API returned an empty message content (None) instead of JSON."
+            )
+            raise RuntimeError("OpenAI API response content is missing or empty.")
+
+        return response_schema.model_validate_json(raw_json)
 
     async def process_voice_message(
         self,
         voice_bytes: bytes,
         locale: str,
-        response_schema: Type[BaseModel],
-    ):
+        response_schema: Type[T],
+    ) -> T:
 
         audio_file = io.BytesIO(voice_bytes)
         audio_file.name = "voice.ogg"
@@ -128,5 +84,102 @@ class AIService:
             text=user_text, response_schema=response_schema, locale=locale
         )
 
+    @staticmethod
+    def build_user_context(summary_data: dict, locale: str) -> str:
+        config = summary_data.get("user_config", {})
+        currency = config.get("currency") or "USD"  # код валюты, не "руб."
 
-ai_service = AIService(api_key=proxy_api_key, base_url=proxy_base_url)
+        categories_block = "\n".join(
+            f"- {c['category']}: {c['amount']} {currency} ({c['count']} transactions)"
+            for c in summary_data.get("categories", [])
+        )
+        items_block = "\n".join(
+            f"- Date: {i['date']} | {i['name']} | Amount: {i['total_amount']} {currency} "
+            f"| DB category: {i['category']}"
+            for i in summary_data.get("top_items", [])
+        )
+
+        config_lines = [f"- User currency: {currency}"]
+        if config.get("monthly_budget"):
+            config_lines.append(
+                f"- Monthly spending limit: {config['monthly_budget']} {currency}"
+            )
+            config_lines.append(
+                f"- Budget reminder threshold: {config['budget_remind_percent']}%"
+            )
+        if config.get("savings_goal"):
+            config_lines.append(
+                f"- Monthly savings goal: {config['savings_goal']} {currency}"
+            )
+
+        return f"""
+    Analysis period: {summary_data['days_period']} days.
+    Total income: {summary_data.get('total_income', 0.0)} {currency}.
+    Total expenses: {summary_data['total_amount']} {currency} (use this number as final and unchanged in the total field).
+    Net balance (income - expenses): {summary_data.get('net_balance', 0.0)} {currency}.
+    Number of expense transactions: {summary_data['total_count']}.
+
+    === USER FINANCIAL SETTINGS AND GOALS ===
+    {chr(10).join(config_lines)}
+
+    === EXPENSES BY DB CATEGORY ===
+    {categories_block}
+
+    === CHRONOLOGICAL PURCHASES FROM RECEIPTS (GROUP SEMANTICALLY YOURSELF) ===
+    {items_block}
+
+    Use only the figures above. Do not round them or recompute totals.
+    Only the HTML tags <b>, <i>, <code> are allowed, without attributes.
+
+    RESPONSE LANGUAGE: write every free-text field strictly in {language_name(locale)}, even though
+    item names above may be in another language. Translate common item names into
+    {language_name(locale)}; keep brand names unchanged.
+    """
+
+    async def analysis_financial(
+        self,
+        response_schema: Type[T],
+        summary_data: dict,
+        days: int,
+        actual_days: int,
+        locale: str,
+    ) -> T:
+
+        if not summary_data:
+            raise ValueError("analysis_financial requires non-empty summary_data")
+
+        user_context = self.build_user_context(summary_data, locale)
+
+        completion = await self.client.beta.chat.completions.parse(
+            model=self.model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": get_analysis_financial(days, actual_days, locale),
+                },
+                {"role": "user", "content": user_context},
+            ],
+            response_format=response_schema,
+            temperature=0.0,
+        )
+
+        message = completion.choices[0].message
+
+        if message.refusal:
+            logger.error(
+                "OpenAI refused to generate structured financial analysis: {message_refusal}",
+                message_refusal=message.refusal,
+            )
+            raise RuntimeError(f"OpenAI refused response: {message.refusal}")
+
+        parsed_result = message.parsed
+        if parsed_result is None:
+            logger.error(
+                "OpenAI failed to parse response into the requested Pydantic schema."
+            )
+            raise RuntimeError("OpenAI failed to return parsed structured data.")
+
+        return parsed_result
+
+
+ai_service = AIService(api_key=PROXI_API_KEY, base_url=PROXI_BASE_URL)

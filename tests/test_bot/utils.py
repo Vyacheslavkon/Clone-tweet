@@ -3,7 +3,7 @@ from datetime import datetime, time, timezone
 from financial_bot.handlers.utils import get_week_boundaries
 
 
-def called_bot(mock_bot, text: str):
+def called_bot_old(mock_bot, text: str):
 
     assert any(
         any(m in str(call) for m in ["SendMessage", "EditMessageText"])
@@ -12,10 +12,52 @@ def called_bot(mock_bot, text: str):
     ), f"Text '{text}'not found in bot responses."
 
 
-def called_kb(mock_bot, text: str):
+def called_kb_old(mock_bot, text: str):
     assert any(
         text in str(call) for call in mock_bot.mock_calls
     ), f"Button with text '{text}' not found in bot responses."
+
+
+def called_bot(
+    mock_bot, text: str, methods: tuple[str, ...] = ("SendMessage", "EditMessageText")
+):
+
+    found = any(
+        call.args
+        and call.args[0].__class__.__name__ in methods
+        and getattr(call.args[0], "text", None) == text
+        for call in mock_bot.call_args_list
+    )
+
+    if not found:
+        raise AssertionError(
+            f"Text '{text}' not found among {methods} calls. Current history: {mock_bot.call_args_list}"
+        )
+
+
+def called_kb(
+    mock_bot,
+    button_text: str,
+    methods: tuple[str, ...] = ("SendMessage", "EditMessageText"),
+):
+
+    for call in mock_bot.call_args_list:
+        if not call.args or call.args[0].__class__.__name__ not in methods:
+            continue
+        reply_markup = getattr(call.args[0], "reply_markup", None)
+        if reply_markup is None:
+            continue
+        for row in getattr(reply_markup, "inline_keyboard", []) or getattr(
+            reply_markup, "keyboard", []
+        ):
+            for button in row:
+                btn_text = getattr(button, "text", None)
+                if btn_text == button_text:
+                    return
+
+    raise AssertionError(
+        f"Button with text '{button_text}' not found among {methods} calls."
+    )
 
 
 def keyboard_check(kb, bot, i18n):
@@ -58,7 +100,7 @@ def keyboards() -> tuple:
 
 def kb_reports():
 
-    return ["day", "month", "week", "cancel"]
+    return ["day", "month", "week", "Cancel"]
 
 
 def kb_history():

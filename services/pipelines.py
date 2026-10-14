@@ -1,305 +1,220 @@
-import gettext
 import os
 import uuid
-from pathlib import Path
+from typing import Dict, Type
 
 import openai
-from aiogram import Bot
-from aiogram.client.default import DefaultBotProperties
-from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
+from aiogram.exceptions import (
+    TelegramAPIError,
+    TelegramBadRequest,
+    TelegramForbiddenError,
+)
 from loguru import logger
+from pydantic import BaseModel
+from redis import RedisError
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from financial_bot.keyboards.inline import get_delete_keyboard
-from financial_bot.repositories import save_receipt_to_db
+from core.db_worker import get_isolated_session
+from financial_bot.highload_bot import get_shared_bot
+from financial_bot.keyboards.inline import get_delete_keyboard, get_detailed_report
+from financial_bot.repositories import (
+    get_user_by_id,
+    get_user_financial_summary,
+    save_receipt_to_db,
+)
+from services.analysis_cache import get_worker_cache_service
 from services.client import ai_service
-from services.schemas import ReceiptListAnalysisSchema
+from services.exceptions import TruncatedResponseError
+from services.schemas import (
+    MonthlyAnalysisResponse,
+    ReceiptListAnalysisSchema,
+    WeeklyAnalysisResponse,
+)
 from services.utils_pipelines import (
-    get_isolated_session,
+    _reply,
+    get_translator,
     merge_transactions_by_category,
+    render_analysis_report,
+    render_receipt_report,
 )
 
-# for check.
 
-# ocr = RapidOCR()
-# det_model_path="/application/ocr_models/ch_PP-OCRv4_det_infer.onnx",
-#
-# # Указываем модель распознавания текста (latin)
-# rec_model_path="/application/ocr_models/ch_PP-OCRv4_rec_infer.onnx",
-#
-# # Путь к словарю символов
-# rec_keys_path="/application/ocr_models/multilingual_dict.txt",
+async def process_analysis_financial(
+    tg_id: int,
+    chat_id: int,
+    days: int,
+) -> None:
+    bot = get_shared_bot()
+    session = get_isolated_session()
 
+    try:
+        user = await get_user_by_id(session, tg_id)
+        if not user or user.id is None:
+            logger.error("User tg_id={tg_id} not found", tg_id=tg_id)
+            return
+        locale = user.language_code or "en"
+        data = await get_user_financial_summary(session, user.id, days, user)
+    finally:
+        await session.close()
 
-# logging.getLogger("ppocr").setLevel(logging.WARNING)
-#
-# async def async_process_receipt(chat_id: int, db_user_id: int,
-#                                 locale: str, image_bytes: bytes):
-#
-#     locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
-#
-#     try:
-#         lang = gettext.translation(
-#             domain='messages',
-#             localedir=str(locales_dir),  # gettext требует строку, а не объект Path
-#             languages=[locale],
-#             fallback=True
-#         )
-#     except Exception as e:
-#         logger.error(f"Не удалось загрузить локализацию из {locales_dir}: {e}")
-#         lang = gettext.NullTranslations()  # Фоллбек на оригинальный текст, если файлы не найдены
-#
-#     _ = lang.gettext
-#
-#
-#
-#     bot_session = AiohttpSession()
-#     bot = Bot(
-#         token=os.getenv("BOT_TOKEN"),
-#         session=bot_session,
-#         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
-#     )
-#
-#     session = get_isolated_session()
-#     try:
-#         #file_io = await bot.download_file(file_path) #(to improve productivity)
-#
-#         # Создаем временный файл в системной папке /tmp (или AppData в Windows)
-#         # suffix=".jpg" нужен, чтобы PaddleOCR понимал формат файла
-#         with tempfile.NamedTemporaryFile(delete=True, suffix=".jpg") as temp_file:
-#             # 1. Записываем байты во временный файл
-#             temp_file.write(image_bytes)
-#             temp_file.flush()  # Принудительно сохраняем данные на диск
-#
-#             # Получаем абсолютный путь к файлу (например, '/tmp/tmp_abc123.jpg')
-#             file_path = temp_file.name
-#
-#             logger.info(f"Начало обработки чека для пользователя {db_user_id}")
-#             logger.info("Path for func: {}".format(file_path))
-#
-#             result, elapse_list = ocr(file_path)
-#             logger.info("Data for func: {}".format(result))
-#
-#         if not result or not result[0]:
-#             logger.warning("PaddleOCR не нашел текст на изображении")
-#             return {"status": "error", "message": "No text found"}
-#
-#         logger.info("Type data: {}; Data for func: {}".format(type(result),result))
-#         # clear_text = clean_ocr_text(result)
-#         # text = merge_ocr_blocks_to_text(clear_text)
-#         text = merge_ocr_blocks_to_text(result)
-#         clear_text = decode_visual_translit(text)
-#         logger.info("Text for AI: {}".format(clear_text))
-#
-#         analysis_result: ReceiptAnalysisSchema = await ai_service.process_receipt(
-#                     text=clear_text,
-#                     response_schema=ReceiptAnalysisSchema,
-#                     locale=locale
-#
-#                 )
-#
-#         await save_receipt_to_db(
-#             session=session,
-#             user_id=db_user_id,
-#             analysis_result=analysis_result,
-#             photo_url=None,
-#             raw_text=analysis_result.model_dump_json()
-#         )
-#
-#         msg_text = _((
-#             f"✅ <b>The check has been processed successfully!</b>\n\n"
-#             f"🏬 Description: {analysis_result.description or 'Неизвестно'}\n"
-#             f"💰 Amount: {analysis_result.amount} {analysis_result.currency}\n"
-#             f"🗂 Category: {analysis_result.category}\n\n"
-#             f"🧾 Positions have been added to your detailed statistics."
-#         ))
-#         await bot.send_message(chat_id=chat_id, text=msg_text)
-#
-#     except Exception as e:
-#         logger.error(f"Error processing check for user {db_user_id}: {e}", exc_info=True)
-#
-#         await session.rollback()
-#
-#         await bot.send_message(
-#             chat_id=chat_id,
-#             text=_("❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again.")
-#         )
-#
-#     finally:
-#         await session.close()
-#         await bot_session.close()
+    _ = get_translator(locale)
 
+    if not data:
 
-# async def async_process_receipt(chat_id: int, db_user_id: int,
-#                                 locale: str, voice_bytes: bytes):
-#
-#     locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
-#
-#     try:
-#         lang = gettext.translation(
-#             domain='messages',
-#             localedir=str(locales_dir),  # gettext требует строку, а не объект Path
-#             languages=[locale],
-#             fallback=True
-#         )
-#     except Exception as e:
-#         logger.error(f"Не удалось загрузить локализацию из {locales_dir}: {e}")
-#         lang = gettext.NullTranslations()  # Фоллбек на оригинальный текст, если файлы не найдены
-#
-#     _ = lang.gettext
-#
-#
-#
-#     bot_session = AiohttpSession()
-#     bot = Bot(
-#         token=os.getenv("BOT_TOKEN"),
-#         session=bot_session,
-#         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
-#     )
-#
-#     session = get_isolated_session()
-#     try:
-#
-#         analysis_result: ReceiptListAnalysisSchema = await ai_service.process_voice_message(
-#                     voice_bytes=voice_bytes,
-#                     response_schema=ReceiptListAnalysisSchema,
-#                     locale=locale
-#
-#                 )
-#
-#         if not analysis_result.is_shopping_related:
-#             joke_text = analysis_result.error_message or _("Unable to recognize the purchase amount.")
-#
-#             await bot.send_message(chat_id=chat_id, text=f"❌ {joke_text}")
-#             logger.info("Обработка отменена ИИ для юзера %s. Шутка: %s", db_user_id, joke_text)
-#             return {"status": "cancelled", "message": joke_text}
-#
-#
-#         valid_transactions = [t for t in analysis_result.transactions if t.amount > 0]
-#
-#         analysis_result.transactions = valid_transactions
-#
-#         if not analysis_result.transactions:
-#             await bot.send_message(chat_id=chat_id, text=_("❌ No transactions found to save."))
-#             return {"status": "cancelled", "message": "Empty transactions list"}
-#
-#
-#         final_analysis_result = merge_transactions_by_category(analysis_result)
-#
-#         message_batch_id = str(uuid.uuid4())
-#
-#         await save_receipt_to_db(
-#             session=session,
-#             user_id=db_user_id,
-#             analysis_result=final_analysis_result,
-#             photo_url=None,
-#             batch_id=message_batch_id,
-#             raw_text=analysis_result.model_dump_json()
-#         )
-#
-#
-#         total_receipt_amount = sum(transaction.amount for transaction in analysis_result.transactions)
-#
-#         categories_details = []
-#         for transaction in analysis_result.transactions:
-#
-#             icons = {"food": "🍏", "transport": "🚗", "home": "🏠", "entertainment": "🎉", "health": "💊", "other": "📦"}
-#             icon = icons.get(transaction.category, "💰")
-#
-#             # Локализуем название категории (gettext вернет перевод, если он есть в .mo файле)
-#             localized_category = _(transaction.category)
-#
-#             items_lines = []
-#             for item in transaction.items:
-#                 if item.price > 0:
-#                     items_lines.append(f"  • {item.name}: <b>{item.price}</b>")
-#                 else:
-#                     items_lines.append(f"  • {item.name}")  # Если цена 0.0
-#
-#             items_str = "\n".join(items_lines)
-#             categories_details.append(
-#                 f"{icon} <b>{localized_category}</b>: {transaction.amount}\n{items_str}"
-#             )
-#
-#         report_chunks = [
-#             _("✅ <b>Expenses successfully recorded!</b>\n"),
-#             "\n\n".join(categories_details),
-#             "\n" + "─" * 20,
-#             _("📊 A total of ... have been recorded: <b>{total_amount}</b>").format(total_amount=total_receipt_amount)
-#         ]
-#         msg_text = "\n".join(report_chunks)
-#
-#         localized_button_label = _("❌ cancel appointment")
-#
-#         await bot.send_message(chat_id=chat_id, text=msg_text,
-#                                reply_markup=get_delete_keyboard(batch_id=message_batch_id,
-#                                                                 button_text=localized_button_label))
-#
-#     except openai.OpenAIError as net_err:
-#         logger.warning("Сетевой сбой API OpenAI. Отправляем таску на повтор в Celery.")
-#         await session.rollback()
-#         # Пробрасываем базовый класс, чтобы asyncio.run() выкинул его наружу в таску
-#         raise net_err
-#
-#     except Exception as e:
-#         logger.exception("Error processing check for user {user_id}", user_id=db_user_id)
-#
-#         await session.rollback()
-#
-#         await bot.send_message(
-#             chat_id=chat_id,
-#             text=_("❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again.")
-#         )
-#
-#     finally:
-#         await session.close()
-#         await bot_session.close()
+        msg_text = _(
+            "You don't have enough transactions for analysis yet. We need more data! 🧾"
+        )
+        await bot.send_message(
+            chat_id=chat_id, text=msg_text, parse_mode=ParseMode.HTML
+        )
+
+        return
+
+    min_items_required = 5 if days == 7 else 12
+
+    actual_items_count = len(data.get("top_items", []))
+
+    if actual_items_count < min_items_required:
+
+        msg_text = _(
+            "🧾 *Not enough data for deep analysis!* \n"
+            "You have too few expenses logged for this period. "
+            "Keep logging your expenditures via voice, and I will prepare a smart audit soon! 🤖"
+        )
+
+        await bot.send_message(
+            chat_id=chat_id, text=msg_text, parse_mode=ParseMode.HTML
+        )
+
+        return
+
+    actual_days = data["days_period"]
+
+    response_schema: Type[BaseModel] = (
+        WeeklyAnalysisResponse if days == 7 else MonthlyAnalysisResponse
+    )
+    analysis_result = None
+
+    try:
+        cache_service = get_worker_cache_service()
+        analysis_result = await cache_service.get_cached_analysis(
+            user.id, days, response_schema
+        )
+
+    except (RedisError, ValueError) as cache_err:
+        logger.error("Failed to read analysis cache: {error}", error=cache_err)
+
+    if analysis_result:
+        logger.info(
+            "🚀 [CACHE HIT] OpenAI report successfully retrieved from cache for user. {user_id}",
+            user_id=user.id,
+        )
+
+    else:
+        logger.info(
+            "⏳ [CACHE MISS] There is no cache. We are sending a heavy request to OpenAI for the user. {user_id}",
+            user_id=user.id,
+        )
+
+        analysis_result = await ai_service.analysis_financial(
+            summary_data=data,
+            response_schema=response_schema,
+            days=days,
+            actual_days=actual_days,
+            locale=locale,
+        )
+
+        try:
+            cache_service = get_worker_cache_service()
+            await cache_service.set_analysis_cache(user.id, days, analysis_result)
+        except (RedisError, ValueError) as cache_err:
+            logger.error("Failed to write analysis cache: {error}", error=cache_err)
+
+    try:
+        msg_text = render_analysis_report(data, analysis_result, days, _)
+        await bot.send_message(
+            chat_id=chat_id, text=msg_text, reply_markup=get_detailed_report(days, _)
+        )
+    except TelegramForbiddenError:
+        logger.info("User blocked the bot or deleted chat, {chat_id}", chat_id=chat_id)
+
+    except TelegramBadRequest as bad_request:
+        logger.error(
+            "Bad request sending analytics to chat_id {chat_id}: {bad_request}",
+            chat_id=chat_id,
+            bad_request=bad_request,
+        )
+        try:
+            await bot.send_message(
+                chat_id=chat_id,
+                text=_(
+                    "❌ We prepared your analysis, but couldn't display it properly. Please try again."
+                ),
+            )
+        except TelegramAPIError:
+            pass
+
+    except TelegramAPIError as tg_err:
+        logger.error(
+            "Telegram API error sending analytics to chat_id {chat_id}: {tg_err}",
+            chat_id=chat_id,
+            tg_err=tg_err,
+        )
+        try:
+            await bot.send_message(
+                chat_id=chat_id,
+                text=_(
+                    "❌ We couldn't deliver your analysis right now. Please try again later."
+                ),
+            )
+        except TelegramAPIError as notify_err:
+            logger.warning(
+                "Fallback notification failed for chat_id={chat_id}: {err}",
+                chat_id=chat_id,
+                err=notify_err,
+            )
+
+    except Exception:
+        logger.exception(
+            "Critical error rendering/sending AI analytics for chat_id {chat_id}",
+            chat_id=chat_id,
+        )
+
+        try:
+            await bot.send_message(
+                chat_id=chat_id,
+                text=_("❌ <b>An error occurred.</b>\nPlease try again later."),
+            )
+        except TelegramAPIError:
+            pass
+        raise
 
 
 async def async_process_receipt(
-    chat_id: int, db_user_id: int, locale: str, voice_bytes: bytes
-):
+    chat_id: int,
+    db_user_id: int,
+    locale: str,
+    voice_file_path: str,
+    currency: str,
+    status_message_id: int | None = None,
+) -> Dict[str, str]:
 
-    locales_dir = Path(__file__).resolve().parent.parent / "financial_bot" / "locales"
+    _ = get_translator(locale)
+    bot = get_shared_bot()
+    session: AsyncSession | None = None
 
     try:
-        lang = gettext.translation(
-            domain="messages",
-            localedir=str(locales_dir),  # gettext требует строку, а не объект Path
-            languages=[locale],
-            fallback=True,
-        )
-    except Exception as e:  # noqa: PIE786
-        logger.error(
-            "Не удалось загрузить локализацию из {locales}: {error}",
-            locales=locales_dir,
-            error=e,
-        )
 
-        lang = gettext.NullTranslations()
+        if voice_file_path is None or not os.path.exists(voice_file_path):
+            raise FileNotFoundError("Audio file missing: {}".format(voice_file_path))
 
-    _ = lang.gettext
+        with open(voice_file_path, "rb") as f:
+            voice_bytes = f.read()
 
-    token = os.getenv("BOT_TOKEN")
-    if not token:
-        raise ValueError("The BOT_TOKEN environment variable is not set!")
-
-    bot_session = AiohttpSession()
-    bot = Bot(
-        token=token,
-        session=bot_session,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-    )
-
-    session = get_isolated_session()
-    try:
-
-        analysis_result: ReceiptListAnalysisSchema = (
-            await ai_service.process_voice_message(
-                voice_bytes=voice_bytes,
-                response_schema=ReceiptListAnalysisSchema,
-                locale=locale,
-            )
+        analysis_result = await ai_service.process_voice_message(
+            voice_bytes=voice_bytes,
+            response_schema=ReceiptListAnalysisSchema,
+            locale=locale,
         )
 
         if not analysis_result.is_shopping_related:
@@ -307,167 +222,147 @@ async def async_process_receipt(
                 "Unable to recognize the purchase amount."
             )
 
-            await bot.send_message(chat_id=chat_id, text=f"❌ {joke_text}")
-            logger.info(
-                "Processing cancelled by AI for user %s. Joke: %s",
-                db_user_id,
-                joke_text,
-            )
+            await _reply(bot, chat_id, status_message_id, f"❌ {joke_text}")
+
             return {"status": "cancelled", "message": joke_text}
 
-        valid_transactions = [t for t in analysis_result.transactions if t.amount > 0]
-
-        analysis_result.transactions = valid_transactions
+        analysis_result.transactions = [
+            t for t in analysis_result.transactions if t.amount > 0
+        ]
 
         if not analysis_result.transactions:
-            await bot.send_message(
-                chat_id=chat_id, text=_("❌ No transactions found to save.")
+            await _reply(
+                bot, chat_id, status_message_id, _("❌ No transactions found to save.")
             )
+
             return {"status": "cancelled", "message": "Empty transactions list"}
 
         final_analysis_result = merge_transactions_by_category(analysis_result)
-
         message_batch_id = str(uuid.uuid4())
+
+        session = get_isolated_session()
 
         await save_receipt_to_db(
             session=session,
             user_id=db_user_id,
             analysis_result=final_analysis_result,
-            photo_url=None,
             raw_text=analysis_result.model_dump_json(),
             batch_id=message_batch_id,
         )
 
-        income_txs = [t for t in analysis_result.transactions if t.type == "income"]
-        expense_txs = [t for t in analysis_result.transactions if t.type == "expense"]
+        await session.commit()
 
-        total_income = sum(t.amount for t in income_txs)
-        total_expense = sum(t.amount for t in expense_txs)
+        try:
+            cache_service = get_worker_cache_service()
+            await cache_service.invalidate_user_cache(user_id=db_user_id)
+        except (RedisError, ValueError) as cache_err:
+            logger.error("Failed to invalidate cache: {error}", error=cache_err)
 
-        icons = {
-            "food": "🍏",
-            "transport": "🚗",
-            "home": "🏠",
-            "entertainment": "🎉",
-            "health": "💊",
-            "other": "📦",
-            "salary": "💼",
-            "bonus": "📈",
-            "gift": "🎁",
-            "deal": "🤝",
-        }
+        msg_text, localized_button_label = render_receipt_report(
+            analysis_result, _, currency
+        )
 
-        report_chunks = [_("✅ <b>Operations successfully recorded!</b>\n")]
-
-        if income_txs:
-            report_chunks.append(_("💰 <b>Received Income:</b>"))
-            income_details = []
-            for tx in income_txs:
-                icon = icons.get(tx.category, "💵")
-                description = tx.description or ""
-                category = description.capitalize()
-                localized_category = _(category)
-
-                items_lines = []
-                for item in tx.items:
-                    items_lines.append(f"  • {item.name}: <b>{item.price}</b>")
-                items_str = "\n" + "\n".join(items_lines) if items_lines else ""
-
-                # desc_str = f" ({tx.description})" if tx.description else ""
-                # income_details.append(f"{icon} {localized_category}{desc_str}: <b>+{tx.amount}</b>{items_str}")
-
-                # desc_str = f" ({tx.description})" if tx.description else ""
-                income_details.append(
-                    f"{icon} {localized_category}: <b>+{tx.amount}</b>{items_str}"
-                )
-
-            report_chunks.append("\n".join(income_details))
-
-        if income_txs and expense_txs:
-            report_chunks.append(" ")
-
-        if expense_txs:
-            report_chunks.append(_("📉 <b>Spent Expenses:</b>"))
-            expense_details = []
-            for tx in expense_txs:
-                icon = icons.get(tx.category, "📦")
-                category = tx.category.capitalize()
-                # localized_category = _(tx.category)
-                localized_category = _(category)
-
-                items_lines = []
-                for item in tx.items:
-                    if item.price > 0:
-                        items_lines.append(f"  • {item.name}: <b>{item.price}</b>")
-                    else:
-                        items_lines.append(f"  • {item.name}")
-
-                items_str = "\n".join(items_lines)
-
-                expense_details.append(
-                    _("{icon} {category}: <b>-{amount}</b>\n{items}").format(
-                        icon=icon,
-                        category=localized_category,
-                        amount=tx.amount,
-                        items=items_str,
-                    )
-                )
-            report_chunks.append("\n".join(expense_details))
-
-        report_chunks.append("\n" + "─" * 20)
-
-        meta_lines = []
-        if total_income > 0:
-            meta_lines.append(
-                _("Total Income: <b>+{total_amount}</b>").format(
-                    total_amount=total_income
-                )
-            )
-        if total_expense > 0:
-            meta_lines.append(
-                _("Total Expenses: <b>-{total_amount}</b>").format(
-                    total_amount=total_expense
-                )
-            )
-
-        report_chunks.append("\n".join(meta_lines))
-        msg_text = "\n".join(report_chunks)
-
-        if income_txs and not expense_txs:
-            localized_button_label = _("❌ cancel income")
-        elif expense_txs and not income_txs:
-            localized_button_label = _("❌ cancel expense")
-        else:
-            localized_button_label = _("❌ cancel operation")
-
-        await bot.send_message(
-            chat_id=chat_id,
-            text=msg_text,
+        await _reply(
+            bot,
+            chat_id,
+            status_message_id,
+            msg_text,
             reply_markup=get_delete_keyboard(
                 batch_id=message_batch_id, button_text=localized_button_label
             ),
         )
+        return {"status": "success", "batch_id": message_batch_id}
 
-    except openai.OpenAIError as net_err:
+    except openai.OpenAIError:
         logger.warning("OpenAI API network failure. Retrying the task in Celery.")
-        await session.rollback()
 
-        raise net_err
+        raise
 
-    except Exception:  # noqa: PIE786
+    except TruncatedResponseError:
+        logger.warning(
+            "AI response truncated for user_id={user_id}, chat_id={chat_id}",
+            user_id=db_user_id,
+            chat_id=chat_id,
+        )
+        try:
+            await _reply(
+                bot,
+                chat_id,
+                status_message_id,
+                _(
+                    "❌ Too many transactions in one message. Please split it into 2-3 shorter voice messages."
+                ),
+            )
+        except TelegramAPIError:
+            pass
+
+        return {"status": "cancelled", "message": "AI response truncated"}
+
+    except Exception:
         logger.exception(
             "Error processing check for user {user_id}", user_id=db_user_id
         )
+        if session:
+            await session.rollback()
 
-        await session.rollback()
+        try:
+            await _reply(
+                bot,
+                chat_id,
+                status_message_id,
+                _(
+                    "❌ Unfortunately, we couldn't recognize your receipt. Please try again."
+                ),
+            )
+        except TelegramAPIError:
+            pass
 
-        await bot.send_message(
-            chat_id=chat_id,
-            text=_(
-                "❌ Unfortunately, we couldn't recognize your receipt. Please make sure the photo is clear and try again."
-            ),
-        )
+        raise
 
     finally:
-        await session.close()
-        await bot_session.close()
+        if session:
+            await session.close()
+
+
+async def notify_user_final_failure(
+    chat_id: int, status_message_id: int, locale: str, db_user_id: int
+) -> None:
+
+    _ = get_translator(locale)
+    bot = get_shared_bot()
+
+    text = _(
+        "❌ We couldn't process your receipt after several attempts. Please try again later."
+    )
+
+    try:
+        if status_message_id:
+            await bot.edit_message_text(
+                chat_id=chat_id, message_id=status_message_id, text=text
+            )
+        else:
+            await bot.send_message(chat_id=chat_id, text=text)
+    except TelegramAPIError as e:
+        logger.error(
+            "Failed to notify user {user_id} about final failure: {error}",
+            user_id=db_user_id,
+            error=e,
+        )
+
+
+async def notify_user_analysis_final_failure(
+    chat_id: int, tg_id: int, locale: str
+) -> None:
+    bot = get_shared_bot()
+    _ = get_translator(locale)
+    try:
+        await bot.send_message(
+            chat_id=chat_id,
+            text="❌ We couldn't generate your financial analysis after several attempts. Please try again later.",
+        )
+    except TelegramAPIError as e:
+        logger.error(
+            "Failed to notify user {user_id} about analysis final failure: {error}",
+            user_id=tg_id,
+            error=e,
+        )

@@ -1,10 +1,16 @@
 import io
+import os
+import uuid
+from datetime import datetime, timezone
 
-from aiogram import F, Router
+from aiogram import Bot, F, Router
+from aiogram.exceptions import TelegramAPIError
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import BufferedInputFile, CallbackQuery, Message
 from aiogram.utils.i18n import gettext as _
+from celery.exceptions import CeleryError
 from loguru import logger
+from redis.exceptions import RedisError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from financial_bot.filters import (
@@ -13,27 +19,40 @@ from financial_bot.filters import (
     IsProUserFilter,
 )
 from financial_bot.keyboards.reply import get_main_menu, request_ai
-from financial_bot.repositories import delete_check, get_user_by_id
-
-# from financial_bot.tasks.ai import process_ai_request
+from financial_bot.repositories import (
+    delete_check,
+    get_user_by_id,
+    get_user_financial_summary,
+)
 from financial_bot.states.ai_states import AIState
-from financial_bot.tasks.ai import process_expense_task, process_receipt_task
+from financial_bot.tasks.ai import (
+    process_analysis_expense_task,
+    process_expense_task,
+)
+from services.analysis_cache import FinancialCacheService
+from services.utils_pipelines import render_detailed_transactions
+
+redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
+if not redis_url:
+    raise ValueError("CRITICAL: ANALYSIS_CACHE_REDIS environment variable is not set!")
 
 ai_router = Router()
 
+TMP_AUDIO_DIR = "/tmp/financial_bot_stt"
+os.makedirs(TMP_AUDIO_DIR, exist_ok=True)
 
-@ai_router.message(F.text == "AI", IsProUserFilter())
+
+@ai_router.message(I18nTextFilter("AI"), IsProUserFilter())
 async def waiting_for_request(message: Message, state: FSMContext):
     await message.answer(_("Please, select request!"), reply_markup=request_ai())
     await state.set_state(AIState.waiting_for_request)
 
 
-@ai_router.message(F.text == "AI")
+@ai_router.message(I18nTextFilter("AI"))
 async def ai_access_denied(message: Message):
     await message.answer(_("Sorry, you need a PRO subscription to use AI."))
 
 
-# @ai_router.message(F.text == "check",AIState.waiting_for_request)
 @ai_router.message(I18nTextFilter("check"), AIState.waiting_for_request)
 async def waiting_check(message: Message, state: FSMContext):
 
@@ -41,153 +60,86 @@ async def waiting_check(message: Message, state: FSMContext):
     await state.set_state(AIState.waiting_for_receipt)
 
 
-@ai_router.message(F.photo, AIState.waiting_for_receipt)
-async def handle_receipt_photo(
-    message: Message, state: FSMContext, session: AsyncSession
-):
-    if not message.from_user:
-        return
-
-    user = await get_user_by_id(session, message.from_user.id)
-
-    if not user:
-        logger.error("User with id {} not found in database", message.from_user.id)
-        return
-
-    user_locale = user.language_code
-
-    if not message.photo:
-        return
-
-    photo = message.photo[-1]
-
-    # 2. Запрашиваем инфо о файле СРАЗУ в основном цикле бота (to improve productivity)
-    # file_info = await message.bot.get_file(photo.file_id)
-    # telegram_file_path = file_info.file_path
-
-    file_in_io = io.BytesIO()
-
-    if not message.bot:
-        return
-
-    await message.bot.download(photo, destination=file_in_io)
-    file_bytes = file_in_io.getvalue()
-
-    process_receipt_task.delay(
-        chat_id=message.chat.id,
-        db_user_id=user.id,
-        # file_id=photo.file_id,
-        locale=user_locale,
-        image_bytes=file_bytes,
-        # file_path = file_info.file_path  # Передаем путь(to improve productivity)
-    )
-
-    await message.answer(
-        "⏳  Чек принят на анализ, это займет несколько секунд...",
-        reply_markup=get_main_menu(),
-    )
-    await state.clear()
-
-
 @ai_router.message(I18nTextFilter("data entry"), AIState.waiting_for_request)
 async def waiting_purchases(message: Message, state: FSMContext):
 
-    await message.answer(_("Please tell us or write about your purchases!"))
+    await message.answer(_("Please tell me about your purchases!"))
     await state.set_state(AIState.waiting_for_receipt)
 
 
-@ai_router.message(F.voice)
-async def handle_voice_receipt(message: Message, session: AsyncSession):
+@ai_router.message(F.voice, AIState.waiting_for_receipt)
+async def handle_voice_receipt(
+    message: Message, session: AsyncSession, state: FSMContext, bot: Bot
+):
+
     if not message.from_user:
         return
 
-    user = await get_user_by_id(session, message.from_user.id)
+    local_file_path = None
 
+    user = await get_user_by_id(session, message.from_user.id)
     if not user:
         await message.answer(_("User not found. Please enter /start."))
+        return
+
+    voice = message.voice
+    if not voice:
+        return
+
+    if voice.duration > 35:
+        await message.answer(
+            _(
+                "❌ The voice message is too long. Please dictate a shorter message (up to 30 seconds)."
+            )
+        )
         return
 
     waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
 
     try:
-        voice = message.voice
-
-        if not voice or not message.bot:
-            return
-
-        if voice.duration > 35:
-            await waiting_msg.edit_text(
-                _(
-                    "❌ The voice message is too long. Please dictate a shorter message (up to 30 seconds).."
-                )
-            )
-            return
-
-        file_info = await message.bot.get_file(voice.file_id)
-
-        file_buffer = io.BytesIO()
-
+        file_info = await bot.get_file(voice.file_id)
         if not file_info.file_path:
-            await message.answer(
-                "Unfortunately, it was not possible to obtain the path for downloading the file."
-            )
+            await waiting_msg.edit_text(_("❌ Failed to get download path."))
             return
 
-        await message.bot.download_file(file_info.file_path, file_buffer)
+        unique_filename = f"{uuid.uuid4()}.ogg"
+        local_file_path = os.path.join(TMP_AUDIO_DIR, unique_filename)
 
-        voice_bytes = file_buffer.getvalue()
+        await bot.download_file(file_info.file_path, destination=local_file_path)
+
+        await state.clear()
 
         process_expense_task.delay(
             chat_id=message.chat.id,
             db_user_id=user.id,
-            locale=user.language_code,
-            voice_bytes=voice_bytes,
-        )
-
-        await message.bot.delete_message(
-            chat_id=message.chat.id, message_id=waiting_msg.message_id
+            locale=user.language_code or "en",
+            voice_file_path=local_file_path,
+            currency=user.currency,
+            status_message_id=waiting_msg.message_id,
         )
 
         await message.answer(
-            _(
-                "⏳ Background analysis started. I’ll send the result in a couple of seconds; in the meantime, you can continue working:"
-            ),
+            _("⏳ Analysis started in the background. You can continue working:"),
             reply_markup=get_main_menu(),
         )
 
-    except Exception as e:  # noqa: PIE786
-        logger.error("Error downloading voice message: {error}", error=e, exc_info=True)
+    except (TelegramAPIError, OSError, CeleryError) as e:
+        logger.error("Error in voice handler pipeline: {error}", error=e, exc_info=True)
+
+        if local_file_path is not None:
+            try:
+
+                if "local_file_path" in locals() and os.path.exists(local_file_path):
+                    os.remove(local_file_path)
+
+            except OSError:
+                pass
         await waiting_msg.edit_text(
-            _("❌ Unable to process the voice message. Please try again."),
-            reply_markup=get_main_menu(),
+            _("❌ Unable to process the voice message. Please try again.")
         )
-
-
-@ai_router.message(F.text)
-async def handle_text_message(message: Message, session: AsyncSession):
-    if not message.from_user:
-        return
-
-    user = await get_user_by_id(session, message.from_user.id)
-
-    if not user:
-        await message.answer(_("User not found. Please enter /start."))
-        return
-
-    waiting_msg = await message.answer(_("🧠 I am analyzing your expenses..."))
-
-    text = message.text
-
-    process_expense_task.delay(
-        chat_id=message.chat.id,
-        db_user_id=user.id,  # или как у вас в коде называется id пользователя
-        locale=user.language_code,
-        text=text,
-    )
-
-    if message.bot:
-        await message.bot.delete_message(
-            chat_id=message.chat.id, message_id=waiting_msg.message_id
+        await message.answer(
+            _("You can continue working using the menu below:"),
+            reply_markup=get_main_menu(),
         )
 
 
@@ -196,16 +148,152 @@ async def delete_batch_handler(
     callback: CallbackQuery,
     callback_data: DeleteTransactionCallback,
     session: AsyncSession,
+    cache_service: FinancialCacheService,
 ):
+    user = await get_user_by_id(session, callback.from_user.id)
 
-    result = await delete_check(session, callback_data.batch_id)
+    if not user:
+        await callback.answer(_("User not found."), show_alert=True)
+        return
+
+    result = await delete_check(session, callback_data.batch_id, user.id)
+
+    try:
+        await cache_service.invalidate_user_cache(user_id=user.id)
+        logger.info(
+            "Successfully invalidated cache for user: {user_id} via manual entry",
+            user_id=user.id,
+        )
+    except RedisError as redis_err:
+
+        logger.error(
+            "Non-critical error: Failed to clear Redis cache during manual entry for user {user_id}: {redis_err}",
+            user_id=user.id,
+            redis_err=redis_err,
+        )
+
+    if not isinstance(callback.message, Message):
+        await callback.answer()
+        return
+
     if result:
-        if isinstance(callback.message, Message):
-            await callback.message.edit_text(
-                _("❌ The record has been cancelled and removed from the database.")
-            )
+        await callback.message.edit_text(
+            _("❌ The record has been cancelled and removed from the database.")
+        )
     else:
-        if isinstance(callback.message, Message):
-            await callback.answer(_("Record not found."), show_alert=True)
+        await callback.answer(_("Record not found."), show_alert=True)
+        await callback.message.edit_reply_markup(reply_markup=None)
 
-            await callback.message.edit_reply_markup(reply_markup=None)
+
+@ai_router.message(I18nTextFilter("weekly data analysis", "monthly data analysis"))
+async def handle_analytics_request(message: Message, state: FSMContext):
+
+    if not message.text or not message.from_user:
+        return
+
+    if message.text == _("weekly data analysis"):
+        days = 7
+    elif message.text == _("monthly data analysis"):
+        days = 30
+    else:
+        return
+    now = datetime.now(timezone.utc)
+
+    if days == 7:
+        days_passed = now.weekday() + 1
+        if days_passed < 3:
+            await state.clear()
+
+            await message.answer(
+                _(
+                    "📊 *The period is too short to analyze the current week!* \n"
+                    "We can only analyze the week starting from Wednesday, when enough spendings accumulate. "
+                    "Please check back later! 🗓"
+                ),
+                reply_markup=get_main_menu(),
+            )
+
+            return
+
+    elif days == 30:
+        days_passed = now.day
+        if days_passed < 5:
+            await state.clear()
+
+            await message.answer(
+                _(
+                    "📈 *It’s too early for monthly analytics!* \n"
+                    "A reliable monthly analysis requires at least 5 days of data (available from the 5th). "
+                    "Right now, try checking your weekly analytics instead! 📅"
+                ),
+                reply_markup=get_main_menu(),
+            )
+
+            return
+
+    process_analysis_expense_task.delay(
+        tg_id=message.from_user.id,
+        chat_id=message.chat.id,
+        days=days,
+        locale=message.from_user.language_code or "en",
+    )
+
+    await state.clear()
+
+    await message.answer(
+        _(
+            "🤖 *AI is analyzing your spending patterns...* \nIt will take five or ten seconds.",
+        ),
+        reply_markup=get_main_menu(),
+    )
+
+
+@ai_router.callback_query(F.data.startswith("show_detailed_report:"))
+async def handle_show_detailed_report(callback: CallbackQuery, session: AsyncSession):
+
+    if not callback.data:
+        await callback.answer()
+        return
+
+    days = int(callback.data.split(":")[1])
+    user_id = callback.from_user.id
+
+    user = await get_user_by_id(session, user_id)
+
+    if not user or user.id is None:
+        await callback.answer(
+            _("User profile not found. Please type /start."), show_alert=True
+        )
+        return
+
+    data = await get_user_financial_summary(session, user.id, days, user)
+
+    report_text = render_detailed_transactions(data, _)
+
+    if isinstance(callback.message, Message):
+        if len(report_text) <= 4000:
+
+            await callback.message.answer(text=report_text, parse_mode="HTML")
+
+        else:
+
+            file_buffer = io.BytesIO(report_text.encode("utf-8"))
+            file_buffer.seek(0)
+
+            filename = f"financial_report_{days}_days.txt"
+            document = BufferedInputFile(file_buffer.read(), filename=filename)
+
+            await callback.message.answer_document(
+                document=document,
+                caption=_(
+                    "🧾 <b>Your detailed report exceeded Telegram's message length limit.</b>\nI’ve packed the entire transaction history into this file! 📁"
+                ),
+            )
+
+    else:
+        logger.warning(
+            "Callback message is inaccessible or None during detailed report generation for user {user.id}",
+            user_id=user_id,
+        )
+
+    await callback.answer()

@@ -1,12 +1,16 @@
-from datetime import datetime
+from datetime import datetime, time, timedelta, timezone
 from decimal import Decimal
+from typing import cast
 
 from aiogram.utils.i18n import gettext as _
 from loguru import logger
-from sqlalchemy import delete, func, select
+from sqlalchemy import CursorResult, delete, desc, func, select, union_all, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from sqlalchemy.sql import exists
 
 from financial_bot.exceptions import UserNotFoundError
+from financial_bot.general_utils import get_today_boundaries_utc
 from financial_bot.models import TransactionItems, Transactions, UserBot
 from financial_bot.schemas import AddData, CreateUser, Plan
 from services.schemas import ReceiptListAnalysisSchema
@@ -47,7 +51,6 @@ async def blocked_user(session: AsyncSession, user_tg_id: int):
 
     if user:
         user.is_active = False
-        await session.commit()
 
     else:
         error_message = _(
@@ -177,58 +180,396 @@ async def save_receipt_to_db(
     analysis_result: ReceiptListAnalysisSchema,
     raw_text: str,
     batch_id: str,
-    photo_url: str | None = None,
 ):
-    try:
-        for group in analysis_result.transactions:
-            db_transaction = Transactions(
-                user_id=user_id,
-                amount=group.amount,
-                category=group.category,
-                type=group.type,
-                description=group.description,
-                text_check=raw_text,
-                batch_id=batch_id,
-            )
-            session.add(db_transaction)
-            await session.flush()  # Получаем id для One-to-Many
 
-            if group.type == "expense" and group.items:
-                db_items = [
-                    TransactionItems(
-                        transaction_id=db_transaction.id,
-                        name=item.name,
-                        price=item.price,
-                        category=group.category,
-                    )
-                    for item in group.items
-                ]
-                session.add_all(db_items)
+    db_transactions = []
 
-        await session.commit()
-
-    except Exception as e:  # noqa: PIE786
-
-        await session.rollback()
-        # logger.error(f"Error saving batch {batch_id} to DB: {e}", exc_info=True)
-        logger.error(
-            "Error saving batch {batch_id} to DB: {error}",
+    for group in analysis_result.transactions:
+        db_transaction = Transactions(
+            user_id=user_id,
+            amount=group.amount,
+            category=group.category,
+            type=group.type,
+            description=group.description,
+            text_check=raw_text,
             batch_id=batch_id,
-            error=str(e),
-            exc_info=True,
         )
 
+        if group.type == "expense" and group.items:
+            db_transaction.items = [
+                TransactionItems(
+                    name=item.name,
+                    price=item.price,
+                    category=group.category,
+                )
+                for item in group.items
+            ]
 
-async def delete_check(session: AsyncSession, batch_id: str):
-    stmt_select = select(Transactions).where(Transactions.batch_id == batch_id)
+        db_transactions.append(db_transaction)
+
+    session.add_all(db_transactions)
+
+    await session.flush()
+
+
+async def delete_check(session: AsyncSession, batch_id: str, user_id: int):
+    stmt_select = select(Transactions).where(
+        Transactions.batch_id == batch_id,
+        Transactions.user_id == user_id,
+    )
     list_transactions = await session.execute(stmt_select)
 
-    # if len(list_transactions.all()) > 0:
     if list_transactions.scalar() is not None:
-        stmt = delete(Transactions).where(Transactions.batch_id == batch_id)
+        stmt = delete(Transactions).where(
+            Transactions.batch_id == batch_id, Transactions.user_id == user_id
+        )
+
         await session.execute(stmt)
         await session.commit()
         return True
 
     else:
         return False
+
+
+async def get_test_user_expense_summary(
+    session: AsyncSession, user_id: int, days: int
+) -> dict:
+
+    now = datetime.now(timezone.utc)
+    end_date = datetime.combine(now.date(), time.max).replace(tzinfo=timezone.utc)
+
+    if days == 7:
+        start_of_week = now.date() - timedelta(days=now.weekday())
+        start_date = datetime.combine(start_of_week, time.min)
+
+    elif days == 30:
+        start_of_month = now.date().replace(day=1)
+        start_date = datetime.combine(start_of_month, time.min)
+
+    else:
+
+        start_date = datetime.combine(
+            now.date() - timedelta(days=days), time.min
+        ).replace(tzinfo=timezone.utc)
+
+    start_date = start_date.replace(tzinfo=timezone.utc)
+
+    total_stmt = select(
+        func.sum(Transactions.amount).label("total_amount"),
+        func.count(Transactions.id).label("total_count"),
+    ).where(
+        Transactions.user_id == user_id,
+        Transactions.created_at.between(start_date, end_date),
+    )
+    total_res = await session.execute(total_stmt)
+    total_data = total_res.first()
+
+    if not total_data or total_data.total_amount is None:
+        return {}
+
+    cat_stmt = (
+        select(
+            Transactions.category,
+            func.sum(Transactions.amount).label("cat_amount"),
+            func.count(Transactions.id).label("cat_count"),
+        )
+        .where(
+            Transactions.user_id == user_id,
+            Transactions.created_at.between(start_date, end_date),
+        )
+        .group_by(Transactions.category)
+        .order_by(func.sum(Transactions.amount).desc())
+    )
+    cat_res = await session.execute(cat_stmt)
+
+    categories = [
+        {
+            "category": row.category,
+            "amount": float(row.cat_amount),
+            "count": row.cat_count,
+        }
+        for row in cat_res.all()
+    ]
+
+    items_stmt = (
+        select(
+            TransactionItems.name,
+            func.sum(TransactionItems.price).label("item_total_amount"),
+            func.count(TransactionItems.id).label("item_count"),
+            Transactions.category.label("associated_category"),
+        )
+        .join(Transactions, TransactionItems.transaction_id == Transactions.id)
+        .where(
+            Transactions.user_id == user_id,
+            Transactions.created_at.between(start_date, end_date),
+        )
+        .group_by(TransactionItems.name, Transactions.category)
+        .order_by(func.sum(TransactionItems.price).desc())
+        .limit(10)
+    )
+    items_res = await session.execute(items_stmt)
+
+    top_items = [
+        {
+            "name": row.name,
+            "total_amount": float(row.item_total_amount),
+            "count": row.item_count,
+            "category": row.associated_category,
+        }
+        for row in items_res.all()
+    ]
+
+    return {
+        "total_amount": float(total_data.total_amount),
+        "total_count": total_data.total_count,
+        "categories": categories,  # Из старого запроса
+        "top_items": top_items,  # Наша конкретика!
+        "days_period": days,
+    }
+
+
+async def get_user_financial_summary(
+    session: AsyncSession, user_id: int, days: int, user_bot: UserBot
+) -> dict:
+    days = int(days)
+
+    now = datetime.now(timezone.utc)
+    end_date = now
+
+    if days == 7:
+        start_of_week = now.date() - timedelta(days=now.weekday())
+        start_date = datetime.combine(start_of_week, time.min, tzinfo=timezone.utc)
+        actual_days = (end_date.date() - start_of_week).days + 1
+
+    elif days == 30:
+        start_of_month = now.date().replace(day=1)
+        start_date = datetime.combine(start_of_month, time.min, tzinfo=timezone.utc)
+        actual_days = (end_date.date() - start_of_month).days + 1
+
+    else:
+        start_date = datetime.combine(
+            now.date() - timedelta(days=days), time.min, tzinfo=timezone.utc
+        )
+        actual_days = days
+
+    total_stmt = select(
+        func.coalesce(func.sum(Transactions.amount), 0).label("total_amount"),
+        func.count(Transactions.id).label("total_count"),
+    ).where(
+        Transactions.user_id == user_id,
+        Transactions.type == "expense",
+        Transactions.created_at >= start_date,
+        Transactions.created_at < end_date,
+    )
+
+    total_res = await session.execute(total_stmt)
+    row = total_res.fetchone()
+
+    db_total_amount = float(row.total_amount) if row else 0.0
+    db_total_count = row.total_count if row else 0
+
+    income_stmt = select(
+        func.coalesce(func.sum(Transactions.amount), 0).label("total_income")
+    ).where(
+        Transactions.user_id == user_id,
+        Transactions.type == "income",
+        Transactions.created_at >= start_date,
+        Transactions.created_at < end_date,
+    )
+    income_res = await session.execute(income_stmt)
+    db_total_income = float(income_res.scalar_one_or_none() or 0.0)
+
+    cat_stmt = (
+        select(
+            Transactions.category,
+            func.sum(Transactions.amount).label("cat_amount"),
+            func.count(Transactions.id).label("cat_count"),
+        )
+        .where(
+            Transactions.user_id == user_id,
+            Transactions.type == "expense",
+            Transactions.created_at >= start_date,
+            Transactions.created_at < end_date,
+        )
+        .group_by(Transactions.category)
+        .order_by(func.sum(Transactions.amount).desc())
+    )
+
+    cat_res = await session.execute(cat_stmt)
+    categories = [
+        {"category": r.category, "amount": float(r.cat_amount), "count": r.cat_count}
+        for r in cat_res.all()
+    ]
+
+    part_items = (
+        select(
+            TransactionItems.name.label("name"),
+            TransactionItems.price.label("item_amount"),
+            Transactions.category.label("associated_category"),
+            Transactions.created_at.label("date"),
+        )
+        .join(Transactions, TransactionItems.transaction_id == Transactions.id)
+        .where(
+            Transactions.user_id == user_id,
+            Transactions.type == "expense",
+            Transactions.created_at >= start_date,
+            Transactions.created_at < end_date,
+        )
+    )
+
+    part_manual = select(
+        Transactions.category.label("name"),
+        Transactions.amount.label("item_amount"),
+        Transactions.category.label("associated_category"),
+        Transactions.created_at.label("date"),
+    ).where(
+        Transactions.user_id == user_id,
+        Transactions.type == "expense",
+        Transactions.created_at >= start_date,
+        Transactions.created_at < end_date,
+        ~exists().where(TransactionItems.transaction_id == Transactions.id),
+    )
+
+    unified_union = union_all(part_items, part_manual)
+
+    if days == 7:
+
+        items_stmt = (
+            select(
+                unified_union.c.name,
+                unified_union.c.item_amount,
+                unified_union.c.associated_category,
+                unified_union.c.date,
+            )
+            .order_by(desc(unified_union.c.item_amount))
+            .limit(30)
+        )
+    else:
+
+        items_stmt = select(
+            unified_union.c.name,
+            unified_union.c.item_amount,
+            unified_union.c.associated_category,
+            unified_union.c.date,
+        ).order_by(desc(unified_union.c.date))
+
+    items_res = await session.execute(items_stmt)
+    top_items = [
+        {
+            "name": r.name,
+            "total_amount": float(r.item_amount),
+            "category": r.associated_category,
+            "date": r.date.strftime("%Y-%m-%d"),
+        }
+        for r in items_res.all()
+    ]
+
+    net_balance = db_total_income - db_total_amount
+
+    user_config = {
+        "currency": user_bot.currency,
+        "monthly_budget": (
+            float(user_bot.monthly_budget) if user_bot.monthly_budget else None
+        ),
+        "budget_remind_percent": user_bot.budget_remind_percent,
+        "savings_goal": float(user_bot.savings_goal) if user_bot.savings_goal else None,
+    }
+
+    return {
+        "total_amount": round(db_total_amount, 2),
+        "total_count": db_total_count,  # maybe delete
+        "total_income": round(db_total_income, 2),
+        "net_balance": round(net_balance, 2),
+        "categories": categories,
+        "top_items": top_items,
+        "days_period": actual_days,
+        "user_config": user_config,
+    }
+
+
+async def get_reports_for_all_active_users(
+    session: AsyncSession, date_start: datetime, date_end: datetime
+) -> dict[int, list]:
+
+    query = (
+        select(
+            Transactions.user_id,
+            Transactions.type,
+            Transactions.category,
+            func.sum(Transactions.amount).label("total"),
+        )
+        .join(UserBot, UserBot.id == Transactions.user_id)
+        .where(
+            UserBot.is_active,
+            Transactions.created_at.between(date_start, date_end),
+        )
+        .group_by(Transactions.user_id, Transactions.type, Transactions.category)
+    )
+
+    result = await session.execute(query)
+    rows = result.all()
+
+    reports_by_user: dict[int, list] = {}
+    for row in rows:
+        reports_by_user.setdefault(row.user_id, []).append(row)
+
+    return reports_by_user
+
+
+async def get_plans_for_all_active_users(session: AsyncSession) -> dict[int, Plan]:
+
+    query = select(UserBot).where(UserBot.is_active)
+    result = await session.execute(query)
+    users = result.scalars().all()
+
+    return {
+        user.id: Plan(
+            monthly_budget=user.monthly_budget,
+            budget_remind_percent=user.budget_remind_percent,
+            savings_goal=user.savings_goal,
+        )
+        for user in users
+    }
+
+
+async def blocked_users_bulk(session: AsyncSession, tg_ids: list[int]) -> None:
+
+    if not tg_ids:
+        return
+
+    stmt = update(UserBot).where(UserBot.tg_id.in_(tg_ids)).values(is_active=False)
+    await session.execute(stmt)
+
+
+# new
+async def get_today_transactions(
+    session: AsyncSession, user_id: int, user_timezone: str = "UTC"
+) -> list[Transactions]:
+    today_start_utc, today_end_utc = get_today_boundaries_utc(user_timezone)
+
+    query = (
+        select(Transactions)
+        .options(selectinload(Transactions.items))
+        .where(
+            Transactions.user_id == user_id,
+            Transactions.created_at.between(today_start_utc, today_end_utc),
+        )
+        .order_by(Transactions.created_at.desc())
+    )
+    result = await session.execute(query)
+    return list(result.scalars().all())
+
+
+async def delete_transaction_by_id(
+    session: AsyncSession, tx_id: int, user_id: int
+) -> bool:
+
+    stmt = delete(Transactions).where(
+        Transactions.id == tx_id, Transactions.user_id == user_id
+    )
+    raw_result = await session.execute(stmt)
+
+    result = cast(CursorResult, raw_result)
+
+    return result.rowcount > 0

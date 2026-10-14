@@ -1,28 +1,25 @@
-import os
+from typing import AsyncGenerator
 
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import (
-    AsyncAttrs,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import DeclarativeBase
+
+from core.config import DATABASE_URL_DOCKER, ENGINE_KWARGS
 
 load_dotenv()
 
-database_url = os.getenv("DATABASE_URL_DOCKER")
-
-if database_url is None:
-    raise ValueError("DATABASE_URL_DOCKER is not set in environment variables")
-engine = create_async_engine(database_url, echo=False)
-async_session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-
-
-class Base(AsyncAttrs, DeclarativeBase):
-    pass
+# When scaling horizontally, use PgBouncer—an external connection pooler—between the application and Postgres; it multiplexes thousands of logical application connections into a much smaller number of actual database connections.
+bot_engine = create_async_engine(
+    DATABASE_URL_DOCKER, pool_size=20, max_overflow=10, **ENGINE_KWARGS
+)
+bot_session_maker = async_sessionmaker(
+    bind=bot_engine, expire_on_commit=False, class_=AsyncSession
+)
 
 
-async def get_db():
-    async with async_session() as session:
+async def get_bot_db() -> AsyncGenerator:
+    async with bot_session_maker() as session:
         yield session
