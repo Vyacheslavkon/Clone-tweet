@@ -21,16 +21,14 @@ def called_kb_old(mock_bot, text: str):
 def called_bot(
     mock_bot, text: str, methods: tuple[str, ...] = ("SendMessage", "EditMessageText")
 ):
-    """Проверяет, что среди реально отправленных Telegram-методов есть
-    вызов с заданным текстом. Сравнение идёт по точному типу объекта
-    метода и его атрибуту .text, а не по строковому представлению вызова."""
+
     found = any(
         call.args
         and call.args[0].__class__.__name__ in methods
         and getattr(call.args[0], "text", None) == text
         for call in mock_bot.call_args_list
     )
-    #  assert found, f"Text '{text}' not found among {methods} calls."
+
     if not found:
         raise AssertionError(
             f"Text '{text}' not found among {methods} calls. Current history: {mock_bot.call_args_list}"
@@ -42,8 +40,7 @@ def called_kb(
     button_text: str,
     methods: tuple[str, ...] = ("SendMessage", "EditMessageText"),
 ):
-    """Проверяет, что среди отправленных методов есть клавиатура,
-    содержащая кнопку с заданным текстом."""
+
     for call in mock_bot.call_args_list:
         if not call.args or call.args[0].__class__.__name__ not in methods:
             continue
@@ -57,7 +54,7 @@ def called_kb(
                 btn_text = getattr(button, "text", None)
                 if btn_text == button_text:
                     return
-    #  assert False, f"Button with text '{button_text}' not found among {methods} calls."
+
     raise AssertionError(
         f"Button with text '{button_text}' not found among {methods} calls."
     )

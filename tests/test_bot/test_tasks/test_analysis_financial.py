@@ -21,8 +21,8 @@ CHAT_ID = 1328587577
 
 @pytest.fixture(autouse=True)
 def _configure_isolated_session(mock_isolated_session):
-    """В process_analysis_financial сессия открывается безусловно в начале
-    функции — настраиваем return_value один раз для всех тестов этого файла."""
+    """The `process_analysis_financial_session` fixture was finally initialized at the start;
+    its function is to set the `return_value` once for all tests in this file."""
     mock_isolated_session.return_value = AsyncMock()
 
 

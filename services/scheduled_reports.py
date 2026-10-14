@@ -53,7 +53,7 @@ async def send_weekly_stats() -> None:
             try:
                 await bot.send_message(chat_id=user.tg_id, text=text, parse_mode="HTML")
 
-            except TelegramAPIError as e:  # change exception
+            except TelegramAPIError as e:
                 logger.error(
                     "Retry failed for user_id={user_id}: {error}",
                     user_id=user.tg_id,
@@ -67,7 +67,7 @@ async def send_weekly_stats() -> None:
             )
             users_to_block.append(user.tg_id)
 
-        except TelegramAPIError as e:  # change exception
+        except TelegramAPIError as e:
             logger.error(
                 "Failed to send report to user_id={user_id}: {error}",
                 user_id=user.tg_id,
@@ -85,7 +85,7 @@ async def send_weekly_stats() -> None:
                 "Successfully disabled {count} blocked users in batch.",
                 count=len(users_to_block),
             )
-        except SQLAlchemyError as e:  # change exception
+        except SQLAlchemyError as e:
             await block_session.rollback()
             logger.error("Failed to execute bulk block update: {error}", error=e)
         finally:
@@ -127,7 +127,7 @@ async def send_monthly_stats() -> None:
             await asyncio.sleep(retry_err.retry_after)
             try:
                 await bot.send_message(chat_id=user.tg_id, text=text, parse_mode="HTML")
-            except TelegramAPIError as e:  # change exception
+            except TelegramAPIError as e:
                 logger.error(
                     "Retry failed for user_id={user_id}: {error}",
                     user_id=user.tg_id,
@@ -141,7 +141,7 @@ async def send_monthly_stats() -> None:
             )
             users_to_block.append(user.tg_id)
 
-        except TelegramAPIError as e:  # change exception
+        except TelegramAPIError as e:
             logger.error(
                 "Failed to send report to user_id={user_id}: {error}",
                 user_id=user.tg_id,

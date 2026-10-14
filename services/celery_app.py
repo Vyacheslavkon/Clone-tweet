@@ -32,12 +32,12 @@ app.conf.update(
 
 
 @after_setup_logger.connect
-def setup_celery_logger(logger, *args, **kwargs):
+def setup_celery_logger(logger, *args, **kwargs) -> None:
     setup_logging()
 
 
 @worker_shutdown.connect
-def on_worker_shutdown(**kwargs):
+def on_worker_shutdown(**kwargs) -> None:
     loop = get_worker_loop()
 
     for name, cleanup_coro_factory in [

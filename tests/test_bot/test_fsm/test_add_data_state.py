@@ -194,7 +194,7 @@ async def test_invalid_value_limit_expense(
     update_id = 1
 
     for text, key in comparison_dict.items():
-        # mock_bot.send_message.reset_mock()
+
         msg = create_message(text=text, user_id=user_id, update_id=update_id)
 
         await test_dp.feed_update(mock_bot, msg)

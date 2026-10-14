@@ -64,8 +64,6 @@ def get_voice_message(locale: str) -> str:
         "7. CURRENCY: amounts are in the user's currency. Ignore currency words and symbols ('$', 'dollars', 'руб'); output the number only. Never convert between currencies."
     )
 
-    #  return prompt_template
-
 
 def get_analysis_financial(
     days: int = 30, actual_days: int = 30, user_locale: str = "ru"
@@ -145,5 +143,3 @@ def get_analysis_financial(
     🛑 CURRENT PERIOD SPECIFICS (HAS THE HIGHEST PRIORITY COMPLIANCE):
     {instruction}
     """
-
-    # return system_prompt_analysis  # noqa: PIE786

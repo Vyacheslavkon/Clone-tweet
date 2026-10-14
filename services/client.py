@@ -1,6 +1,5 @@
 import io
 import json
-import os
 from typing import Type, TypeVar
 
 from dotenv import load_dotenv
@@ -8,34 +7,25 @@ from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
+from core.config import PROXI_API_KEY, PROXI_BASE_URL
 from services.exceptions import TruncatedResponseError
 from services.prompts import get_analysis_financial, get_voice_message, language_name
 
 load_dotenv()
 
-proxy_api_key = os.getenv("OPENAI_API_KEY")
-if not proxy_api_key:
-    raise ValueError(
-        "Critical error: OPENAI_API_KEY must be set in the environment variables."
-    )
 
-proxy_base_url = os.getenv("OPENAI_BASE_URL")
-if not proxy_base_url:
-    raise ValueError(
-        "Critical error: OPENAI_BASE_URL must be set in the environment variables."
-    )
+T = TypeVar("T", bound=BaseModel)
 
 
 class AIService:
-    T = TypeVar("T", bound=BaseModel)  # test
 
     def __init__(self, api_key: str, base_url: str, model: str = "gpt-4o-mini"):
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url, timeout=60.0)
         self.model = model
 
     async def process_receipt(
-        self, response_schema: Type[BaseModel], text: str, locale: str
-    ):
+        self, response_schema: Type[T], text: str, locale: str
+    ) -> T:
 
         completion = await self.client.chat.completions.create(
             model=self.model,
@@ -77,8 +67,8 @@ class AIService:
         self,
         voice_bytes: bytes,
         locale: str,
-        response_schema: Type[BaseModel],
-    ):
+        response_schema: Type[T],
+    ) -> T:
 
         audio_file = io.BytesIO(voice_bytes)
         audio_file.name = "voice.ogg"
@@ -148,12 +138,12 @@ class AIService:
 
     async def analysis_financial(
         self,
-        response_schema: Type[BaseModel],
+        response_schema: Type[T],
         summary_data: dict,
         days: int,
         actual_days: int,
         locale: str,
-    ) -> BaseModel:
+    ) -> T:
 
         if not summary_data:
             raise ValueError("analysis_financial requires non-empty summary_data")
@@ -192,4 +182,4 @@ class AIService:
         return parsed_result
 
 
-ai_service = AIService(api_key=proxy_api_key, base_url=proxy_base_url)
+ai_service = AIService(api_key=PROXI_API_KEY, base_url=PROXI_BASE_URL)

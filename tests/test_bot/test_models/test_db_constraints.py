@@ -56,7 +56,7 @@ async def test_transaction_item_price_cannot_be_negative(
     bad_item = TransactionItems(
         transaction_id=transaction.id,
         name="Refund item",
-        price=-50,  # нарушает constraint
+        price=-50,
         category="food",
     )
     test_session_for_pipeline.add(bad_item)
@@ -70,7 +70,7 @@ async def test_transaction_item_price_cannot_be_negative(
 async def test_transaction_item_price_zero_is_allowed(
     test_session_for_pipeline, user_for_pipeline
 ):
-    """price >= 0 (не строго >), значит ноль — валидное значение."""
+
     transaction = Transactions(
         user_id=user_for_pipeline.id,
         amount=500,

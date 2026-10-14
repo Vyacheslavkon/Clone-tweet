@@ -1,5 +1,6 @@
 import os
 import uuid
+from typing import Dict, Type
 
 import openai
 from aiogram.enums import ParseMode
@@ -9,6 +10,7 @@ from aiogram.exceptions import (
     TelegramForbiddenError,
 )
 from loguru import logger
+from pydantic import BaseModel
 from redis import RedisError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,22 +38,18 @@ from services.utils_pipelines import (
     render_receipt_report,
 )
 
-redis_url = os.getenv("ANALYSIS_CACHE_REDIS")
-if not redis_url:
-    raise ValueError("CRITICAL: ANALYSIS_CACHE_REDIS environment variable is not set!")
-
 
 async def process_analysis_financial(
     tg_id: int,
     chat_id: int,
     days: int,
-):
+) -> None:
     bot = get_shared_bot()
     session = get_isolated_session()
 
     try:
         user = await get_user_by_id(session, tg_id)
-        if not user:
+        if not user or user.id is None:
             logger.error("User tg_id={tg_id} not found", tg_id=tg_id)
             return
         locale = user.language_code or "en"
@@ -92,7 +90,9 @@ async def process_analysis_financial(
 
     actual_days = data["days_period"]
 
-    response_schema = WeeklyAnalysisResponse if days == 7 else MonthlyAnalysisResponse
+    response_schema: Type[BaseModel] = (
+        WeeklyAnalysisResponse if days == 7 else MonthlyAnalysisResponse
+    )
     analysis_result = None
 
     try:
@@ -197,7 +197,7 @@ async def async_process_receipt(
     voice_file_path: str,
     currency: str,
     status_message_id: int | None = None,
-):
+) -> Dict[str, str]:
 
     _ = get_translator(locale)
     bot = get_shared_bot()
@@ -205,7 +205,7 @@ async def async_process_receipt(
 
     try:
 
-        if not os.path.exists(voice_file_path):
+        if voice_file_path is None or not os.path.exists(voice_file_path):
             raise FileNotFoundError("Audio file missing: {}".format(voice_file_path))
 
         with open(voice_file_path, "rb") as f:
@@ -326,7 +326,7 @@ async def async_process_receipt(
 
 async def notify_user_final_failure(
     chat_id: int, status_message_id: int, locale: str, db_user_id: int
-):
+) -> None:
 
     _ = get_translator(locale)
     bot = get_shared_bot()
@@ -350,7 +350,9 @@ async def notify_user_final_failure(
         )
 
 
-async def notify_user_analysis_final_failure(chat_id: int, tg_id: int, locale: str):
+async def notify_user_analysis_final_failure(
+    chat_id: int, tg_id: int, locale: str
+) -> None:
     bot = get_shared_bot()
     _ = get_translator(locale)
     try:

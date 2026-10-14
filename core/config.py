@@ -46,4 +46,18 @@ except KeyError:
     raise RuntimeError(" ADMIN_ID is not set in environment variables")
 
 
+try:
+    PROXI_API_KEY = os.environ["OPENAI_API_KEY"]
+except KeyError:
+    raise ValueError(
+        "Critical error: OPENAI_API_KEY must be set in the environment variables."
+    )
+
+try:
+    PROXI_BASE_URL = os.environ["OPENAI_BASE_URL"]
+except KeyError:
+    raise ValueError(
+        "Critical error: OPENAI_API_KEY must be set in the environment variables."
+    )
+
 ENGINE_KWARGS = dict(echo=False, pool_pre_ping=True, pool_recycle=1800, pool_timeout=10)

@@ -12,9 +12,9 @@ def get_worker_loop() -> asyncio.AbstractEventLoop:
         _worker_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(_worker_loop)
         logger.info(
-            "New worker event loop created: pid=%s, loop_id=%s",
-            os.getpid(),
-            id(_worker_loop),
+            "New worker event loop created: pid={pid}, loop_id={loop_id}",
+            pid=os.getpid(),
+            loop_id=id(_worker_loop),
         )
     return _worker_loop
 
@@ -29,14 +29,14 @@ def run_in_worker_loop(coro):
 
 
 def _cleanup_pending_tasks(loop: asyncio.AbstractEventLoop) -> None:
-    """Защитная сетка: если корутина где-то создала фоновую задачу через
-    create_task() и не дождалась её явно, эта задача осталась бы висеть
-    в loop между вызовами тасков. Явно отменяем всё незавершённое."""
+
     pending = {t for t in asyncio.all_tasks(loop=loop) if not t.done()}
     if not pending:
         return
 
-    logger.warning("Found %d unfinished task(s) after run, cancelling.", len(pending))
+    logger.warning(
+        "Found {count} unfinished task(s) after run, cancelling.", count=len(pending)
+    )
     for task in pending:
         task.cancel()
     loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))

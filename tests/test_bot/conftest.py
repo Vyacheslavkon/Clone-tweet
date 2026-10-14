@@ -43,31 +43,24 @@ locales_path = base_dir / "financial_bot" / "locales"
 
 @pytest.fixture(autouse=True, scope="session")
 def _configure_test_logging():
-    """
-    Автоматическая изолированная фикстура для тестов.
-    Принудительно отключает мультипроцессные очереди Loguru (enqueue=False),
-    чтобы ForkingPickler не спамил мусором в консоль при закрытии pytest.
-    """
-    # 1. Сносим глобальные хайлоад-хэндлеры на время тестов
+
     logger.remove()
 
-    # 2. Ставим легкий синхронный вывод
     logger.add(
         sys.stderr,
         level="INFO",
-        enqueue=False,  # <--- ВОТ ОН, НАШ ГЛАВНЫЙ ФИКС! Отключает асинхронный пиклинг логов
+        enqueue=False,
         backtrace=False,
         diagnose=False,
     )
 
     yield
 
-    # 3. Полностью запечатываем логи при выходе из pytest
     logger.remove()
 
 
 @pytest.fixture
-def mock_bot():  # possible merger with patch get_bot()
+def mock_bot():
     bot = AsyncMock(spec=Bot)
     bot.id = 12345678
 
@@ -149,19 +142,18 @@ async def test_transaction(test_session, test_user):
 
 class MyI18nMiddleware(I18nMiddleware):
     async def get_locale(self, event: TelegramObject, data: Dict[str, Any]) -> str:
-        # В тестах проще всего возвращать дефолтную локаль
-        # Или можно достать из event.from_user.language_code
+
         return self.i18n.default_locale
 
 
 @pytest.fixture(scope="session")
 def test_i18n():
-    """Отдельная фикстура для объекта I18n"""
+
     return I18n(path="financial_bot/locales", default_locale="en", domain="messages")
 
 
 @pytest.fixture(scope="session")
-def dp_with_routers(test_i18n):  # требует test_i18n тоже scope="session"
+def dp_with_routers(test_i18n):  # requires test_i18n тоже scope="session"
     dp = Dispatcher()
 
     i18n_middleware = MyI18nMiddleware(i18n=test_i18n)
@@ -277,9 +269,7 @@ def patch_pipeline_dependencies(mocker, test_session_for_pipeline, mock_bot):
         return_value=test_session_for_pipeline,
     )
 
-    mocker.patch(
-        "financial_bot.highload_bot.get_shared_bot", return_value=mock_bot
-    )  # maybe bot
+    mocker.patch("financial_bot.highload_bot.get_shared_bot", return_value=mock_bot)
 
     yield test_session_for_pipeline
 
@@ -337,15 +327,6 @@ async def data_for_merge_by_cat():
             ),
         ],
     )
-
-
-# @pytest.fixture
-# def mock_redis_client():
-#
-#     client = AsyncMock()
-#     pipeline_mock = AsyncMock()
-#     client.pipeline.return_value.__aenter__.return_value = pipeline_mock
-#     return client
 
 
 @pytest.fixture
@@ -406,7 +387,7 @@ def audio_file(tmp_path):
 
 @pytest.fixture
 def mock_scheduled_reports_infra(mock_bot):
-    """Инфраструктурные моки, не варьирующиеся между тестами."""
+
     with patch(
         "services.scheduled_reports.get_shared_bot", return_value=mock_bot
     ), patch(
@@ -417,7 +398,7 @@ def mock_scheduled_reports_infra(mock_bot):
 
 @pytest.fixture
 def mock_pipeline_infra(mock_bot):
-    """Инфраструктурные моки, не варьирующиеся между тестами."""
+
     with patch("services.pipelines.get_shared_bot", return_value=mock_bot), patch(
         "aiogram.client.session.aiohttp.AiohttpSession.close", new_callable=AsyncMock
     ):
@@ -432,7 +413,7 @@ def mock_save_receipt():
 
 @pytest.fixture
 def mock_redis_cache():
-    """Инвалидация кэша не должна ронять основной флоу — по умолчанию тихо успешна."""
+
     with patch("services.pipelines.get_worker_cache_service") as mock_get_service:
         mock_cache_service = AsyncMock()
         mock_get_service.return_value = mock_cache_service
@@ -449,8 +430,7 @@ def mock_analysis_ai_service():
 
 @pytest.fixture
 def mock_cache_service_analysis():
-    """Аналог mock_redis_cache, но возвращает полный AsyncMock cache_service,
-    чтобы настраивать и get_cached_analysis, и set_analysis_cache отдельно."""
+
     with patch("services.pipelines.get_worker_cache_service") as mock_get_service:
         mock_cache_service = AsyncMock()
         mock_get_service.return_value = mock_cache_service
@@ -544,7 +524,7 @@ def mock_blocked_users_bulk():
 
 @pytest.fixture(autouse=True)
 def _no_real_sleep():
-    """Не ждём реальные asyncio.sleep(0.05) между отправками в тестах."""
+
     with patch("services.scheduled_reports.asyncio.sleep", new_callable=AsyncMock):
         yield
 

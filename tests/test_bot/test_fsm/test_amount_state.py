@@ -292,7 +292,6 @@ async def test_double_click_delete_shows_not_found(
     cb_data = DeleteTransactionCallback(batch_id=batch_id).pack()
 
     await test_dp.feed_update(mock_bot, create_callback(cb_data, test_user.tg_id, 1))
-    print("MOCK DATA first:", mock_bot.mock_calls)
     result_after_first = await test_session.execute(
         select(Transactions).where(Transactions.batch_id == batch_id)
     )
