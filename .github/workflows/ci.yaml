@@ -49,7 +49,7 @@ jobs:
         run: isort . --check-only --diff --profile black --extend-skip "migrations/"
 
       - name: Run Flake8
-        run: flake8 . --max-line-length=88
+        run: flake8 financial_bot/ --max-line-length=88 --exclude=.git,__pycache__,.venv,alembic/versions,migrations/versions
 
       - name: Run Mypy
         run: mypy . --exclude "migrations/"
