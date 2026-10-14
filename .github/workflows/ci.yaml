@@ -65,6 +65,7 @@ jobs:
           OPENAI_API_KEY: fake_test_key_for_ci
           BOT_TOKEN: 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ
           OPENAI_BASE_URL: fake_test_url_for_ci
+          ANALYSIS_CACHE_REDIS: redis://localhost:6379/0
         run: |
           mkdir -p media
           pytest
