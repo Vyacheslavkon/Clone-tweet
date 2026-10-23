@@ -12,3 +12,4 @@ async def global_exception_handler(request: Request, exc: Exception):
 def setup_exception_handlers(app: FastAPI):
     # Регистрируем обработчик без декоратора
     app.add_exception_handler(Exception, global_exception_handler)
+

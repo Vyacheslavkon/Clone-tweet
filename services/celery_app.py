@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from loguru import logger as log
 
 from core.db_worker import close_worker_db_engine
+from financial_bot.highload_bot import close_shared_bot
 from logger_config import setup_logging
 from services.analysis_cache import close_worker_cache
 from services.worker_loop import close_worker_loop, get_worker_loop
@@ -43,15 +44,12 @@ def on_worker_shutdown(**kwargs) -> None:
     for name, cleanup_coro_factory in [
         ("Redis cache", close_worker_cache),
         ("DB engine", close_worker_db_engine),
+        ("Shared bot session", close_shared_bot)
     ]:
         try:
             loop.run_until_complete(cleanup_coro_factory())
         except Exception as e:  # noqa: PIE786 - shutdown cleanup fallback
-            log.error(
-                "Failed to close {name} during shutdown: {e}}",
-                name=name,
-                e=e,
-                exc_info=True,
-            )
+
+            log.opt(exception=e).error("Failed to close {name} during shutdown", name=name)
 
     close_worker_loop()
