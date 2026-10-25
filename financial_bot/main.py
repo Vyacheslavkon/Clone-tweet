@@ -13,6 +13,7 @@ from redis.asyncio import Redis
 
 from core.config import ADMIN_ID, REDIS_URL, TOKEN_BOT
 from core.database import bot_engine, bot_session_maker
+from financial_bot.bootstrap import build_runtime
 from financial_bot.handlers.adding_data import router_data
 from financial_bot.handlers.ai_consultant import ai_router
 from financial_bot.handlers.common import router
@@ -31,76 +32,88 @@ from logger_config import setup_logging
 from services.analysis_cache import FinancialCacheService
 from services.scheduled import setup_scheduler
 
-redis_fsm = Redis(
-    host="redis", port=6379, db=2, max_connections=20, decode_responses=True
-)
-storage = RedisStorage(redis=redis_fsm)
-i18n = I18n(
-    path="/application/financial_bot/locales", default_locale="en", domain="messages"
-)
-
-admin_id = ADMIN_ID
-
-redis_url = REDIS_URL
-
+# redis_fsm = Redis(
+#     host="redis", port=6379, db=2, max_connections=20, decode_responses=True
+# )
+# storage = RedisStorage(redis=redis_fsm)
+# i18n = I18n(
+#     path="/application/financial_bot/locales", default_locale="en", domain="messages"
+# )
+#
+# admin_id = ADMIN_ID
+#
+# redis_url = REDIS_URL
+#
+#
+# async def main() -> None:
+#     load_dotenv()
+#     setup_logging()
+#     bot_session = AiohttpSession()
+#     bot = Bot(
+#         token=TOKEN_BOT,
+#         session=bot_session,
+#         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+#     )
+#     dp = Dispatcher(storage=storage)
+#     session_pool = bot_session_maker
+#     scheduler = setup_scheduler()
+#     dp["admin_id"] = int(os.getenv("ADMIN_ID", 0))
+#     redis = Redis.from_url(url=redis_url, decode_responses=True, max_connections=20)
+#     cache_service = FinancialCacheService(redis_client=redis)
+#     dp["cache_service"] = cache_service
+#     dp.message.outer_middleware(SessionMiddleware(session_pool))
+#     dp.callback_query.outer_middleware(SessionMiddleware(session_pool))
+#     i18n_mw = MyI18nMiddleware(i18n=i18n)
+#     dp.message.outer_middleware(i18n_mw)
+#     dp.callback_query.outer_middleware(i18n_mw)
+#     dp.errors.middleware(SimpleI18nMiddleware(i18n))
+#     dp.update.outer_middleware(SimpleI18nMiddleware(i18n))
+#     dp.update.outer_middleware(UserActivityMiddleware())
+#     dp.include_router(router)
+#     dp.include_router(router_tr)
+#     dp.include_router(router_data)
+#     dp.include_router(report_rout)
+#     dp.include_router(history_rout)
+#     dp.include_router(ai_router)
+#     dp.include_router(router_del_transactions)
+#     dp.include_router(settings_router)
+#     dp.include_router(router_fallback)
+#
+#     try:
+#         scheduler.start()
+#         await dp.start_polling(bot)
+#
+#     except Exception as e:  # noqa
+#         logger.critical(
+#             "Critical error in bot core execution: {error}", error=e, exc_info=True
+#         )
+#
+#     finally:
+#         await redis_fsm.aclose()
+#         logger.info("Redis FSM client closed.")
+#
+#         scheduler.shutdown()
+#         logger.info("Scheduler stopped.")
+#
+#         await redis.aclose()
+#         logger.info("Redis cache client closed.")
+#
+#         await bot_session.close()
+#         logger.info("Bot HTTP session closed.")
+#
+#         await bot_engine.dispose()
 
 async def main() -> None:
-    load_dotenv()
     setup_logging()
-    bot_session = AiohttpSession()
-    bot = Bot(
-        token=TOKEN_BOT,
-        session=bot_session,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-    )
-    dp = Dispatcher(storage=storage)
-    session_pool = bot_session_maker
-    scheduler = setup_scheduler()
-    dp["admin_id"] = int(os.getenv("ADMIN_ID", 0))
-    redis = Redis.from_url(url=redis_url, decode_responses=True, max_connections=20)
-    cache_service = FinancialCacheService(redis_client=redis)
-    dp["cache_service"] = cache_service
-    dp.message.outer_middleware(SessionMiddleware(session_pool))
-    dp.callback_query.outer_middleware(SessionMiddleware(session_pool))
-    i18n_mw = MyI18nMiddleware(i18n=i18n)
-    dp.message.outer_middleware(i18n_mw)
-    dp.callback_query.outer_middleware(i18n_mw)
-    dp.errors.middleware(SimpleI18nMiddleware(i18n))
-    dp.update.outer_middleware(SimpleI18nMiddleware(i18n))
-    dp.update.outer_middleware(UserActivityMiddleware())
-    dp.include_router(router)
-    dp.include_router(router_tr)
-    dp.include_router(router_data)
-    dp.include_router(report_rout)
-    dp.include_router(history_rout)
-    dp.include_router(ai_router)
-    dp.include_router(router_del_transactions)
-    dp.include_router(settings_router)
-    dp.include_router(router_fallback)
-
+    rt = build_runtime()
     try:
-        scheduler.start()
-        await dp.start_polling(bot)
-
-    except Exception as e:  # noqa
-        logger.critical(
-            "Critical error in bot core execution: {error}", error=e, exc_info=True
-        )
-
+        rt.scheduler.start()
+        await rt.dp.start_polling(rt.bot)
+    except Exception as e:  # noqa: PIE786 - top-level boundary: log, then cleanup in finally
+        logger.critical("Critical error in bot core: {error}", error=e, exc_info=True)
     finally:
-        await redis_fsm.aclose()
-        logger.info("Redis FSM client closed.")
-
-        scheduler.shutdown()
-        logger.info("Scheduler stopped.")
-
-        await redis.aclose()
-        logger.info("Redis cache client closed.")
-
-        await bot_session.close()
-        logger.info("Bot HTTP session closed.")
-
-        await bot_engine.dispose()
+        rt.scheduler.shutdown(wait=False)
+        await rt.close()
 
 
 if __name__ == "__main__":
