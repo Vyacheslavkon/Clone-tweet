@@ -5,9 +5,7 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool.impl import NullPool
 
-from core.database import get_bot_db
 from core.db_base import Base
-from main import app
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 if TEST_DATABASE_URL is None:
@@ -30,25 +28,17 @@ async def setup_test_db():
     await test_engine.dispose()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def test_session():
-    app.dependency_overrides.clear()
-
     async with test_engine.connect() as connection:
-
         transaction = await connection.begin()
-        async with AsyncSession(bind=connection, expire_on_commit=False) as session:
-
-            async def override_get_db():
-                yield session
-
-            app.dependency_overrides[get_bot_db()] = override_get_db
+        async with AsyncSession(
+            bind=connection,
+            expire_on_commit=False,
+            join_transaction_mode="create_savepoint",
+        ) as session:
             yield session
-
-            await session.close()
-
         await transaction.rollback()
-        app.dependency_overrides.clear()
 
 
 @pytest.fixture
