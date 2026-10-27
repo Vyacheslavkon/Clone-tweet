@@ -6,194 +6,61 @@ x-common-setup: &common-setup
       GROUP_ID: ${GROUP_ID:-1000}
   user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
   logging:
-    driver: "json-file"
-    options:
-      max-size: "50m"
-      max-file: "3"
-  restart: on-failure
-  networks:
-    - app-network
-  dns:
-    - 8.8.8.8
-    - 1.1.1.1
-
+    driver: json-file
+    options: {max-size: "50m", max-file: "3"}
+  restart: unless-stopped
+  networks: [app-network]
+  environment: &common-env
+    PYTHONPATH: /application
+    PYTHONUNBUFFERED: "1"
 
 services:
-  app:
-
-    <<: *common-setup
-
-    volumes:
-      - ./application:/application/application
-      - ./financial_bot:/application/financial_bot
-      - ./migrations:/application/migrations
-      - ./static:/application/static
-      - ./alembic.ini:/application/alembic.ini
-      - ./main.py:/application/main.py
-      - ./pytest.ini:/application/pytest.ini
-      - ./requirement.txt:/application/requirement.txt
-      - ./tests:/application/tests
-      - ./media:/application/media
-      - ./${LOG_PATH:-./logs}:/application/logs
-      - ./core:/application/core
-      - ./logger_config.py:/application/logger_config.py
-
-    command: ["python", "main.py", "--reload", "--log-level", "debug"]
-
-    ports:
-      - "8000:8000"
-
-    environment:
-      - PYTHONPATH=/application
-      - PYTHONUNBUFFERED=1
-      - LOG_FILENAME=fastapi.log
-
-    env_file:
-      - .env
-      - .env.test
-
-    depends_on:
-      db:
-        condition: service_healthy
-
-
-
-
-
   fin_bot:
-
     <<: *common-setup
-
-    entrypoint: ./entrypoint.sh
-    volumes:
-      - ./application:/application/application
-      - ./main.py:/application/main.py
-      - ./financial_bot:/application/financial_bot
-      - ./migrations:/application/migrations
-      - ./alembic.ini:/application/alembic.ini
-      - ./services:/application/services
-      - ./pytest.ini:/application/pytest.ini
-      - ./requirement.txt:/application/requirement.txt
-      - ./tests:/application/tests
-      - ./${LOG_PATH:-./logs}:/application/logs
-      - ./core:/application/core
-      - ./logger_config.py:/application/logger_config.py
-      - shared_stt_audio:/tmp/financial_bot_stt
-
-    command: python -m financial_bot.main
-
+    env_file: [.env]
     environment:
-      - PYTHONPATH=/application
-      - PYTHONUNBUFFERED=1
-      - LOG_FILENAME=bot.log
-
-    env_file:
-      - .env
-      - .env.test
-
+      <<: *common-env
+      LOG_FILENAME: bot.log
+    volumes:
+      - shared_stt_audio:/tmp/financial_bot_stt
     depends_on:
-      db:
-        condition: service_healthy
+      db: {condition: service_healthy}
+      redis: {condition: service_started}
 
-
+  worker:
+    <<: *common-setup
+    env_file: [.env]
+    command: celery -A services.celery_app:app worker --loglevel=info
+    environment:
+      <<: *common-env
+      LOG_FILENAME: worker.log
+    volumes:
+      - shared_stt_audio:/tmp/financial_bot_stt
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_started}
 
   db:
-    image: postgres
-    restart: always
+    image: postgres:18.3
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-
-    ports:
-      - "5432:5432"
-
     volumes:
       - db-data:/var/lib/postgresql
-
-
-
-    command:
-      [
-        "postgres",
-        "-c", "log_destination=stderr",
-        "-c", "logging_collector=on",
-        "-c", "log_directory=/var/log/postgresql"
-      ]
-    networks:
-      - app-network
-
+    networks: [app-network]
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 10s
 
-
-  db_test:
-    image: postgres:15-alpine
-    restart: always
-    environment:
-      POSTGRES_USER: slava_t
-      POSTGRES_PASSWORD: 1989_slava_t
-      POSTGRES_DB: test_db
-    ports:
-      - "5433:5432"
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U slava_t -d test_db" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-    networks:
-      - app-network
-
-
   redis:
     image: redis:7.4.2-alpine
-    restart: always
-    ports:
-      - "6379:6379"
-
-    networks:
-      - app-network
-
-  test_redis:
-    image: redis:7.4.2-alpine
-    # Порт 6380 снаружи, чтобы не конфликтовал с основным redis (6379)
-    ports:
-      - "6380:6379"
-
-    networks:
-      - app-network
-
-  worker:
-    <<: *common-setup
-
-    volumes:
-      - ./financial_bot:/application/financial_bot
-      - ./migrations:/application/migrations
-      - ./alembic.ini:/application/alembic.ini
-      - ./core:/application/core
-      - ./services:/application/services
-      - ./${LOG_PATH:-./logs}:/application/logs
-      - ./logger_config.py:/application/logger_config.py
-      - shared_stt_audio:/tmp/financial_bot_stt
-
-    command: celery -A services.celery_app:app worker --loglevel=info
-    depends_on:
-      - redis
-      - db
-    environment:
-      - PYTHONPATH=/application
-      - PYTHONUNBUFFERED=1
-      - LOG_FILENAME=worker.log
-      - DATABASE_URL=${DATABASE_URL_DOCKER}
-
-    env_file:
-      - .env
-
+    restart: unless-stopped
+    networks: [app-network]
 
 networks:
   app-network:
@@ -201,13 +68,8 @@ networks:
     driver_opts:
       com.docker.network.driver.mtu: "1400"
 
-
 volumes:
   db-data:
-  paddle_models:
   shared_stt_audio:
     driver: local
-    driver_opts:
-      type: tmpfs
-      device: tmpfs
-      o: "size=512m,uid=1000"
+    driver_opts: {type: tmpfs, device: tmpfs, o: "size=512m,uid=1000"}

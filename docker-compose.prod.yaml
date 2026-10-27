@@ -1,0 +1,29 @@
+services:
+  fin_bot:
+    command: >
+      uvicorn financial_bot.webapp:app
+      --host 0.0.0.0 --port 8081 --workers 1 --no-access-log
+    expose: ["8081"]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8081/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  worker:
+    security_opt: ["no-new-privileges:true"]
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.10.3
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks: [app-network]
+    depends_on:
+      fin_bot: {condition: service_healthy}

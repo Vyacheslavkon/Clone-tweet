@@ -21,7 +21,7 @@ from migrations import utils
 @asynccontextmanager
 async def lifespan(_: FastAPI):
 
-    await to_thread.run_sync(utils.run_upgrade)  # new
+    await to_thread.run_sync(utils.run_upgrade)
 
     yield
 
