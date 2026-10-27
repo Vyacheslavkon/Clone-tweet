@@ -4,7 +4,9 @@
 __pycache__
 .env
 Dockerfile
-docker-compose.base.yaml
+docker-compose.dev.yaml
+docker-compose.prod.yaml
+docker-compose.yaml
 .gitignore
 .dockerignore
 .pytest_cache

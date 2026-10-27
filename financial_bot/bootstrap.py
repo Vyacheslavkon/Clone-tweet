@@ -22,7 +22,11 @@ from financial_bot.handlers.history import history_rout
 from financial_bot.handlers.reports import report_rout
 from financial_bot.handlers.settings import settings_router
 from financial_bot.handlers.transactions import router_tr
-from financial_bot.middlewares import SessionMiddleware, MyI18nMiddleware, UserActivityMiddleware
+from financial_bot.middlewares import (
+    MyI18nMiddleware,
+    SessionMiddleware,
+    UserActivityMiddleware,
+)
 from services.analysis_cache import FinancialCacheService
 from services.scheduled import setup_scheduler
 
@@ -52,11 +56,17 @@ class Runtime:
 
 
 def build_runtime() -> Runtime:
-    redis_fsm = Redis(host="redis", port=6379, db=2, max_connections=20, decode_responses=True)
+    redis_fsm = Redis(
+        host="redis", port=6379, db=2, max_connections=20, decode_responses=True
+    )
     redis_url = os.environ["ANALYSIS_CACHE_REDIS"]
     redis_cache = Redis.from_url(redis_url, decode_responses=True, max_connections=20)
 
-    i18n = I18n(path="/application/financial_bot/locales", default_locale="en", domain="messages")
+    i18n = I18n(
+        path="/application/financial_bot/locales",
+        default_locale="en",
+        domain="messages",
+    )
 
     bot_session = AiohttpSession()
     bot = Bot(
@@ -78,8 +88,17 @@ def build_runtime() -> Runtime:
     dp.update.outer_middleware(SimpleI18nMiddleware(i18n))
     dp.update.outer_middleware(UserActivityMiddleware())
 
-    for r in (router, router_tr, router_data, report_rout, history_rout,
-              ai_router, router_del_transactions, settings_router, router_fallback):
+    for r in (
+        router,
+        router_tr,
+        router_data,
+        report_rout,
+        history_rout,
+        ai_router,
+        router_del_transactions,
+        settings_router,
+        router_fallback,
+    ):
         dp.include_router(r)
 
     return Runtime(bot, dp, setup_scheduler(), redis_fsm, redis_cache, bot_session)

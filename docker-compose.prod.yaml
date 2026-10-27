@@ -19,7 +19,7 @@ services:
     security_opt: ["no-new-privileges:true"]
 
   cloudflared:
-    image: cloudflare/cloudflared:2026.10.1
+    image: cloudflare/cloudflared:2026.10.3
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     environment:

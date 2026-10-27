@@ -20,9 +20,6 @@ async def lifespan(app: FastAPI):
     rt = build_runtime()
     app.state.rt = rt
 
-    # Вызываем set_webhook всегда, без сравнения URL: get_webhook_info не
-    # возвращает secret_token, и при его смене сравнение по URL оставило бы
-    # старый секрет, а Telegram получал бы 403.
     await rt.bot.set_webhook(
         url=f"{WEBHOOK_BASE_URL}{WEBHOOK_PATH}",
         secret_token=WEBHOOK_SECRET,
@@ -39,7 +36,6 @@ async def lifespan(app: FastAPI):
         await rt.close()
 
 
-# Публичный hostname туннеля виден всему интернету, поэтому документация отключена
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 
 
@@ -48,7 +44,9 @@ async def telegram_webhook(
     request: Request,
     x_telegram_bot_api_secret_token: str | None = Header(default=None),
 ) -> dict:
-    if not secrets.compare_digest(x_telegram_bot_api_secret_token or "", WEBHOOK_SECRET):
+    if not secrets.compare_digest(
+        x_telegram_bot_api_secret_token or "", WEBHOOK_SECRET
+    ):
         raise HTTPException(status_code=403)
 
     rt = request.app.state.rt
@@ -56,8 +54,10 @@ async def telegram_webhook(
 
     try:
         await rt.dp.feed_update(rt.bot, update)
-    except Exception:  # noqa: PIE786 - boundary: log and ACK, otherwise Telegram retries a poison update forever
-        logger.exception("Unhandled error while processing update_id={uid}", uid=update.update_id)
+    except Exception:  # noqa: PIE786 otherwise Telegram retries a poison update forever
+        logger.exception(
+            "Unhandled error while processing update_id={uid}", uid=update.update_id
+        )
 
     return {"ok": True}
 

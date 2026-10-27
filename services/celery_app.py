@@ -44,12 +44,14 @@ def on_worker_shutdown(**kwargs) -> None:
     for name, cleanup_coro_factory in [
         ("Redis cache", close_worker_cache),
         ("DB engine", close_worker_db_engine),
-        ("Shared bot session", close_shared_bot)
+        ("Shared bot session", close_shared_bot),
     ]:
         try:
             loop.run_until_complete(cleanup_coro_factory())
         except Exception as e:  # noqa: PIE786 - shutdown cleanup fallback
 
-            log.opt(exception=e).error("Failed to close {name} during shutdown", name=name)
+            log.opt(exception=e).error(
+                "Failed to close {name} during shutdown", name=name
+            )
 
     close_worker_loop()
