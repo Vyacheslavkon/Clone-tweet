@@ -13,6 +13,9 @@ x-common-setup: &common-setup
   environment: &common-env
     PYTHONPATH: /application
     PYTHONUNBUFFERED: "1"
+  dns:
+    - 8.8.8.8
+    - 1.1.1.1
 
 services:
   fin_bot:
