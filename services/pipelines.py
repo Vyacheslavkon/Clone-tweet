@@ -116,13 +116,31 @@ async def process_analysis_financial(
             user_id=user.id,
         )
 
-        analysis_result = await ai_service.analysis_financial(
-            summary_data=data,
-            response_schema=response_schema,
-            days=days,
-            actual_days=actual_days,
-            locale=locale,
-        )
+        # analysis_result = await ai_service.analysis_financial(
+        #     summary_data=data,
+        #     response_schema=response_schema,
+        #     days=days,
+        #     actual_days=actual_days,
+        #     locale=locale,
+        # )
+        # test
+
+        try:
+            analysis_result = await ai_service.analysis_financial(
+                summary_data=data,
+                response_schema=response_schema,
+                days=days,
+                actual_days=actual_days,
+                locale=locale,
+            )
+        except TruncatedResponseError:
+            logger.warning("Analysis truncated for user_id={uid}", uid=user.id)
+            await bot.send_message(
+                chat_id=chat_id,
+                text=_("❌ Too much data to analyze at once. Please try again later."),
+            )
+            return
+
 
         try:
             cache_service = get_worker_cache_service()

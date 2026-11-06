@@ -16,11 +16,19 @@ db_url = os.getenv("DATABASE_URL_DOCKER")
 if db_url:
     SYNC_URL_FOR_ALEMBIC = db_url.replace(
         "postgresql+asyncpg://", "postgresql://"
-    )  # new
+    )
 else:
-    "".replace("postgresql+asyncpg://", "postgresql://")  # new
+    "".replace("postgresql+asyncpg://", "postgresql://")
 
 ALEMBIC_SCRIPTS = BASE_DIR / "migrations"
+
+CLIENT_TIMEOUT = 30.0
+STT_TIMEOUT = 60.0
+CLIENT_MAX_RETRIES = 1
+RECEIPT_MAX_TOKENS = 800
+ANALYSIS_MAX_TOKENS = 2000
+
+FAILOVER_STATUS_CODES = {401, 402, 403, 408, 429}
 
 try:
     TOKEN_BOT: str = os.environ["BOT_TOKEN"]
@@ -61,3 +69,8 @@ except KeyError:
     )
 
 ENGINE_KWARGS = dict(echo=False, pool_pre_ping=True, pool_recycle=1800, pool_timeout=10)
+
+
+
+
+

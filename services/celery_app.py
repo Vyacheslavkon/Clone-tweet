@@ -10,6 +10,7 @@ from financial_bot.highload_bot import close_shared_bot
 from logger_config import setup_logging
 from services.analysis_cache import close_worker_cache
 from services.worker_loop import close_worker_loop, get_worker_loop
+from services.client import ai_service # new
 
 load_dotenv()
 
@@ -45,6 +46,7 @@ def on_worker_shutdown(**kwargs) -> None:
         ("Redis cache", close_worker_cache),
         ("DB engine", close_worker_db_engine),
         ("Shared bot session", close_shared_bot),
+        ("AI clients", ai_service.close),
     ]:
         try:
             loop.run_until_complete(cleanup_coro_factory())

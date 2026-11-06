@@ -8,7 +8,7 @@ import pytest
 from financial_bot.general_utils import get_today_boundaries_utc
 from financial_bot.handlers.utils import is_valid_timezone, to_local_time
 from financial_bot.states.settings_states import SettingsState
-from services.client import AIService
+from services.client_orig import AIService
 from services.prompts import get_analysis_financial
 from services.schemas import (
     MonthlyAnalysisResponse,
