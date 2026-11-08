@@ -21,7 +21,7 @@ T = TypeVar("T", bound=BaseModel)
 class Backend:
     name: str
     client: AsyncOpenAI
-    client_x: httpx.AsyncClient
+    client_x: httpx.AsyncClient # for STT in base64 format (OpenRouter)
     model: str
     stt_mode: str
     stt_model: str
@@ -266,11 +266,16 @@ class AIService:
             logger.warning("Analysis truncated for schema {s}", s=response_schema.__name__)
             raise TruncatedResponseError("Analysis response was truncated") from exc
 
-
     async def close(self) -> None:
-        unique = {id(b.client): b.client for b in (*self.chat_backends, *self.stt_backends)}
-        for client in unique.values():
-            await client.close()
+        backends = (*self.chat_backends, *self.stt_backends)
+
+        openai_clients = {id(b.client): b.client for b in backends}
+        http_clients = {id(b.client_x): b.client_x for b in backends}
+
+        for c in openai_clients.values():
+            await c.close()
+        for c in http_clients.values():
+            await c.aclose()
 
 
 def _make_backend(prefix: str, *, openrouter_extras: bool = False) -> Backend | None:

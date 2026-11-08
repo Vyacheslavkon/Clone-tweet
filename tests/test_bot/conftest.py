@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import Any, Dict
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
+import openai
 import pytest
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
@@ -27,7 +29,7 @@ from financial_bot.repositories import (
 from financial_bot.schemas import AddData, CreateUser
 from services.analysis_cache import FinancialCacheService
 from services.celery_app import app as celery_app
-from services.client import ai_service
+from services.client import ai_service, AIService, Backend
 from services.schemas import (
     MonthlyAnalysisResponse,
     ReceiptAnalysisSchema,
@@ -40,6 +42,7 @@ current_file_path = Path(__file__).resolve()
 base_dir = current_file_path.parent.parent.parent
 locales_path = base_dir / "financial_bot" / "locales"
 
+REQ = httpx.Request("POST", "https://example.test/v1")
 
 @pytest.fixture(autouse=True, scope="session")
 def _configure_test_logging():
@@ -546,3 +549,25 @@ summary_data = {
         }
     ],
 }
+
+# @pytest.fixture
+# def backend(name: str) -> Backend:
+#     return Backend(name=name, client=AsyncMock(), model="m",
+#                    client_x=AsyncMock, stt_model="x", stt_mode="f")
+#
+#
+# @pytest.fixture
+# def service():
+#     return AIService([backend("primary"), backend("fallback")], [backend("stt")])
+#
+#
+# @pytest.fixture
+# def status_error(code: int):
+#     resp = httpx.Response(code, request=REQ)
+#     cls = {400: openai.BadRequestError, 429: openai.RateLimitError,
+#            401: openai.AuthenticationError}.get(code, openai.APIStatusError)
+#     return cls("err", response=resp, body=None)
+#
+# @pytest.fixture
+# def conn_error():
+#     return openai.APIConnectionError(request=REQ)
