@@ -6,29 +6,6 @@ from unittest.mock import AsyncMock
 from services.client import AIService, Backend, ProviderResponseError, is_failover_error
 from services.exceptions import TruncatedResponseError
 
-REQ = httpx.Request("POST", "https://example.test/v1")
-
-
-def conn_error():
-    return openai.APIConnectionError(request=REQ)
-
-
-def status_error(code: int):
-    resp = httpx.Response(code, request=REQ)
-    cls = {400: openai.BadRequestError, 429: openai.RateLimitError,
-           401: openai.AuthenticationError}.get(code, openai.APIStatusError)
-    return cls("err", response=resp, body=None)
-
-
-def backend(name: str) -> Backend:
-    return Backend(name=name, client=AsyncMock(), model="m",
-                   client_x=AsyncMock, stt_model="x", stt_mode="f")
-
-
-@pytest.fixture
-def service():
-    return AIService([backend("primary"), backend("fallback")], [backend("stt")])
-
 
 async def test_primary_ok_fallback_not_called(service):
     calls = []
@@ -39,16 +16,16 @@ async def test_primary_ok_fallback_not_called(service):
     assert calls == ["primary"]
 
 
-async def test_connection_error_switches_to_fallback(service):
+async def test_connection_error_switches_to_fallback(service, conn_error):
     async def call(b):
         if b.name == "primary":
-            raise conn_error()
+            raise conn_error
         return "from-fallback"
     assert await service._with_failover(service.chat_backends, "t", call) == "from-fallback"
 
 
 @pytest.mark.parametrize("code", [401, 402, 429, 500, 503])
-async def test_availability_status_codes_switch(service, code):
+async def test_availability_status_codes_switch(service, code, status_error):
     async def call(b):
         if b.name == "primary":
             raise status_error(code)
@@ -56,7 +33,7 @@ async def test_availability_status_codes_switch(service, code):
     assert await service._with_failover(service.chat_backends, "t", call) == "ok"
 
 
-async def test_bad_request_does_not_switch(service):
+async def test_bad_request_does_not_switch(service, status_error):
     calls = []
     async def call(b):
         calls.append(b.name)
@@ -76,9 +53,9 @@ async def test_truncation_does_not_switch(service):
     assert calls == ["primary"]
 
 
-async def test_all_backends_fail_raises_last(service):
+async def test_all_backends_fail_raises_last(service, conn_error, status_error):
     async def call(b):
-        raise conn_error() if b.name == "primary" else status_error(500)
+        raise conn_error if b.name == "primary" else status_error(500)
     with pytest.raises(openai.APIStatusError):
         await service._with_failover(service.chat_backends, "t", call)
 

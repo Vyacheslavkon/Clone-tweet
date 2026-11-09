@@ -550,24 +550,33 @@ summary_data = {
     ],
 }
 
-# @pytest.fixture
-# def backend(name: str) -> Backend:
-#     return Backend(name=name, client=AsyncMock(), model="m",
-#                    client_x=AsyncMock, stt_model="x", stt_mode="f")
-#
-#
-# @pytest.fixture
-# def service():
-#     return AIService([backend("primary"), backend("fallback")], [backend("stt")])
-#
-#
-# @pytest.fixture
-# def status_error(code: int):
-#     resp = httpx.Response(code, request=REQ)
-#     cls = {400: openai.BadRequestError, 429: openai.RateLimitError,
-#            401: openai.AuthenticationError}.get(code, openai.APIStatusError)
-#     return cls("err", response=resp, body=None)
-#
-# @pytest.fixture
-# def conn_error():
-#     return openai.APIConnectionError(request=REQ)
+
+def backend(name: str) -> Backend:
+
+    return Backend(name=name, client=AsyncMock(), model="m",
+                   client_x=AsyncMock, stt_model="x", stt_mode="f")
+
+
+@pytest.fixture
+def service():
+    return AIService([backend("primary"), backend("fallback")], [backend("stt")])
+
+
+
+@pytest.fixture
+def status_error():
+    def _make_error(code: int):
+        resp = httpx.Response(code, request=REQ)
+        cls = {
+            400: openai.BadRequestError,
+            429: openai.RateLimitError,
+            401: openai.AuthenticationError
+        }.get(code, openai.APIStatusError)
+        return cls("err", response=resp, body=None)
+
+    return _make_error
+
+
+@pytest.fixture
+def conn_error():
+    return openai.APIConnectionError(request=REQ)
