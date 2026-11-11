@@ -320,6 +320,9 @@ def _make_backend(prefix: str, *, openrouter_extras: bool = False) -> Backend | 
     )
 
 def build_ai_service() -> AIService:
+    #os.environ["AI_PRIMARY_MODEL"] = "corrupted_smoke_test_key_123"
+    #os.environ["AI_PRIMARY_BASE_URL"] = "https://broken-provider-url-for-test.com"
+
     primary = _make_backend("AI_PRIMARY", openrouter_extras="openrouter" in os.environ.get("AI_PRIMARY_BASE_URL", ""))
     fallback = _make_backend("AI_FALLBACK")
 
