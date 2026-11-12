@@ -3,6 +3,7 @@ import asyncio
 import httpx
 import openai
 import pytest
+import respx
 from pydantic import BaseModel
 
 from services.client import Backend, AIService
@@ -62,11 +63,11 @@ def service():
     )
 
 
-# @pytest.fixture
-# def api():
-#     # fallback-маршруты часто остаются невызванными, это нормально
-#     with respx.mock(assert_all_called=False) as router:
-#         yield router
+@pytest.fixture
+def api():
+    # fallback-маршруты часто остаются невызванными, это нормально
+    with respx.mock(assert_all_called=False) as router:
+        yield router
 
 
 
