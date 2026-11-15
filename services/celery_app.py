@@ -4,6 +4,7 @@ from celery import Celery
 from celery.signals import after_setup_logger, worker_shutdown
 from dotenv import load_dotenv
 from loguru import logger as log
+from celery.signals import setup_logging as celery_setup_logging, worker_process_init, worker_shutdown
 
 from core.db_worker import close_worker_db_engine
 from financial_bot.highload_bot import close_shared_bot
@@ -33,8 +34,17 @@ app.conf.update(
 )
 
 
-@after_setup_logger.connect
-def setup_celery_logger(logger, *args, **kwargs) -> None:
+# @after_setup_logger.connect
+# def setup_celery_logger(logger, *args, **kwargs) -> None:гов сам
+#     setup_logging()
+
+
+@celery_setup_logging.connect          # отключает перехват логов самим Celery
+def _celery_logging(**kwargs):
+    setup_logging()
+
+@worker_process_init.connect           # в каждом дочернем процессе после fork
+def _child_logging(**kwargs):
     setup_logging()
 
 

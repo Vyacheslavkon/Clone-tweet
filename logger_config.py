@@ -8,15 +8,27 @@ from loguru import logger
 load_dotenv()
 
 log_path = os.getenv("LOG_PATH", "logs")
-log_level = os.getenv("LOG_LEVEL", "DEBUG")
+log_level = os.getenv("LOG_LEVEL", "INFO")
 rotation = os.getenv("LOG_ROTATION", "50 MB")
 retention = os.getenv("LOG_RETENTION", "7 days")
 log_filename = os.getenv("LOG_FILENAME", "app.log")
-
+is_dev = os.getenv("APP_ENV", "dev") == "dev"
 
 def info_only_filter(record):
 
     return record["level"].no < 40
+
+
+class InterceptHandler(logging.Handler):
+    def emit(self, record):
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = record.levelno
+        frame, depth = logging.currentframe(), 2
+        while frame and frame.f_code.co_filename == logging.__file__:
+            frame, depth = frame.f_back, depth + 1
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
 def setup_logging():
@@ -27,8 +39,10 @@ def setup_logging():
         sys.stdout,
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | "
         "{name}:{function}:{line} - {message}",
-        level="DEBUG",
+        level=log_level,
         enqueue=True,
+        diagnose=is_dev,
+        colorize=True,
     )
 
     logger.add(
@@ -41,6 +55,8 @@ def setup_logging():
         retention=retention,
         compression="zip",
         enqueue=True,
+        backtrace=True,
+        diagnose=False
     )
 
     logger.add(
@@ -51,21 +67,25 @@ def setup_logging():
         rotation="20 MB",
         retention=retention,
         enqueue=True,
+        backtrace=True,
+        diagnose=False,
+        serialize=True,
     )
 
-    class InterceptHandler(logging.Handler):
-        def emit(self, record):
-            try:
-                level = logger.level(record.levelname).name
-            except ValueError:
-                level = record.levelno
-            frame, depth = sys._getframe(6), 6
-            while frame and frame.f_code.co_filename == logging.__file__:
-                frame = frame.f_back
-                depth += 1
-            logger.opt(depth=depth, exception=record.exc_info).log(
-                level, record.getMessage()
-            )
+    # class InterceptHandler(logging.Handler):
+    #     def emit(self, record):
+    #         try:
+    #             level = logger.level(record.levelname).name
+    #         except ValueError:
+    #             level = record.levelno
+    #         frame, depth = sys._getframe(6), 6
+    #         while frame and frame.f_code.co_filename == logging.__file__:
+    #             frame = frame.f_back
+    #             depth += 1
+    #         logger.opt(depth=depth, exception=record.exc_info).log(
+    #             level, record.getMessage()
+    #         )
 
-    # Принудительно направляем всё в Loguru
+    logger.configure(extra={"component": "app"})
+
     logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
