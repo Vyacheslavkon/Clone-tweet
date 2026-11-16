@@ -1,7 +1,6 @@
 import os
 
 from celery import Celery
-from celery.signals import after_setup_logger, worker_shutdown
 from dotenv import load_dotenv
 from loguru import logger as log
 from celery.signals import setup_logging as celery_setup_logging, worker_process_init, worker_shutdown
@@ -34,16 +33,14 @@ app.conf.update(
 )
 
 
-# @after_setup_logger.connect
-# def setup_celery_logger(logger, *args, **kwargs) -> None:гов сам
-#     setup_logging()
 
 
-@celery_setup_logging.connect          # отключает перехват логов самим Celery
+
+@celery_setup_logging.connect
 def _celery_logging(**kwargs):
     setup_logging()
 
-@worker_process_init.connect           # в каждом дочернем процессе после fork
+@worker_process_init.connect
 def _child_logging(**kwargs):
     setup_logging()
 

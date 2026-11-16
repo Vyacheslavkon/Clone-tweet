@@ -39,6 +39,7 @@ services:
       LOG_FILENAME: worker.log
     volumes:
       - shared_stt_audio:/tmp/financial_bot_stt
+      - ./${LOG_PATH:-logs}:/application/logs
     depends_on:
       db: {condition: service_healthy}
       redis: {condition: service_started}

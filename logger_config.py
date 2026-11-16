@@ -60,7 +60,7 @@ def setup_logging():
     )
 
     logger.add(
-        f"{log_path}/errors.log",
+        f"{log_path}/errors_{log_filename}.log",
         level="ERROR",
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | "
         "{name}:{function}:{line} - {message}",
@@ -72,19 +72,6 @@ def setup_logging():
         serialize=True,
     )
 
-    # class InterceptHandler(logging.Handler):
-    #     def emit(self, record):
-    #         try:
-    #             level = logger.level(record.levelname).name
-    #         except ValueError:
-    #             level = record.levelno
-    #         frame, depth = sys._getframe(6), 6
-    #         while frame and frame.f_code.co_filename == logging.__file__:
-    #             frame = frame.f_back
-    #             depth += 1
-    #         logger.opt(depth=depth, exception=record.exc_info).log(
-    #             level, record.getMessage()
-    #         )
 
     logger.configure(extra={"component": "app"})
 
