@@ -1,7 +1,8 @@
+from unittest.mock import AsyncMock
+
 import httpx
 import openai
 import pytest
-from unittest.mock import AsyncMock
 
 from services.client import AIService, Backend, ProviderResponseError, is_failover_error
 from services.exceptions import TruncatedResponseError
@@ -9,9 +10,11 @@ from services.exceptions import TruncatedResponseError
 
 async def test_primary_ok_fallback_not_called(service):
     calls = []
+
     async def call(b):
         calls.append(b.name)
         return "ok"
+
     assert await service._with_failover(service.chat_backends, "t", call) == "ok"
     assert calls == ["primary"]
 
@@ -21,7 +24,11 @@ async def test_connection_error_switches_to_fallback(service, conn_error):
         if b.name == "primary":
             raise conn_error
         return "from-fallback"
-    assert await service._with_failover(service.chat_backends, "t", call) == "from-fallback"
+
+    assert (
+        await service._with_failover(service.chat_backends, "t", call)
+        == "from-fallback"
+    )
 
 
 @pytest.mark.parametrize("code", [401, 402, 429, 500, 503])
@@ -30,24 +37,29 @@ async def test_availability_status_codes_switch(service, code, status_error):
         if b.name == "primary":
             raise status_error(code)
         return "ok"
+
     assert await service._with_failover(service.chat_backends, "t", call) == "ok"
 
 
 async def test_bad_request_does_not_switch(service, status_error):
     calls = []
+
     async def call(b):
         calls.append(b.name)
         raise status_error(400)
+
     with pytest.raises(openai.BadRequestError):
         await service._with_failover(service.chat_backends, "t", call)
-    assert calls == ["primary"]            # резерв не вызывался
+    assert calls == ["primary"]  # резерв не вызывался
 
 
 async def test_truncation_does_not_switch(service):
     calls = []
+
     async def call(b):
         calls.append(b.name)
         raise TruncatedResponseError("cut")
+
     with pytest.raises(TruncatedResponseError):
         await service._with_failover(service.chat_backends, "t", call)
     assert calls == ["primary"]
@@ -56,6 +68,7 @@ async def test_truncation_does_not_switch(service):
 async def test_all_backends_fail_raises_last(service, conn_error, status_error):
     async def call(b):
         raise conn_error if b.name == "primary" else status_error(500)
+
     with pytest.raises(openai.APIStatusError):
         await service._with_failover(service.chat_backends, "t", call)
 
@@ -69,13 +82,15 @@ async def test_stt_fallback_receives_full_audio_after_primary_failure():
     received = {}
     client_x = AsyncMock()
     client = AsyncMock()
-    primary =Backend("primary", client, client_x, "m", "base64_json", "f")
+    primary = Backend("primary", client, client_x, "m", "base64_json", "f")
     primary.client_x.post = AsyncMock(side_effect=httpx.ConnectError("down"))
 
     fallback = Backend("fallback", client, client_x, "m", "multipart", "f")
+
     async def create(model, file, timeout):
         received["data"] = file.read()
         return type("T", (), {"text": "hello"})()
+
     fallback.client.audio.transcriptions.create = create
 
     svc = AIService([primary], [primary, fallback])

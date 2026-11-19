@@ -11,22 +11,33 @@ from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from core.config import STT_TIMEOUT, RECEIPT_MAX_TOKENS, ANALYSIS_MAX_TOKENS, CLIENT_TIMEOUT, CLIENT_MAX_RETRIES
-from services.exceptions import is_failover_error, ProviderResponseError, TruncatedResponseError
-from services.prompts import get_voice_message, language_name, get_analysis_financial
+from core.config import (
+    ANALYSIS_MAX_TOKENS,
+    CLIENT_MAX_RETRIES,
+    CLIENT_TIMEOUT,
+    RECEIPT_MAX_TOKENS,
+    STT_TIMEOUT,
+)
+from services.exceptions import (
+    ProviderResponseError,
+    TruncatedResponseError,
+    is_failover_error,
+)
+from services.prompts import get_analysis_financial, get_voice_message, language_name
 
 T = TypeVar("T", bound=BaseModel)
+R = TypeVar("R")
+
 
 @dataclass(frozen=True)
 class Backend:
     name: str
     client: AsyncOpenAI
-    client_x: httpx.AsyncClient # for STT in base64 format (OpenRouter)
+    client_x: httpx.AsyncClient  # for STT in base64 format (OpenRouter)
     model: str
     stt_mode: str
     stt_model: str
     extra_body: dict | None = None
-
 
 
 class AIService:
@@ -44,14 +55,12 @@ class AIService:
         self.stt_backends = stt_backends
         self.stt_model = stt_model
 
-
     @staticmethod
     async def _with_failover(
-
-            backends: list[Backend],
-            op: str,
-            call: Callable[[Backend], Awaitable[T]],
-    ) -> T:
+        backends: list[Backend],
+        op: str,
+        call: Callable[[Backend], Awaitable[R]],
+    ) -> R:
         """Пробует провайдеров по очереди, пока кто-то не ответит.
 
         backends: упорядоченный список (первый основной, остальные резерв).
@@ -76,18 +85,22 @@ class AIService:
                 logger.log(
                     level.upper(),
                     "AI {op} failed on {name}: {err_type}: {err}",
-                    op=op, name=backend.name, err_type=type(exc).__name__, err=exc,
+                    op=op,
+                    name=backend.name,
+                    err_type=type(exc).__name__,
+                    err=exc,
                 )
                 continue
             if index > 0:
-                logger.warning("AI {op} served by FALLBACK {name}", op=op, name=backend.name)
+                logger.warning(
+                    "AI {op} served by FALLBACK {name}", op=op, name=backend.name
+                )
             else:
                 logger.info("AI {op} served by {name}", op=op, name=backend.name)
             return result
 
         assert last is not None
         raise last
-
 
     async def _transcribe(self, voice_bytes: bytes) -> str:
         async def _call(b: Backend) -> str:
@@ -122,9 +135,8 @@ class AIService:
 
         return await self._with_failover(self.stt_backends, "stt", _call)
 
-
     async def process_voice_message(
-            self, voice_bytes: bytes, locale: str, response_schema: Type[T]
+        self, voice_bytes: bytes, locale: str, response_schema: Type[T]
     ) -> T:
         user_text = await self._transcribe(voice_bytes)
         logger.info("Recognized voice: {text}", text=user_text)
@@ -133,7 +145,7 @@ class AIService:
         )
 
     async def process_receipt(
-            self, response_schema: Type[T], text: str, locale: str
+        self, response_schema: Type[T], text: str, locale: str
     ) -> T:
         schema_json = json.dumps(response_schema.model_json_schema())
 
@@ -223,12 +235,12 @@ class AIService:
         """
 
     async def analysis_financial(
-            self,
-            response_schema: Type[T],
-            summary_data: dict,
-            days: int,
-            actual_days: int,
-            locale: str,
+        self,
+        response_schema: Type[T],
+        summary_data: dict,
+        days: int,
+        actual_days: int,
+        locale: str,
     ) -> T:
         if not summary_data:
             raise ValueError("analysis_financial requires non-empty summary_data")
@@ -254,16 +266,22 @@ class AIService:
             message = completion.choices[0].message
             if message.refusal:
 
-                logger.error("Model refused structured analysis: {r}", r=message.refusal)
+                logger.error(
+                    "Model refused structured analysis: {r}", r=message.refusal
+                )
                 raise RuntimeError(f"Model refused response: {message.refusal}")
             if message.parsed is None:
-                raise ProviderResponseError("Provider returned unparsable structured data")
+                raise ProviderResponseError(
+                    "Provider returned unparsable structured data"
+                )
             return message.parsed
 
         try:
             return await self._with_failover(self.chat_backends, "analysis", _call)
         except openai.LengthFinishReasonError as exc:
-            logger.warning("Analysis truncated for schema {s}", s=response_schema.__name__)
+            logger.warning(
+                "Analysis truncated for schema {s}", s=response_schema.__name__
+            )
             raise TruncatedResponseError("Analysis response was truncated") from exc
 
     async def close(self) -> None:
@@ -272,10 +290,10 @@ class AIService:
         openai_clients = {id(b.client): b.client for b in backends}
         http_clients = {id(b.client_x): b.client_x for b in backends}
 
-        for c in openai_clients.values():
-            await c.close()
-        for c in http_clients.values():
-            await c.aclose()
+        for o_client in openai_clients.values():
+            await o_client.close()
+        for h_client in http_clients.values():
+            await h_client.aclose()
 
 
 def _make_backend(prefix: str, *, openrouter_extras: bool = False) -> Backend | None:
@@ -286,7 +304,6 @@ def _make_backend(prefix: str, *, openrouter_extras: bool = False) -> Backend | 
     name = os.environ.get(f"{prefix}_NAME", prefix.lower())
     stt_mode = os.environ[f"{prefix}_STT_MODE"]
 
-
     if stt_mode not in {"multipart", "base64_json"}:
         raise ValueError(f"{prefix}_STT_MODE must be 'multipart' or 'base64_json'")
 
@@ -294,11 +311,9 @@ def _make_backend(prefix: str, *, openrouter_extras: bool = False) -> Backend | 
         base_url=base_url,
         headers={
             "Authorization": f"Bearer {api_key}",
-
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         },
-
-        timeout=httpx.Timeout(60.0, connect=10.0)
+        timeout=httpx.Timeout(60.0, connect=10.0),
     )
 
     client = AsyncOpenAI(
@@ -313,28 +328,29 @@ def _make_backend(prefix: str, *, openrouter_extras: bool = False) -> Backend | 
         client_x=client_x,
         client=client,
         model=os.environ[f"{prefix}_MODEL"],
-        extra_body={"provider": {"require_parameters": True}} if openrouter_extras else None,
+        extra_body=(
+            {"provider": {"require_parameters": True}} if openrouter_extras else None
+        ),
         stt_mode=stt_mode,
-        stt_model=os.environ[f"{prefix}_STT_MODEL"]
-
+        stt_model=os.environ[f"{prefix}_STT_MODEL"],
     )
 
-def build_ai_service() -> AIService:
-    #os.environ["AI_PRIMARY_MODEL"] = "corrupted_smoke_test_key_123"
-    #os.environ["AI_PRIMARY_BASE_URL"] = "https://broken-provider-url-for-test.com"
 
-    primary = _make_backend("AI_PRIMARY", openrouter_extras="openrouter" in os.environ.get("AI_PRIMARY_BASE_URL", ""))
+def build_ai_service() -> AIService:
+    # os.environ["AI_PRIMARY_MODEL"] = "corrupted_smoke_test_key_123"
+    # os.environ["AI_PRIMARY_BASE_URL"] = "https://broken-provider-url-for-test.com"
+
+    primary = _make_backend(
+        "AI_PRIMARY",
+        openrouter_extras="openrouter" in os.environ.get("AI_PRIMARY_BASE_URL", ""),
+    )
     fallback = _make_backend("AI_FALLBACK")
 
     if primary is None:
         raise ValueError("AI_PRIMARY_API_KEY is not set")
 
     backends = [b for b in (primary, fallback) if b is not None]
-    return AIService(
-        chat_backends=backends,
-        stt_backends=backends
-
-    )
+    return AIService(chat_backends=backends, stt_backends=backends)
 
 
 ai_service = build_ai_service()

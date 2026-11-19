@@ -1,10 +1,10 @@
 import os
 
 import pytest
+from dotenv import load_dotenv
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool.impl import NullPool
-from dotenv import load_dotenv
 
 from core.db_base import Base
 

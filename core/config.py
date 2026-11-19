@@ -14,9 +14,7 @@ CSS_DIR = STATIC_DIR / "css"
 ALEMBIC_INI = BASE_DIR / "alembic.ini"
 db_url = os.getenv("DATABASE_URL_DOCKER")
 if db_url:
-    SYNC_URL_FOR_ALEMBIC = db_url.replace(
-        "postgresql+asyncpg://", "postgresql://"
-    )
+    SYNC_URL_FOR_ALEMBIC = db_url.replace("postgresql+asyncpg://", "postgresql://")
 else:
     "".replace("postgresql+asyncpg://", "postgresql://")
 
@@ -69,8 +67,3 @@ except KeyError:
     )
 
 ENGINE_KWARGS = dict(echo=False, pool_pre_ping=True, pool_recycle=1800, pool_timeout=10)
-
-
-
-
-

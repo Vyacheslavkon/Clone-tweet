@@ -17,6 +17,7 @@ class ProviderResponseError(openai.OpenAIError):
     provider failure—triggering a retry—rather than as a bug in our own code.
     """
 
+
 def is_failover_error(exc: BaseException) -> bool:
 
     if isinstance(exc, (openai.APIConnectionError, ProviderResponseError)):
@@ -29,8 +30,4 @@ def is_failover_error(exc: BaseException) -> bool:
         code = exc.response.status_code
         return code in FAILOVER_STATUS_CODES or code >= 500
 
-    if isinstance(exc, (httpx.TransportError, httpx.TimeoutException)):
-        return True
-
-    return False
-
+    return isinstance(exc, (httpx.TransportError, httpx.TimeoutException))

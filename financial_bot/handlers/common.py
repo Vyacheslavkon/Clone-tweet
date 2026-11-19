@@ -77,27 +77,13 @@ async def cancel_handler(
 @router.errors()
 async def global_error_handler(event: ErrorEvent) -> bool:
 
-    logger.exception("Global error caught")
+    exc = event.exception
 
-    original_event = event.update.event
-    user = getattr(original_event, "from_user", None)
-
-    if user is not None:
-        user_info = f"{html.bold(user.full_name)} (ID: {html.code(user.id)})"
-        user_link = f"tg://user?id={user.id}"
-    else:
-        user_info = "Unknown user"
-        user_link = None
-
-    error_text = str(event.exception)[:500]
-
-    admin_msg = (
-        f"❌ {html.bold('Critical error!')}\n\n"
-        f"👤 {html.bold('From:')} {user_info}\n"
-        f"🛠 {html.bold('Error:')} {html.code(type(event.exception).__name__)}\n"
-        f"📝 {html.bold('Details:')} {html.code(error_text)}\n\n"
-        f"🔗 <a href='{user_link}'>Go to user profile</a>"
-    )
+    if isinstance(exc, TelegramBadRequest) and "query is too old" in str(exc):
+        logger.warning(
+            "Stale callback ignored: update_id={uid}", uid=event.update.update_id
+        )
+        return True
 
     if isinstance(event.exception, TelegramForbiddenError):
         user_id: int | None = None
@@ -112,6 +98,31 @@ async def global_error_handler(event: ErrorEvent) -> bool:
         logger.warning("Bot was blocked by user (ID: {user_id})", user_id=user_id)
         return True
 
+    logger.exception("Global error caught")
+
+    original_event = event.update.event
+    user = getattr(original_event, "from_user", None)
+
+    if user is not None:
+        user_info = f"{html.bold(user.full_name)} (ID: {html.code(user.id)})"
+        profile_line = f"\n\n🔗 <a href='tg://user?id={user.id}'>Go to user profile</a>"
+        # user_link = f"tg://user?id={user.id}"
+    else:
+        user_info = "Unknown user"
+        # user_link = None
+        profile_line = ""
+
+    error_text = str(event.exception)[:500]
+
+    admin_msg = (
+        f"❌ {html.bold('Critical error!')}\n\n"
+        f"👤 {html.bold('From:')} {user_info}\n"
+        f"🛠 {html.bold('Error:')} {html.code(type(event.exception).__name__)}\n"
+        f"📝 {html.bold('Details:')} {html.code(error_text)}\n\n"
+        # f"🔗 <a href='{user_link}'>Go to user profile</a>"
+        f"{profile_line}"
+    )
+
     try:
         if event.update.bot is not None:
             await event.update.bot.send_message(
@@ -122,7 +133,7 @@ async def global_error_handler(event: ErrorEvent) -> bool:
 
     except TelegramAPIError as e:
         logger.error(
-            _("General Telegram API error when notifying admin: {error}", error=e)
+            "General Telegram API error when notifying admin: {error}", error=e
         )
 
     try:

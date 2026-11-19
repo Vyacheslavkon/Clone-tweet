@@ -6,7 +6,7 @@ import pytest
 import respx
 from pydantic import BaseModel
 
-from services.client import Backend, AIService
+from services.client import AIService, Backend
 
 PRIMARY = "https://primary.test/v1"
 FALLBACK = "https://fallback.test/v1"
@@ -14,15 +14,21 @@ AUDIO = b"fake-ogg-audio-bytes"
 
 
 SUMMARY = {
-    "days_period": 7, "total_amount": 100, "total_count": 1,
-    "categories": [], "top_items": [], "user_config": {"currency": "USD"},
+    "days_period": 7,
+    "total_amount": 100,
+    "total_count": 1,
+    "categories": [],
+    "top_items": [],
+    "user_config": {"currency": "USD"},
 }
 
 
 def make_backend(name: str, base: str, stt_mode: str) -> Backend:
     return Backend(
         name=name,
-        client=openai.AsyncOpenAI(api_key="test", base_url=base, max_retries=0, timeout=5),
+        client=openai.AsyncOpenAI(
+            api_key="test", base_url=base, max_retries=0, timeout=5
+        ),
         client_x=httpx.AsyncClient(
             base_url=base, headers={"Authorization": "Bearer test"}, timeout=5
         ),
@@ -33,16 +39,26 @@ def make_backend(name: str, base: str, stt_mode: str) -> Backend:
 
 
 def chat_ok(content: str = '{"ok": true}', finish: str = "stop") -> httpx.Response:
-    return httpx.Response(200, json={
-        "id": "x", "object": "chat.completion", "created": 1, "model": "m",
-        "choices": [{"index": 0, "finish_reason": finish,
-                     "message": {"role": "assistant", "content": content}}],
-    })
+    return httpx.Response(
+        200,
+        json={
+            "id": "x",
+            "object": "chat.completion",
+            "created": 1,
+            "model": "m",
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": finish,
+                    "message": {"role": "assistant", "content": content},
+                }
+            ],
+        },
+    )
 
 
 def chat_route(api, base: str):
     return api.post(f"{base}/chat/completions")
-
 
 
 class Tiny(BaseModel):
@@ -70,14 +86,13 @@ def api():
         yield router
 
 
-
 @pytest.fixture
 async def silent_server():
     release = asyncio.Event()
 
     async def handle(reader, writer):
-        await reader.read(65536)          # принять запрос
-        await release.wait()              # и молчать до конца теста
+        await reader.read(65536)
+        await release.wait()
         writer.close()
 
     server = await asyncio.start_server(handle, "127.0.0.1", 0)

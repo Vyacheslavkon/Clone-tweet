@@ -1,16 +1,20 @@
 import os
 
 from celery import Celery
+from celery.signals import setup_logging as celery_setup_logging
+from celery.signals import (
+    worker_process_init,
+    worker_shutdown,
+)
 from dotenv import load_dotenv
 from loguru import logger as log
-from celery.signals import setup_logging as celery_setup_logging, worker_process_init, worker_shutdown
 
 from core.db_worker import close_worker_db_engine
 from financial_bot.highload_bot import close_shared_bot
 from logger_config import setup_logging
 from services.analysis_cache import close_worker_cache
+from services.client import ai_service  # new
 from services.worker_loop import close_worker_loop, get_worker_loop
-from services.client import ai_service # new
 
 load_dotenv()
 
@@ -33,12 +37,10 @@ app.conf.update(
 )
 
 
-
-
-
 @celery_setup_logging.connect
 def _celery_logging(**kwargs):
     setup_logging()
+
 
 @worker_process_init.connect
 def _child_logging(**kwargs):

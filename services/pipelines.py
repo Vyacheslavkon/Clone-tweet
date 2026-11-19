@@ -141,7 +141,6 @@ async def process_analysis_financial(
             )
             return
 
-
         try:
             cache_service = get_worker_cache_service()
             await cache_service.set_analysis_cache(user.id, days, analysis_result)

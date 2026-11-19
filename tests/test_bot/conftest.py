@@ -29,7 +29,7 @@ from financial_bot.repositories import (
 from financial_bot.schemas import AddData, CreateUser
 from services.analysis_cache import FinancialCacheService
 from services.celery_app import app as celery_app
-from services.client import ai_service, AIService, Backend
+from services.client import AIService, Backend, ai_service
 from services.schemas import (
     MonthlyAnalysisResponse,
     ReceiptAnalysisSchema,
@@ -43,6 +43,7 @@ base_dir = current_file_path.parent.parent.parent
 locales_path = base_dir / "financial_bot" / "locales"
 
 REQ = httpx.Request("POST", "https://example.test/v1")
+
 
 @pytest.fixture(autouse=True, scope="session")
 def _configure_test_logging():
@@ -553,14 +554,19 @@ summary_data = {
 
 def backend(name: str) -> Backend:
 
-    return Backend(name=name, client=AsyncMock(), model="m",
-                   client_x=AsyncMock, stt_model="x", stt_mode="f")
+    return Backend(
+        name=name,
+        client=AsyncMock(),
+        model="m",
+        client_x=AsyncMock(),
+        stt_model="x",
+        stt_mode="f",
+    )
 
 
 @pytest.fixture
 def service():
     return AIService([backend("primary"), backend("fallback")], [backend("stt")])
-
 
 
 @pytest.fixture
@@ -570,7 +576,7 @@ def status_error():
         cls = {
             400: openai.BadRequestError,
             429: openai.RateLimitError,
-            401: openai.AuthenticationError
+            401: openai.AuthenticationError,
         }.get(code, openai.APIStatusError)
         return cls("err", response=resp, body=None)
 

@@ -15,6 +15,7 @@ WEBHOOK_BASE_URL = os.environ["WEBHOOK_BASE_URL"]
 WEBHOOK_PATH = os.environ["WEBHOOK_PATH"]
 WEBHOOK_SECRET = os.environ["WEBHOOK_SECRET"]
 
+
 async def register_webhook(bot, url: str, secret: str) -> None:
     delay = 2
     while True:
@@ -109,7 +110,6 @@ async def telegram_webhook(
         )
 
     return {"ok": True}
-
 
 
 @app.get("/health")

@@ -14,6 +14,7 @@ retention = os.getenv("LOG_RETENTION", "7 days")
 log_filename = os.getenv("LOG_FILENAME", "app.log")
 is_dev = os.getenv("APP_ENV", "dev") == "dev"
 
+
 def info_only_filter(record):
 
     return record["level"].no < 40
@@ -28,7 +29,9 @@ class InterceptHandler(logging.Handler):
         frame, depth = logging.currentframe(), 2
         while frame and frame.f_code.co_filename == logging.__file__:
             frame, depth = frame.f_back, depth + 1
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
 
 
 def setup_logging():
@@ -56,7 +59,7 @@ def setup_logging():
         compression="zip",
         enqueue=True,
         backtrace=True,
-        diagnose=False
+        diagnose=False,
     )
 
     logger.add(
@@ -71,7 +74,6 @@ def setup_logging():
         diagnose=False,
         serialize=True,
     )
-
 
     logger.configure(extra={"component": "app"})
 
