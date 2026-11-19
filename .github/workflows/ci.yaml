@@ -12,7 +12,7 @@ jobs:
           POSTGRES_DB: test_db
           POSTGRES_PASSWORD: password
           POSTGRES_USER: postgres
-          AI_PRIMARY_API_KEY: test-dummy-key
+
         ports:
           - 5432:5432
 
@@ -68,6 +68,7 @@ jobs:
           BOT_TOKEN: 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ
           OPENAI_BASE_URL: fake_test_url_for_ci
           ANALYSIS_CACHE_REDIS: redis://localhost:6379/0
+          AI_PRIMARY_API_KEY: test-dummy-key
         run: |
           mkdir -p media
           pytest tests/test_bot/
