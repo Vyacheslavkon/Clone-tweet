@@ -12,6 +12,7 @@ jobs:
           POSTGRES_DB: test_db
           POSTGRES_PASSWORD: password
           POSTGRES_USER: postgres
+          AI_PRIMARY_API_KEY: test-dummy-key
         ports:
           - 5432:5432
 
