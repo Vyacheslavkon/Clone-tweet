@@ -1,7 +1,11 @@
 import os
 
 from celery import Celery
-from celery.signals import after_setup_logger, worker_shutdown
+from celery.signals import setup_logging as celery_setup_logging
+from celery.signals import (
+    worker_process_init,
+    worker_shutdown,
+)
 from dotenv import load_dotenv
 from loguru import logger as log
 
@@ -9,6 +13,7 @@ from core.db_worker import close_worker_db_engine
 from financial_bot.highload_bot import close_shared_bot
 from logger_config import setup_logging
 from services.analysis_cache import close_worker_cache
+from services.client import ai_service  # new
 from services.worker_loop import close_worker_loop, get_worker_loop
 
 load_dotenv()
@@ -32,8 +37,13 @@ app.conf.update(
 )
 
 
-@after_setup_logger.connect
-def setup_celery_logger(logger, *args, **kwargs) -> None:
+@celery_setup_logging.connect
+def _celery_logging(**kwargs):
+    setup_logging()
+
+
+@worker_process_init.connect
+def _child_logging(**kwargs):
     setup_logging()
 
 
@@ -45,6 +55,7 @@ def on_worker_shutdown(**kwargs) -> None:
         ("Redis cache", close_worker_cache),
         ("DB engine", close_worker_db_engine),
         ("Shared bot session", close_shared_bot),
+        ("AI clients", ai_service.close),
     ]:
         try:
             loop.run_until_complete(cleanup_coro_factory())

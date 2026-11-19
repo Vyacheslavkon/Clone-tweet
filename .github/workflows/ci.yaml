@@ -12,6 +12,7 @@ jobs:
           POSTGRES_DB: test_db
           POSTGRES_PASSWORD: password
           POSTGRES_USER: postgres
+
         ports:
           - 5432:5432
 
@@ -67,6 +68,21 @@ jobs:
           BOT_TOKEN: 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ
           OPENAI_BASE_URL: fake_test_url_for_ci
           ANALYSIS_CACHE_REDIS: redis://localhost:6379/0
+          AI_PRIMARY_NAME: openrouter
+          AI_PRIMARY_API_KEY: test-primary-key
+          AI_PRIMARY_BASE_URL: https://example.com
+          AI_PRIMARY_MODEL: gpt-4o-mini
+          AI_PRIMARY_STT_MODE: multipart
+          AI_PRIMARY_STT_MODEL: whisper-1
+
+          AI_FALLBACK_NAME: proxyapi
+          AI_FALLBACK_API_KEY: test-fallback-key
+          AI_FALLBACK_BASE_URL: https://example.com
+          AI_FALLBACK_MODEL: gpt-4o-mini
+          AI_FALLBACK_STT_MODE: multipart
+          AI_FALLBACK_STT_MODEL: whisper-1
+
+          AI_STT_PROVIDER: fallback
         run: |
           mkdir -p media
           pytest tests/test_bot/

@@ -1,11 +1,14 @@
 import os
 
 import pytest
+from dotenv import load_dotenv
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool.impl import NullPool
 
 from core.db_base import Base
+
+load_dotenv(".env.test", override=True)
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 if TEST_DATABASE_URL is None:
