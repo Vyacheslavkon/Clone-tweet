@@ -69,6 +69,7 @@ jobs:
           OPENAI_BASE_URL: fake_test_url_for_ci
           ANALYSIS_CACHE_REDIS: redis://localhost:6379/0
           AI_PRIMARY_API_KEY: test-dummy-key
+          AI_PRIMARY_BASE_URL: test-dummy-base-url
         run: |
           mkdir -p media
           pytest tests/test_bot/
