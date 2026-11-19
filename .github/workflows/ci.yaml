@@ -70,6 +70,7 @@ jobs:
           ANALYSIS_CACHE_REDIS: redis://localhost:6379/0
           AI_PRIMARY_API_KEY: test-dummy-key
           AI_PRIMARY_BASE_URL: test-dummy-base-url
+          AI_PRIMARY_STT_MODE: test-dummy-stt-model
         run: |
           mkdir -p media
           pytest tests/test_bot/
